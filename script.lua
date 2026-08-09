@@ -1,4 +1,4 @@
--- Gabrieltod112's Doors :3  (FULL FIXED + Screech Delete + FOV + Third Person Keybind)
+-- Gabrieltod112's Doors :3  (FULL FIXED + Screech Delete + FOV + Third Person + Delete Halt + Anti Eyes)
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
@@ -12,6 +12,67 @@ local char = plr.Character or plr.CharacterAdded:Wait()
 plr.CharacterAdded:Connect(function(newChar)
     char = newChar
 end)
+
+-- ==========================================
+-- CONSOLE ASCII ART
+-- ==========================================
+print([[
+%%%%%%%%%%%%%%##=+%%%%%@@@@@@@@@@@@%%#%@@@@%%%%#%*==%%#%%%%@@@@@@@@%#%%#%@@@@@@@@@%%%%###%%%%%%%%%%%
+%*%%%%%%%%%%####%%%%###%#%@@@@@@@@@@@%@@@@%%%%%%+-.:*%%%%%%@@@##%#%@@@@%@@%%@@@@@@%%%%%%###*+=*%%%%%
+%%%%%*%%%%###%%%%%%%%@##%@@@@@@@@%#@@@@@@@%%%%%+:...=%%%%%**@@@@@%%@%@@@@@@@@@@@@%%%%%%#+=:...*%%%%%
+%%%%%%%%%#+*##%#+%%%%%@%%@@%%@@@@@%##@@@@@%#%#+:....:+%%%%#%@@@@@@@@@@@@@@@@@@@@%%%#*=-.......*%%%%%
+%%%%%%%##*++%%%%%%%%%%%%@%+:.+%@@@@@@@@@@@@%#=.......:*%%%%@@@@@@@@@@@@@@@@@@@@%*+-:..........+#%%%%
+%%%%%%##%%%%%%%%%#*#%%%#=.-*:-%##@@%*#%@@%%#=.........-*%%@@@@@@@@@@@@@@@@@@%*=-..............=##%%%
+%%%%##%*+.-#%%%%%%%%%*:.+#*#=:#@@@@@@@@@@%*=...........=%%@@%%@@@@@@@@@@@%#+-.........:..==...-*%%%%
+%%%####=.++.=#%%%%%%#.-#%%%%*.*@@@%#%%*%%#=............:+%%@@@@@@@@@@@%#+-..........::.:+==....=####
+%%##%%*.*%%#:.*%%%%%%#-.*%%%#:=*#%%%%%%%#+:..............*%%%%%%@@@%#+-...........::::+=--=....:+%##
+%#####.-%%#%%*:.*#+%%*%*.:#%%-:%%%%%%%%#=:...............:+#%%%%%%*=...............:=+----=:...:=#%#
+%%%%%+.#%%%%%%%*.:*%%%*##=.*%+.*%%%%%%%+:.......::.........-*%%%*=................-+------=:...:-*%%
+%%%%%:-%%%%%%#*%%*..*%%%%%*.=*:=%%%%%%+:....::-=++=-:....:::-=**-...............:+=-------=:...::*%%
+%%%%#.+@%##%%%%%%%%*:.++#%#*::=:#%%%%*-:::=+=:................:=...............-+---------=-...::+@@
+%%%@*.*@@@%%%%%%%%%%%*:.+###+-..*%%%*-:=+==-:................................:+=----------==...::+@@
+%%@@*.*%@@@@%%%%%%%%%%#*::*%%%+.=%%#=::::::=:................................=-------------+...::+@@
+@@@@#.+###########%%%##%%*::#%%:-%#=:::::=:.................................-=-------------+...::*@@
+@@@#%+----------::...::-==+=.-#%%%+::..-=:....................................:=+=---------=...::*@@
+@@@@@@@@@@@%#%%@%%%%%####*+-:.=%%#-:::=--=:.......................................:-=-----==...:-*@@
+@@@@@@@@@@@@@@@%%%%%%%%%%%%%%%%%%+:::++=+::........................................=------==...:=#@@
+@@@@@@@@@%%@%%%%%%%%%%%@@%%%%%%%%+::--:=-.........................................==------=-...:+%@@
+%@@@@@@@#+*#%%%%%%%%%%@@%%@@@%%%#=.::::=............................................-+=---=:.::-*@@@
+@%*%@@@@@@%+=:=+*%%%%%@@@@@@@@@@#-....=:..............................................:=-=-..::+%@@@
+@@@@@%%@@@@@%+-..:=+%%@@@@@@@%%@#:...:+:.............................................-=-=:..::=#%@@@
+%%%@@%%@@@@@@%+:....:+#@@@**%%=:--...-+...=-+==:..............:==-+++++-..............-=:..::+#%%@@@
+%%%%%%%%%%%%%%#=......-+%@%=:+*=.....-=.=:.:++++=............=:..-++++++-..................:+%%%%%%%
+%%%%%%%%%%%%%%#=........=*%#::-+=....-=::..=+++++................-++++++=................:=+*++++*%%
+%%%%%%%%%%%%%%#=.........:+*-:::=+:=::+:...++++++:...............-+++++++...............:::=-:=*%%%%
+%%%%%%%%%%%%%%*-...........-=::::-++===-...++++++:...............-++++++=...........-:::-===-=#%%%%%
+%%%%%%%%%%%%%%+:.............::::::+:.:=...++++++:...............=++++++=............:::.::++#%%%%%%
+%%%%%%%%%%%%%+-:...............::::-+::=...-++++=................:++++++:................:-*%%%%%%%%
+%%%%%%%%%%%%#=:...............-++=+=-::=:....:-:...................::..................::=*%%%%%%%%%
+%%%@@@@@@@@%=::...::...........:=......=-.............................................:=+%@%%%@@@%%%
+@@@@@@@@@@%+-:=-.....--....=+===++:....=-....:-===-.....................................:---=%@@@%%%
+@@@@@@@@@@*--=::+-:..-++:+--+==+=.=-:::+.......=:.......................................:::=#@%%%%%%
+@@@@@@@@@#=:-::=:......=+:+-.....=:=+=-=..............................................:::-+%@%%%%%%%
+@@@@@@@@%=::=::+:..::::-+==::....:==+=::=:..........................................:::-+#%%%%%%%%%%
+@@@@@@@%+:::-=:+------::++---::::-=+###***=:::..................................:::::=+*##**#%%%%%%%
+@@@@@@%*+=:-=+-:+-:::::-++::-----==*########*=-:::::..:===-===:.........::::::::::-+*##########%%%%@
+@@@@@@*=..=...==-=:..:--=:=:::::==+++++*#######*+=-:::::::::::::::::-:..:=-::--=+*############%%%%@@
+@@@@@%+:.==....-+::==-.....====-:+=...-++##########***++++++++++****+--:::=+##################%@@@@@
+@@@@%+:..==-:::-+=.............:+=:....=+*###############%%%############******################%@@@@@
+@@@@*+:..-=:::::==....:-====-:..+------==+#######*####%%########################################%@@@
+@@@#=:+:..=-:::=-..:==.......:+:-=::::-==*#***#####%###********#################%%%%#:+%%%%####+-#%@
+%%%+::-=:..-++:..::+:..........=-:++++--+%##****######*********##############%######+=:*#####%-+:*#%
+%%*-::.:+::......-+:..::::::::::==....-+##%##****#########################%%###*****==*:--+++:*#:*#%
+%#=:::...=-:....:+--::::--------:=:..=*####%###*****###################%%####*******=+**##########%%
+#+-:::....:-:...-=------------:::--.=#######%%###*****##############%%#######****+*==+*-*****==*%%%%
+#+::::.....:-:..:+-::::::::::...:=-+%####**###%%################%%##############**====****++*###%%%@
+#=::::......--:..=-:::::-=:-=====-+#%####*****###%%%######%%%#############%%#####***+:---=====*#%%%@
+#-::::.......--:::==--==:-=:-=:::+##%#####*******#########################%#-+-+##*#+=*#########%%%%
+%=:::::.......-=:.::::.....:+-:.-*##%#########**************+++****#######%++##==###+=#*#*##*###%%%%
+%+-:::::.......:-...........=::.:+##%##########**+-:..:::::........:-=+*####+=**=*##=+###**####%%%%%
+%%+:::::::.....--.........:=-....:=+########*+===..:+=:...:-===............::-+#*-*#-*#########%%%%%
+%%%+-:::::::::-=:..................:++######+-:+..:+:...:==:................:::+#===+#########%%%%%%
+%%%%*=:::::::::=:.................::+*######*-:=:::+...:=-....................:-*############%%%%%%%
+]])
 
 local Window = Rayfield:CreateWindow({
     Name = "Gabrieltod112's Doors",
@@ -34,6 +95,8 @@ local flags = {
     espsnare = false, espfuse = false, espgenerator = false, espanchor = false,
     espgrumble = false, espqueen = false, speedEnabled = false,
     deleteScreech = false,
+    deleteHalt = false,
+    antiEyes = false,
 }
 
 local goldespvalue = 0
@@ -55,7 +118,6 @@ local entitynames = {
     "HaltMoving", "Eyes", "A-60", "A60", "A-120", "A120",
 }
 
--- Better marker so we never re-ESP the same object
 local function hasESP(obj)
     if not obj then return true end
     return obj:GetAttribute("_KuromiESP") == true
@@ -137,22 +199,24 @@ local function esp(target, color, labelPart, labelText)
 end
 
 -------------------------------------------------
--- DOOR ESP
+-- DOOR ESP (reliable)
 -------------------------------------------------
-local doorTransparencyBackup, doorTextRefs = {}, {}
+local doorESPHandles = {}
 
-local function removeAllDoorESP()
-    for door, _ in pairs(doorTransparencyBackup) do
+local function clearDoorESP()
+    for door, handle in pairs(doorESPHandles) do
+        if handle and handle.delete then
+            pcall(handle.delete)
+        end
         if door and door.Parent then
+            clearMark(door)
             local h = door:FindFirstChild("_KuromiESP_H")
             if h then h:Destroy() end
             local bb = door:FindFirstChild("_KuromiESP_BB")
             if bb then bb:Destroy() end
-            clearMark(door)
         end
     end
-    table.clear(doorTransparencyBackup)
-    table.clear(doorTextRefs)
+    table.clear(doorESPHandles)
 end
 
 task.spawn(function()
@@ -162,8 +226,7 @@ task.spawn(function()
             if rooms then
                 for _, room in pairs(rooms:GetChildren()) do
                     local door = room:FindFirstChild("Door") or room:FindFirstChild("RoomExit")
-                    if door and not hasESP(door) then
-                        doorTransparencyBackup[door] = true
+                    if door and not hasESP(door) and not doorESPHandles[door] then
                         markESP(door)
 
                         local h = Instance.new("Highlight")
@@ -176,10 +239,11 @@ task.spawn(function()
                         h.Parent = door
 
                         local roomNum = tonumber(room.Name)
-                        if roomNum and not doorTextRefs[door] then
+                        local bb = nil
+                        if roomNum then
                             local adornee = door.PrimaryPart or door:FindFirstChildWhichIsA("BasePart")
                             if adornee then
-                                local bb = Instance.new("BillboardGui")
+                                bb = Instance.new("BillboardGui")
                                 bb.Name = "_KuromiESP_BB"
                                 bb.Adornee = adornee
                                 bb.Size = UDim2.fromScale(4, 2)
@@ -194,14 +258,22 @@ task.spawn(function()
                                 lbl.Font = Enum.Font.GothamBold
                                 lbl.Parent = bb
                                 bb.Parent = door
-                                doorTextRefs[door] = bb
                             end
                         end
+
+                        local handle = {
+                            delete = function()
+                                if h and h.Parent then h:Destroy() end
+                                if bb and bb.Parent then bb:Destroy() end
+                                clearMark(door)
+                            end
+                        }
+                        doorESPHandles[door] = handle
                     end
                 end
             end
         else
-            removeAllDoorESP()
+            clearDoorESP()
         end
         task.wait(doorScanInterval)
     end
@@ -213,12 +285,12 @@ ESPTab:CreateToggle({
     Flag = "esp_door",
     Callback = function(v)
         flags.doorESP = v
-        if not v then removeAllDoorESP() end
+        if not v then clearDoorESP() end
     end
 })
 
 -------------------------------------------------
--- SHARED HEAVY SCANNER (Figure fixed)
+-- SHARED HEAVY SCANNER
 -------------------------------------------------
 task.spawn(function()
     while true do
@@ -228,7 +300,6 @@ task.spawn(function()
         if anyHeavy then
             local rooms = Workspace:FindFirstChild("CurrentRooms")
 
-            -- ========== FIGURE (FIXED) ==========
             if flags.espfigure then
                 local function tryFigure(v)
                     if not v or not v:IsA("Model") or hasESP(v) then return end
@@ -249,7 +320,6 @@ task.spawn(function()
                     end
                 end
 
-                -- Rooms 50 / 100 (classic)
                 if rooms then
                     for _, room in pairs(rooms:GetChildren()) do
                         if room.Name == "50" or room.Name == "100" then
@@ -264,7 +334,6 @@ task.spawn(function()
                     end
                 end
 
-                -- Anywhere in Workspace (Mines + moving Figure)
                 for _, v in pairs(Workspace:GetDescendants()) do
                     if v:IsA("Model") then
                         tryFigure(v)
@@ -272,7 +341,6 @@ task.spawn(function()
                 end
             end
 
-            -- ========== KEYS / SNARES / FUSES / GENERATORS / ANCHORS ==========
             if rooms then
                 for _, room in pairs(rooms:GetChildren()) do
                     for _, v in pairs(room:GetDescendants()) do
@@ -338,7 +406,6 @@ task.spawn(function()
                 end
             end
 
-            -- ========== GRUMBLES / QUEEN ==========
             if flags.espgrumble or flags.espqueen then
                 local function tryGrumble(v)
                     if not v:IsA("Model") or hasESP(v) then return end
@@ -413,8 +480,6 @@ makeHeavyToggle("ESP Figure (Figure)", "espfigure", "figure")
 -------------------------------------------------
 -- EVENT-BASED ESPs
 -------------------------------------------------
-
--- Items
 ESPTab:CreateToggle({
     Name = "ESP Items",
     CurrentValue = false,
@@ -457,7 +522,6 @@ ESPTab:CreateToggle({
     end
 })
 
--- Breakers / Books
 ESPTab:CreateToggle({
     Name = "ESP Breakers/Books",
     CurrentValue = false,
@@ -498,7 +562,6 @@ ESPTab:CreateToggle({
     end
 })
 
--- Entities
 ESPTab:CreateToggle({
     Name = "ESP Entities (Rush, Ambush..)",
     CurrentValue = false,
@@ -536,7 +599,6 @@ ESPTab:CreateToggle({
     end
 })
 
--- Closets / Lockers
 ESPTab:CreateToggle({
     Name = "ESP Closets/Lockers",
     CurrentValue = false,
@@ -613,7 +675,6 @@ ESPTab:CreateToggle({
     end
 })
 
--- Chests
 ESPTab:CreateToggle({
     Name = "ESP Chests",
     CurrentValue = false,
@@ -657,7 +718,6 @@ ESPTab:CreateToggle({
     end
 })
 
--- Gold
 ESPTab:CreateToggle({
     Name = "ESP Goldpiles",
     CurrentValue = false,
@@ -709,7 +769,6 @@ ESPTab:CreateToggle({
     end
 })
 
--- Players
 ESPTab:CreateToggle({
     Name = "ESP Players",
     CurrentValue = false,
@@ -745,32 +804,57 @@ ESPTab:CreateToggle({
 -------------------------------------------------
 -- MISC
 -------------------------------------------------
+-------------------------------------------------
+-- SPEED (CFrame method - WalkSpeed stays 16)
+-------------------------------------------------
 MiscTab:CreateToggle({
     Name = "Enable Custom Speed",
     CurrentValue = false,
     Flag = "misc_speed_toggle",
-    Callback = function(Value) flags.speedEnabled = Value end
+    Callback = function(Value)
+        flags.speedEnabled = Value
+        if not Value and plr.Character then
+            local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.WalkSpeed = 16
+            end
+        end
+    end
 })
 
 MiscTab:CreateSlider({
     Name = "Movement Speed",
-    Range = {1, 21.5},
+    Range = {1, 4.5},
     Increment = 0.5,
     Suffix = " Speed",
     CurrentValue = 16,
     Flag = "misc_speed",
-    Callback = function(value) currentSpeed = value end
+    Callback = function(value)
+        currentSpeed = value
+    end
 })
 
 task.spawn(function()
     while true do
+        local dt = task.wait() -- every frame
+
         if flags.speedEnabled and plr.Character then
             local hum = plr.Character:FindFirstChildOfClass("Humanoid")
-            if hum and hum.WalkSpeed ~= currentSpeed then
-                hum.WalkSpeed = currentSpeed
+            local root = plr.Character:FindFirstChild("HumanoidRootPart")
+
+            if hum and root then
+                -- Keep WalkSpeed normal so the server doesn't freak out
+                if hum.WalkSpeed ~= 16 then
+                    hum.WalkSpeed = 16
+                end
+
+                -- Move with CFrame instead
+                if hum.MoveDirection.Magnitude > 0.05 then
+                    local move = hum.MoveDirection * currentSpeed * dt
+                    root.CFrame = root.CFrame + Vector3.new(move.X, 0, move.Z)
+                end
             end
         end
-        task.wait(0.2)
     end
 end)
 
@@ -876,6 +960,94 @@ MiscTab:CreateToggle({
             nuke(child)
         end
         table.insert(screechConns, Workspace.ChildAdded:Connect(nuke))
+    end
+})
+
+-- ========== DELETE HALT (CLIENT) ==========
+local haltConns = {}
+
+MiscTab:CreateToggle({
+    Name = "Delete Halt (Client)",
+    CurrentValue = false,
+    Flag = "misc_deletehalt",
+    Callback = function(Value)
+        flags.deleteHalt = Value
+
+        for _, c in pairs(haltConns) do
+            if c then c:Disconnect() end
+        end
+        table.clear(haltConns)
+
+        if not Value then return end
+
+        local function nuke(obj)
+            if obj and (obj.Name == "Halt" or obj.Name == "HaltMoving" or obj.Name:find("Halt")) then
+                pcall(function() obj:Destroy() end)
+            end
+        end
+
+        for _, child in pairs(Workspace:GetChildren()) do
+            nuke(child)
+        end
+        table.insert(haltConns, Workspace.ChildAdded:Connect(nuke))
+
+        local rooms = Workspace:FindFirstChild("CurrentRooms")
+        if rooms then
+            for _, desc in pairs(rooms:GetDescendants()) do
+                nuke(desc)
+            end
+            table.insert(haltConns, rooms.DescendantAdded:Connect(nuke))
+        end
+    end
+})
+
+-- ========== ANTI EYES (IMPROVED - Eyes stays visible) ==========
+local eyesConns = {}
+local eyesLoop = nil
+
+MiscTab:CreateToggle({
+    Name = "Anti Eyes Damage",
+    CurrentValue = false,
+    Flag = "misc_antieyes",
+    Callback = function(Value)
+        flags.antiEyes = Value
+
+        for _, c in pairs(eyesConns) do
+            if c then c:Disconnect() end
+        end
+        table.clear(eyesConns)
+
+        if eyesLoop then
+            task.cancel(eyesLoop)
+            eyesLoop = nil
+        end
+
+        if not Value then return end
+
+        -- Soft continuous protection (does not destroy Eyes model)
+        eyesLoop = task.spawn(function()
+            while flags.antiEyes do
+                local character = plr.Character
+                if character then
+                    local hum = character:FindFirstChildOfClass("Humanoid")
+                    if hum and hum.Health < hum.MaxHealth * 0.95 then
+                        -- Gentle heal so it doesn't fight the server too hard
+                        hum.Health = math.min(hum.MaxHealth, hum.Health + 4)
+                    end
+                end
+                task.wait(0.12)
+            end
+        end)
+
+        table.insert(eyesConns, plr.CharacterAdded:Connect(function()
+            task.wait(1)
+            if flags.antiEyes then
+                local hum = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    hum.Health = hum.MaxHealth
+                end
+            end
+        end))
     end
 })
 
@@ -1093,7 +1265,6 @@ ConfigTab:CreateSlider({
     Callback = function(v) goldespvalue = v end
 })
 
--- ========== NEW: FOV SLIDER ==========
 ConfigTab:CreateSection("Camera")
 ConfigTab:CreateSlider({
     Name = "Field of View",
@@ -1107,7 +1278,6 @@ ConfigTab:CreateSlider({
     end
 })
 
--- Force FOV every frame (Doors constantly overrides it)
 RunService.RenderStepped:Connect(function()
     local cam = Workspace.CurrentCamera
     if cam then
@@ -1122,7 +1292,7 @@ InfoTab:CreateParagraph({
 InfoTab:CreateDivider()
 InfoTab:CreateParagraph({
     Title = "Last Updated",
-    Content = "Fixed Door ESP, Keys re-ESP spam, Entity scan on enable, Figure + Grumble (Grumbo) ESP + Delete Screech + FOV + Third Person"
+    Content = "Fixed Door ESP + Delete Screech + Delete Halt + Anti Eyes (Eyes stays visible) + FOV + Third Person"
 })
 InfoTab:CreateParagraph({
     Title = "Performance Tips",
@@ -1131,17 +1301,15 @@ InfoTab:CreateParagraph({
 
 -------------------------------------------------
 -- IMPROVED THIRD PERSON + KEYBINDS
--- Mouse look (up/down + left/right) + full character (head + accessories)
 -------------------------------------------------
 local thirdPersonEnabled = false
 local thirdPersonConn = nil
 local visibilityConn = nil
 
--- Camera angles
 local cameraYaw = 0
 local cameraPitch = 0
 local cameraSensitivity = 0.35
-local maxPitch = 80          -- degrees up/down limit
+local maxPitch = 80
 local cameraDistance = 10
 local cameraHeight = 2.5
 
@@ -1150,7 +1318,6 @@ local function setCharacterVisibility(character, visible)
 
     for _, obj in pairs(character:GetDescendants()) do
         if obj:IsA("BasePart") then
-            -- Head + accessory handles
             if obj.Name == "Head" or (obj.Parent and (obj.Parent:IsA("Accessory") or obj.Parent:IsA("Hat"))) then
                 if visible then
                     obj.LocalTransparencyModifier = 0
@@ -1159,7 +1326,6 @@ local function setCharacterVisibility(character, visible)
                 end
             end
         elseif obj:IsA("Decal") and obj.Parent and obj.Parent.Name == "Head" then
-            -- Face
             if visible then
                 obj.LocalTransparencyModifier = 0
             else
@@ -1177,7 +1343,6 @@ local function startVisibilityLoop(character)
 
     if not character then return end
 
-    -- Force visible every frame (Roblox keeps resetting LocalTransparencyModifier)
     visibilityConn = RunService.RenderStepped:Connect(function()
         if thirdPersonEnabled and character and character.Parent then
             setCharacterVisibility(character, true)
@@ -1207,18 +1372,15 @@ local function setThirdPerson(state)
     local character = plr.Character
 
     if state then
-        -- Take control
         cam.CameraType = Enum.CameraType.Scriptable
         UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
         UserInputService.MouseIconEnabled = false
 
-        -- Show full character
         if character then
             setCharacterVisibility(character, true)
             startVisibilityLoop(character)
         end
 
-        -- Reset angles based on current character facing
         if character then
             local root = character:FindFirstChild("HumanoidRootPart")
             if root then
@@ -1235,19 +1397,16 @@ local function setThirdPerson(state)
             local root = char:FindFirstChild("HumanoidRootPart")
             if not root then return end
 
-            -- Mouse look
             local delta = UserInputService:GetMouseDelta()
             cameraYaw = cameraYaw - delta.X * cameraSensitivity
             cameraPitch = math.clamp(cameraPitch - delta.Y * cameraSensitivity, -maxPitch, maxPitch)
 
-            -- Build rotation
             local rotation = CFrame.fromEulerAnglesYXZ(
                 math.rad(cameraPitch),
                 math.rad(cameraYaw),
                 0
             )
 
-            -- Position behind the player
             local targetPos = root.Position + Vector3.new(0, cameraHeight, 0)
             local camPos = targetPos + (rotation:VectorToWorldSpace(Vector3.new(0, 0, cameraDistance)))
 
@@ -1261,7 +1420,6 @@ local function setThirdPerson(state)
             Duration = 2
         })
     else
-        -- Give camera back
         cam.CameraType = Enum.CameraType.Custom
 
         if character then
@@ -1269,7 +1427,6 @@ local function setThirdPerson(state)
             if hum then
                 cam.CameraSubject = hum
             end
-            -- Hide head + accessories again
             setCharacterVisibility(character, false)
         end
 
@@ -1288,18 +1445,15 @@ local function setThirdPerson(state)
     end
 end
 
--- Re-apply on respawn
 plr.CharacterAdded:Connect(function(newChar)
     task.wait(1.2)
     if thirdPersonEnabled then
         setThirdPerson(true)
     else
-        -- Make sure first person still hides head
         setCharacterVisibility(newChar, false)
     end
 end)
 
--- Keybind V
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
     if input.KeyCode == Enum.KeyCode.V then
@@ -1307,7 +1461,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
--- Left side Keybinds menu
+-- Keybinds menu
 local keybindGui = Instance.new("ScreenGui")
 keybindGui.Name = "KeybindsMenu"
 keybindGui.ResetOnSpawn = false
