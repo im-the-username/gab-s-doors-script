@@ -1,7 +1,7 @@
 --[[
     ╔══════════════════════════════════════╗
     ║         Ms fent Hub | Doors          ║
-    ║  Full VibeInc/Abysall ESP + Features ║
+    ║   Fully integrated (VibeInc inlined) ║
     ╚══════════════════════════════════════╝
 ]]
 
@@ -11,12 +11,1697 @@ if getgenv().MsFentLoaded then
 end
 getgenv().MsFentLoaded = true
 
-local BaseUrl = "https://raw.githubusercontent.com/quins-max/VibeIncDoors/refs/heads/main/"
+-- ===== INTEGRATED: Environment =====
+local function __MsFent_Load_Environment()
+local Environment = {}
+local Log = {}
+local Tested = 0
+local Failed = 0
+local Passed = 0
 
+local BrokenFeatures = {
+	["Volcano"] = {"run_on_actor", "oth"},
+	["Delta"] = {"hookmetamethod"},
+	["Madium"] = {"gethiddenproperty"},
+	["Opiumware"] = {"gethiddenproperty"},
+	["Solara"] = {"require"},
+	["Xeno"] = {"require"},
+}
+
+local RootEnv = getfenv(0)
+
+local function GetGlobal(Path)
+	local Value = RootEnv
+	while Value ~= nil and Path ~= "" do
+		local Name, NextPath = string.match(Path, "^([^.]+)%.?(.*)$")
+		Value = Value[Name]
+		Path = NextPath
+	end
+	return Value
+end
+
+local Global = setmetatable({}, {
+	__index = function(Self, Name)
+		return GetGlobal(Name)
+	end,
+})
+
+local Services = setmetatable({}, {
+	__index = function(Self, Name)
+		return game:GetService(Name)
+	end,
+})
+
+local Results = {}
+
+local function AddResult(Name, Text, DidPass)
+	table.insert(Results, Text)
+	Log[Name] = {
+		Passed = DidPass,
+		Reason = Text,
+	}
+end
+
+Environment.Results = Results
+Environment.PrintResults = function()
+	local Executor = Environment.identifyexecutor and Environment.identifyexecutor() or "Unknown"
+	print("Test Result")
+	for _, Result in ipairs(Results) do
+		print(Result)
+		task.wait()
+	end
+	print("Executor - " .. Executor)
+	print("Tests Passed: " .. Passed .. "/" .. Tested)
+	print("Test Score: " .. math.floor((Passed / Tested) * 100 + 0.5) .. "%")
+end
+
+local function RunTest(Name, Test, InternalName)
+	local TimedOut = false
+	Tested = Tested + 1
+
+	local ExecutorName = Global.identifyexecutor and Global.identifyexecutor() or "Unknown"
+	local BrokenList = BrokenFeatures[ExecutorName]
+	if BrokenList and table.find(BrokenList, Name) then
+		AddResult(Name, "❌ " .. Name .. " failed: test has been skipped", false)
+		Failed = Failed + 1
+		return
+	end
+
+	local TargetGlobal = Global[Name]
+	if not TargetGlobal then
+		AddResult(Name, "❌ " .. Name .. " failed: function is nil", false)
+		Failed = Failed + 1
+		return
+	end
+
+	local Time = 0
+	local Finished = false
+
+	task.spawn(function()
+		local Success, Result = pcall(Test)
+		if not TimedOut then
+			if Success then
+				local Key = InternalName or Name
+				Environment[Key] = TargetGlobal
+				AddResult(Name, "✅ " .. Name, true)
+				Passed = Passed + 1
+			else
+				AddResult(Name, "❌ " .. Name .. " failed: " .. tostring(Result), false)
+				Failed = Failed + 1
+			end
+		end
+		Finished = true
+	end)
+
+	while not Finished do
+		Time = Time + 1
+		if Time > 100 then
+			AddResult(Name, "❌ " .. Name .. " failed: test timed out", false)
+			Failed = Failed + 1
+			TimedOut = true
+			break
+		end
+		task.wait(0.1)
+	end
+end
+
+RunTest("getgenv", function()
+	assert(typeof(Global.getgenv()) == "table", "Did not return a table")
+	Global.getgenv().Example = "Test"
+	assert(Example == "Test", "Failed to set a global variable")
+	Global.getgenv().Example = nil
+end)
+
+RunTest("getrenv", function()
+	assert(Environment.getgenv, "getgenv is required to test")
+	local Env = Global.getrenv()
+	assert(typeof(Env) == "table", "Did not return a table")
+	assert(typeof(Env.print) == "function", "Did not return an environment table")
+	assert(Global.getrenv ~= Global.getgenv, "getrenv is an alias of getgenv")
+	assert(Global.getgenv() ~= Global.getrenv(), "Returned executor environment")
+	local Success = pcall(function()
+		return Env.loadstring([[return 10]])()
+	end)
+	assert(Success == false, "Should error when calling loadstring from roblox environment")
+end)
+
+RunTest("getgc", function()
+	local TestFunction = function()
+		return 10
+	end
+	local TestTable = { Value = 10 }
+	local YesTables = Global.getgc(true)
+	local NoTables = Global.getgc(false)
+	assert(table.find(YesTables, TestTable), "Failed to find a table")
+	assert(table.find(YesTables, TestFunction), "Failed to find a function")
+	assert(not table.find(NoTables, TestTable), "Should not return a table when called with false")
+	assert(table.find(NoTables, TestFunction), "Failed to find a function")
+end)
+
+RunTest("identifyexecutor", function()
+	assert(typeof(Global.identifyexecutor()) == "string", "Did not return a string")
+end)
+
+RunTest("request", function()
+	local Response = Global.request({
+		Url = "https://raw.githubusercontent.com/quins-max/VibeIncDoors/refs/heads/main/Components/Environment.luau",
+		Method = "GET",
+	})
+	assert(Response.StatusCode == 200, "Status code should be 200")
+	assert(typeof(Response.Body) == "string", "Body should be a string")
+end)
+
+RunTest("cloneref", function()
+	local TestPart = Instance.new("Part")
+	local Clone = Global.cloneref(TestPart)
+	assert(typeof(Clone) == "Instance", "Should return an Instance")
+	assert(TestPart ~= Clone, "Clone should not be equal to original")
+	TestPart.Name = "Test"
+	assert(Clone.Name == "Test", "Changing the original did not change the clone")
+	TestPart:Destroy()
+end)
+
+RunTest("gethui", function()
+	local Hui = Global.gethui()
+	assert(typeof(Hui) == "Instance", "Should return an instance")
+	local ValidClasses = { "ScreenGui", "Folder", "BasePlayerGui", "CoreGui" }
+	if not Hui:IsDescendantOf(Services.CoreGui) and Hui.ClassName ~= "CoreGui" or not table.find(ValidClasses, Hui.ClassName) then
+		error("Did not return a valid gui container")
+	end
+end)
+
+RunTest("getcallbackvalue", function()
+	local TestBindable = Instance.new("BindableFunction")
+	TestBindable.OnInvoke = function(Value)
+		return Value * 10
+	end
+	local Callback = Global.getcallbackvalue(TestBindable, "OnInvoke")
+	local Success, Result = pcall(function()
+		assert(typeof(Callback) == "function", "Did not return a function")
+		assert(Callback(5) == 50, "Did not return the callback value")
+	end)
+	TestBindable:Destroy()
+	assert(Success, Result)
+end)
+
+RunTest("getinstances", function()
+	local TestPart1 = Instance.new("Part")
+	local TestPart2 = Instance.new("Part", Services.Workspace)
+	local InstanceList = Global.getinstances()
+	local Found1 = table.find(InstanceList, TestPart1)
+	local Found2 = table.find(InstanceList, TestPart2)
+	TestPart1:Destroy()
+	TestPart2:Destroy()
+	assert(Found2, "Did not return an instance")
+	assert(Found1, "Did not return an instance parented to nil")
+end)
+
+RunTest("getnilinstances", function()
+	local TestPart1 = Instance.new("Part")
+	local TestPart2 = Instance.new("Part", Services.Workspace)
+	local InstanceList = Global.getnilinstances()
+	local FoundNil = table.find(InstanceList, TestPart1)
+	local FoundParented = table.find(InstanceList, TestPart2)
+	TestPart1:Destroy()
+	TestPart2:Destroy()
+	assert(not FoundParented, "Returned an instance not parented to nil")
+	assert(FoundNil, "Did not return an instance parented to nil")
+end)
+
+RunTest("fireproximityprompt", function()
+	local TestPart = Instance.new("Part", Services.Workspace)
+	local TestPrompt = Instance.new("ProximityPrompt", TestPart)
+	local Fired = false
+	local Connection = TestPrompt.Triggered:Connect(function()
+		Fired = true
+	end)
+	Global.fireproximityprompt(TestPrompt)
+	local Tries = 0
+	while not Fired and Tries < 10 do
+		Tries = Tries + 1
+		task.wait(0.1)
+	end
+	Connection:Disconnect()
+	TestPart:Destroy()
+	assert(Fired == true, "Failed to fire a proximity prompt")
+end)
+
+RunTest("fireclickdetector", function()
+	local TestPart = Instance.new("Part", Services.Workspace)
+	local TestClick = Instance.new("ClickDetector", TestPart)
+	local Fired = false
+	local Connection = TestClick.MouseClick:Connect(function()
+		Fired = true
+	end)
+	Global.fireclickdetector(TestClick)
+	local Tries = 0
+	while not Fired and Tries < 10 do
+		Tries = Tries + 1
+		task.wait(0.1)
+	end
+	Connection:Disconnect()
+	TestPart:Destroy()
+	assert(Fired == true, "Failed to fire a click detector")
+end)
+
+RunTest("firetouchinterest", function()
+	local TestPart1 = Instance.new("Part", Services.Workspace)
+	TestPart1.Position = Vector3.new(0, 1000, 0)
+	local TestPart2 = Instance.new("Part", Services.Workspace)
+	TestPart2.Position = Vector3.new(0, 1000, 0)
+	local Fired = false
+	local Connection = TestPart1.Touched:Connect(function(Child)
+		if Child == TestPart2 then
+			Fired = true
+		end
+	end)
+	Global.firetouchinterest(TestPart1, TestPart2, 0)
+	task.wait()
+	Global.firetouchinterest(TestPart1, TestPart2, 1)
+	local Tries = 0
+	while not Fired and Tries < 10 do
+		Tries = Tries + 1
+		task.wait(0.1)
+	end
+	Connection:Disconnect()
+	TestPart1:Destroy()
+	TestPart2:Destroy()
+	assert(Fired == true, "Failed to fire a touch interest")
+end)
+
+RunTest("clonefunction", function()
+	local TestFunction = function()
+		return 10
+	end
+	local TestClone = Global.clonefunction(TestFunction)
+	assert(TestFunction ~= TestClone, "Returned the original function")
+	assert(TestFunction() == TestClone(), "Clone did not return the same as the original")
+end)
+
+RunTest("newcclosure", function()
+	local TestFunction = function()
+		return 10
+	end
+	local TestC = Global.newcclosure(TestFunction)
+	assert(TestFunction ~= TestC, "Returned the original function")
+	assert(TestFunction() == TestC(), "Did not return the same value as the original")
+	assert(TestC() == 10, "Did not return the correct value")
+	assert(debug.info(TestC, "s") == "[C]", "Did not return a C function")
+end)
+
+RunTest("hookfunction", function()
+	local TestFunction = function()
+		return 10
+	end
+	local TestC = Global.newcclosure(function()
+		return 25
+	end)
+	local TestHook = function()
+		return 100
+	end
+	local Old = Global.hookfunction(TestFunction, TestHook)
+	local OldC = Global.hookfunction(TestC, TestHook)
+	assert(TestFunction ~= TestHook, "Original and hook are the same function")
+	assert(debug.info(TestC, "s") == "[C]", "Hooked C function is no longer in C")
+	assert(TestFunction() == 100, "Did not change the return value")
+	assert(Old() == 10, "Did not return the original function")
+	assert(OldC() == 25, "Did not return the original C function")
+end)
+
+RunTest("restorefunction", function()
+	assert(Environment.hookfunction, "hookfunction is required to test")
+	local TestFunction = function()
+		return 10
+	end
+	local TestHook = function()
+		return 100
+	end
+	Global.hookfunction(TestFunction, TestHook)
+	Global.restorefunction(TestFunction)
+	assert(TestFunction() == 10, "Failed to unhook a function")
+end)
+
+RunTest("isfunctionhooked", function()
+	assert(Environment.hookfunction, "hookfunction is required to test")
+	assert(Environment.restorefunction, "restorefunction is required to test")
+	local TestFunction = function()
+		return 10
+	end
+	local TestHook = function()
+		return 100
+	end
+	Global.hookfunction(TestFunction, TestHook)
+	assert(Global.isfunctionhooked(TestFunction) == true, "Did not return true for a hooked function")
+	Global.restorefunction(TestFunction)
+	assert(Global.isfunctionhooked(TestFunction) == false, "Did not return false for an unhooked function")
+end)
+
+RunTest("isexecutorclosure", function()
+	assert(Environment.newcclosure, "newcclosure is required to test")
+	local TestFunction = function()
+		return 10
+	end
+	local TestC = Global.newcclosure(TestFunction)
+	assert(Global.isexecutorclosure(TestFunction) == true, "Did not return true for an executor function")
+	assert(Global.isexecutorclosure(Global.newcclosure) == true, "Did not return true for an executor global")
+	assert(Global.isexecutorclosure(warn) == false, "Did not return false for a Roblox global")
+	assert(Global.isexecutorclosure(TestC) == true, "Did not return true for an executor C function")
+end)
+
+RunTest("getnamecallmethod", function()
+	pcall(function()
+		game:ExampleNamecall()
+	end)
+	assert(typeof(Global.getnamecallmethod()) == "string", "Did not return a string")
+	assert(Global.getnamecallmethod() == "ExampleNamecall", "Did not return the correct method")
+end)
+
+RunTest("hookmetamethod", function()
+	assert(Environment.getnamecallmethod, "getnamecallmethod is required to test")
+	assert(Environment.newcclosure, "newcclosure is required to test")
+	local TestTable = setmetatable({}, {
+		__index = Global.newcclosure(function()
+			return "normal"
+		end),
+	})
+	Global.hookmetamethod(TestTable, "__index", Global.newcclosure(function()
+		return "hooked"
+	end))
+	assert(TestTable.Example == "hooked", "Failed to hook a metamethod")
+end)
+
+RunTest("getrawmetatable", function()
+	local TestTable = { __metatable = "Locked!" }
+	local TestObject = setmetatable({}, TestTable)
+	assert(Global.getrawmetatable(TestObject) == TestTable, "Did not return the metatable")
+end)
+
+RunTest("setrawmetatable", function()
+	assert(Environment.getrawmetatable, "getrawmetatable is required to test")
+	local TestTable = { __metatable = "Locked!" }
+	local TestObject = setmetatable({}, TestTable)
+	Global.setrawmetatable(TestObject, {
+		__index = function()
+			return "Edited!"
+		end,
+	})
+	assert(TestObject.Example == "Edited!", "Failed to set the metatable")
+end)
+
+RunTest("isreadonly", function()
+	local TestTable = {}
+	local FrozenTable = table.freeze({})
+	assert(Global.isreadonly(TestTable) == false, "Did not return false for a writeable table")
+	assert(Global.isreadonly(FrozenTable) == true, "Did not return true for a readonly table")
+end)
+
+RunTest("setreadonly", function()
+	assert(Environment.isreadonly, "isreadonly is required to test")
+	local TestTable = { Value = 10 }
+	table.freeze(TestTable)
+	Global.setreadonly(TestTable, false)
+	TestTable.Value = 100
+	assert(Global.isreadonly(TestTable) == false, "Failed to set readonly")
+end)
+
+RunTest("Drawing.new", function()
+	assert(typeof(Global.Drawing.new) == "function", "Drawing.new is not a function")
+	local NewShape = Global.Drawing.new("Circle")
+	NewShape.Visible = false
+	NewShape.Radius = 10
+	NewShape.Thickness = 1
+	NewShape.Filled = false
+	NewShape.NumSides = 10
+	NewShape:Remove()
+end, "Drawing_New")
+
+RunTest("Drawing.Fonts", function()
+	assert(typeof(Global.Drawing.Fonts) == "table", "Drawing.Fonts is not a table")
+end, "Drawing_Fonts")
+
+RunTest("writefile", function()
+	Global.writefile("Abysall_Test_File", "example")
+	assert(Global.isfile("Abysall_Test_File") == true, "Failed to create a file")
+	assert(Global.readfile("Abysall_Test_File") == "example", "File does not contain expected data")
+end)
+
+RunTest("isfile", function()
+	assert(Global.isfile("Abysall_Test_File") == true, "Did not return true for a valid file")
+end)
+
+RunTest("readfile", function()
+	assert(Global.readfile("Abysall_Test_File") == "example", "Did not return the expected data")
+end)
+
+RunTest("appendfile", function()
+	Global.appendfile("Abysall_Test_File", "_appended")
+	assert(Global.readfile("Abysall_Test_File") == "example_appended", "Failed to append content to a file")
+end)
+
+RunTest("loadfile", function()
+	Global.writefile("Abysall_Test_Load", [[return 25]])
+	assert(Global.loadfile("Abysall_Test_Load")() == 25, "Failed to load and execute a file")
+end)
+
+RunTest("delfile", function()
+	Global.delfile("Abysall_Test_File")
+	Global.delfile("Abysall_Test_Load")
+	assert(Global.isfile("Abysall_Test_File") == false, "Failed to delete a file")
+end)
+
+RunTest("makefolder", function()
+	Global.makefolder("Abysall_Test_Folder")
+	assert(Global.isfolder("Abysall_Test_Folder") == true, "Failed to create a folder")
+end)
+
+RunTest("delfolder", function()
+	Global.delfolder("Abysall_Test_Folder")
+	assert(Global.isfolder("Abysall_Test_Folder") == false, "Failed to delete a folder")
+end)
+
+RunTest("listfiles", function()
+	Global.makefolder("Abysall_ListFiles_Test")
+	Global.writefile("Abysall_ListFiles_Test/Test1", "test 1")
+	Global.writefile("Abysall_ListFiles_Test/Test2", "test 2")
+	local FilesList = Global.listfiles("Abysall_ListFiles_Test")
+	local Found1 = false
+	local Found2 = false
+	assert(#FilesList == 2, "Did not return the correct number of files")
+	for _, File in ipairs(FilesList) do
+		local Content = Global.readfile(File)
+		if Content == "test 1" then
+			Found1 = true
+		elseif Content == "test 2" then
+			Found2 = true
+		end
+	end
+	Global.delfolder("Abysall_ListFiles_Test")
+	assert(Found1 == true, "Did not return the first file")
+	assert(Found2 == true, "Did not return the second file")
+end)
+
+RunTest("getcustomasset", function()
+	assert(Environment.writefile, "writefile is required to test")
+	local Content = game:HttpGet("https://raw.githubusercontent.com/quins-max/VibeIncDoors/refs/heads/main/Assets/Check.png")
+	Global.writefile("Abysall_Test_Image", Content)
+	local Asset = Global.getcustomasset("Abysall_Test_Image")
+	local TestImage = Instance.new("ImageLabel", Services.CoreGui.RobloxGui)
+	TestImage.Image = Asset
+	local Tries = 0
+	while not TestImage.IsLoaded and Tries < 10 do
+		Tries = Tries + 1
+		task.wait(0.1)
+	end
+	local IsLoaded = TestImage.IsLoaded
+	TestImage:Destroy()
+	Global.delfile("Abysall_Test_Image")
+	assert(string.find(Asset, "rbxasset://"), "Should return an rbxasset id")
+	assert(IsLoaded == true, "Failed to load a PNG image")
+end)
+
+RunTest("gethiddenproperty", function()
+	local TestPart = Instance.new("Part")
+	local Value = Global.gethiddenproperty(TestPart, "NetworkIsSleeping")
+	TestPart:Destroy()
+	assert(Value == false, "Did not return the correct property value")
+end)
+
+RunTest("sethiddenproperty", function()
+	assert(Environment.gethiddenproperty, "gethiddenproperty is required to test")
+	local TestPart = Instance.new("Part")
+	Global.sethiddenproperty(TestPart, "NetworkIsSleeping", true)
+	local Value = Global.gethiddenproperty(TestPart, "NetworkIsSleeping")
+	TestPart:Destroy()
+	assert(Value == true, "Failed to set a hidden property")
+end)
+
+RunTest("getthreadidentity", function()
+	local Identity = Global.getthreadidentity()
+	assert(typeof(Identity) == "number", "Did not return a number")
+	assert(Identity > 0, "Returned an invalid identity")
+	assert(Identity < 9, "Returned an invalid identity")
+end)
+
+RunTest("setthreadidentity", function()
+	assert(Environment.getthreadidentity, "getthreadidentity is needed to test")
+	local Old = Global.getthreadidentity()
+	Global.setthreadidentity(2)
+	assert(Services.CoreGui == nil, "Capabilities do not match set identity")
+	Global.setthreadidentity(Old)
+end)
+
+RunTest("isnetworkowner", function()
+	local Test = Instance.new("Part", Services.Workspace)
+	local RootPart = Services.Players.LocalPlayer.Character.HumanoidRootPart
+	local TestPart
+
+	for _, Part in ipairs(Services.Workspace:GetDescendants()) do
+		if Part:IsA("BasePart") and Part.Anchored then
+			TestPart = Part
+			break
+		end
+	end
+
+	RootPart.Anchored = true
+	local IsOwned = Global.isnetworkowner(RootPart)
+	RootPart.Anchored = false
+
+	local IsClientOwned = Global.isnetworkowner(Test)
+	local IsNotOwned = TestPart and Global.isnetworkowner(TestPart)
+	Test:Destroy()
+
+	assert(TestPart ~= nil, "Skipped, no anchored part to test with")
+	assert(IsClientOwned == true, "Did not return true for a client owned part")
+	assert(IsNotOwned == false, "Did not return false for a non client owned part")
+	assert(IsOwned == true, "Did not return true for a client owned anchored part")
+end)
+
+RunTest("firesignal", function()
+	local TestEvent = Instance.new("RemoteEvent")
+	local Fired = false
+	local Value1, Value2, Value3
+	local Connection = TestEvent.OnClientEvent:Connect(function(Arg1, Arg2, Arg3)
+		Fired = true
+		Value1 = Arg1
+		Value2 = Arg2
+		Value3 = Arg3
+	end)
+	Global.firesignal(TestEvent.OnClientEvent, "Example", 10, true)
+	local Tries = 0
+	while not Fired and Tries < 10 do
+		Tries = Tries + 1
+		task.wait(0.1)
+	end
+	Connection:Disconnect()
+	TestEvent:Destroy()
+	assert(Fired == true, "Failed to fire a signal")
+	assert(Value1 == "Example", "Fired signal with incorrect data")
+	assert(Value2 == 10, "Fired signal with incorrect data")
+	assert(Value3 == true, "Fired signal with incorrect data")
+end)
+
+RunTest("replicatesignal", function()
+	local TestButton = Instance.new("Frame")
+	Global.replicatesignal(TestButton.MouseWheelForward, 69, 420)
+	local Success = pcall(function()
+		Global.replicatesignal(TestButton.MouseWheelForward)
+		Global.replicatesignal(TestButton.MouseWheelForward, 69)
+	end)
+	TestButton:Destroy()
+	assert(Success == false, "Did not throw an error with invalid arguments")
+end)
+
+RunTest("getconnections", function()
+	local Fired = false
+	local Connection = game.ChildAdded:Connect(function(Child)
+		if Child == "Example" then
+			Fired = true
+		end
+	end)
+	for _, Conn in ipairs(getconnections(game.ChildAdded)) do
+		Conn:Fire("Example")
+	end
+	local Tries = 0
+	while not Fired and Tries < 10 do
+		Tries = Tries + 1
+		task.wait(0.1)
+	end
+	Connection:Disconnect()
+	assert(Fired == true, "Failed to fire a connection's signals")
+end)
+
+RunTest("require", function()
+	local TestScript = Global.require(Services.Players.LocalPlayer.PlayerScripts.PlayerModule)
+	assert(typeof(TestScript) == "table", "Did not return a table")
+	assert(typeof(TestScript.GetControls) == "function", "Did not return the expected data")
+	local Original = TestScript.GetControls
+	TestScript.GetControls = function()
+		return "test"
+	end
+	assert(TestScript.GetControls() == "test", "Unable to change module values")
+	TestScript.GetControls = Original
+	TestScript = nil
+end)
+
+return Environment
+
+end
+-- ===== INTEGRATED: ESP =====
+local function __MsFent_Load_ESP()
+local Library = {
+	Font = Enum.Font.RobotoCondensed,
+	Rainbow = false,
+	Tracers = false,
+	Unloaded = false,
+	ShowDistance = false,
+	MatchColors = true,
+	Arrows = false,
+	TextTransparency = 0,
+	TracerOrigin = "Bottom",
+	FillTransparency = 0.75,
+	OutlineTransparency = 0,
+	TextOutlineTransparency = 0,
+	FadeTime = 0,
+	RenderLimit = 240,
+	TracerSize = 0.5,
+	ArrowRadius = 200,
+	TextSize = 20,
+	DistanceSizeRatio = 1,
+	OutlineColor = Color3.fromRGB(255, 255, 255),
+	RainbowColor = Color3.fromRGB(255, 255, 255),
+
+	ElementsEnabled = {},
+	TransparencyEnabled = {},
+	Highlights = {},
+	Labels = {},
+	Frames = {},
+	Lines = {},
+	ArrowsTable = {},
+	ColorTable = {},
+	TextTable = {},
+	ConnectionsTable = {},
+	Objects = {},
+	TotalObjects = {},
+}
+
+local RainbowState = {
+	HueSetup = 0,
+	Hue = 0,
+	Step = 0,
+	Color = Color3.new(),
+}
+
+local CloneReference = cloneref or function(O) return O end
+local Players = CloneReference(game:GetService("Players"))
+local CoreGui = getgenv and CloneReference(game:GetService("CoreGui")) or Players.LocalPlayer.PlayerGui
+local Workspace = CloneReference(workspace)
+local RunService = CloneReference(game:GetService("RunService"))
+local TweenService = CloneReference(game:GetService("TweenService"))
+local UserInputService = CloneReference(game:GetService("UserInputService"))
+local Debris = CloneReference(game:GetService("Debris"))
+local LocalPlayer = Players.LocalPlayer
+
+local function GetHiddenUI()
+	if gethui then return gethui() end
+	local Folder = Instance.new("Folder", CoreGui)
+	Folder.Name = ("%032x"):format(math.random(0, 2^31))
+	return Folder
+end
+
+function Library:GenerateRandomString()
+	local Chars = {}
+	local Pool = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	local PoolLen = #Pool
+	for I = 1, 24 do
+		local Idx = math.random(1, PoolLen)
+		Chars[I] = Pool:sub(Idx, Idx)
+	end
+	return table.concat(Chars)
+end
+
+local HiddenUI = GetHiddenUI()
+local Camera = Workspace.CurrentCamera
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.Name = Library:GenerateRandomString()
+ScreenGui.Parent = HiddenUI
+
+local HighlightsFolder = Instance.new("Folder")
+HighlightsFolder.Name = Library:GenerateRandomString()
+HighlightsFolder.Parent = ScreenGui
+
+local BillboardsFolder = Instance.new("Folder")
+BillboardsFolder.Name = Library:GenerateRandomString()
+BillboardsFolder.Parent = ScreenGui
+
+local TracersFrame = Instance.new("Frame")
+TracersFrame.Size = UDim2.new(1, 0, 1, 0)
+TracersFrame.BackgroundTransparency = 1
+TracersFrame.Visible = false
+TracersFrame.Name = Library:GenerateRandomString()
+TracersFrame.Parent = ScreenGui
+
+local ArrowsFrame = Instance.new("Frame")
+ArrowsFrame.Size = UDim2.new(1, 0, 1, 0)
+ArrowsFrame.BackgroundTransparency = 1
+ArrowsFrame.Visible = false
+ArrowsFrame.Name = Library:GenerateRandomString()
+ArrowsFrame.Parent = ScreenGui
+
+local ArrowTemplate = Instance.new("ImageLabel")
+ArrowTemplate.Image = "rbxassetid://16368985219"
+ArrowTemplate.Size = UDim2.new(0, 50, 0, 50)
+ArrowTemplate.AnchorPoint = Vector2.new(0.5, 0.5)
+ArrowTemplate.BackgroundTransparency = 1
+ArrowTemplate.ImageTransparency = 1
+local ArrowConstraint = Instance.new("UIAspectRatioConstraint")
+ArrowConstraint.AspectRatio = 1
+ArrowConstraint.Name = Library:GenerateRandomString()
+ArrowConstraint.Parent = ArrowTemplate
+
+local TweenInfoQuad = TweenInfo.new(0, Enum.EasingStyle.Quad)
+local function MakeTween(Instance_, Props)
+	local Info = TweenInfo.new(Library.FadeTime, Enum.EasingStyle.Quad)
+	return TweenService:Create(Instance_, Info, Props)
+end
+
+local function PlayTween(Instance_, Props)
+	MakeTween(Instance_, Props):Play()
+end
+
+local function DestroyObjectData(Object)
+	local Highlight = Library.Highlights[Object]
+	if Highlight then
+		Highlight:Destroy()
+		Library.Highlights[Object] = nil
+	end
+
+	local Frame = Library.Frames[Object]
+	if Frame then
+		Frame:Destroy()
+		Library.Frames[Object] = nil
+	end
+
+	local LineData = Library.Lines[Object]
+	if LineData then
+		if LineData[1] then LineData[1]:Destroy() end
+		Library.Lines[Object] = nil
+	end
+
+	local Arrow = Library.ArrowsTable[Object]
+	if Arrow then
+		Arrow:Destroy()
+		Library.ArrowsTable[Object] = nil
+	end
+
+	local Conns = Library.ConnectionsTable[Object]
+	if Conns then
+		for _, Conn in ipairs(Conns) do
+			Conn:Disconnect()
+		end
+		Library.ConnectionsTable[Object] = nil
+	end
+
+	Library.Labels[Object] = nil
+	Library.ColorTable[Object] = nil
+	Library.TextTable[Object] = nil
+	Library.ElementsEnabled[Object] = nil
+	Library.TransparencyEnabled[Object] = nil
+	Library.Objects[Object] = nil
+
+	for Idx = #Library.TotalObjects, 1, -1 do
+		if Library.TotalObjects[Idx] == Object then
+			table.remove(Library.TotalObjects, Idx)
+			break
+		end
+	end
+end
+
+function Library:AddESP(Parameters)
+	local Object = Parameters.Object
+	if Library.ElementsEnabled[Object] == true or Library.Unloaded == true then return end
+	if not Object:IsA("BasePart") and not Object:IsA("Model") then return end
+
+	Library.ElementsEnabled[Object] = true
+	Library.TransparencyEnabled[Object] = false
+	Library.ConnectionsTable[Object] = Library.ConnectionsTable[Object] or {}
+
+	if Library.Highlights[Object] then
+		Library.Highlights[Object]:Destroy()
+		Library.Highlights[Object] = nil
+	end
+
+	local Highlight = Instance.new("Highlight")
+	Highlight.FillTransparency = 1
+	Highlight.OutlineTransparency = 1
+	Highlight.Name = Library:GenerateRandomString()
+	Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	Highlight.Adornee = Object
+	Highlight.Parent = HighlightsFolder
+	Library.Highlights[Object] = Highlight
+
+	local TextFrame = Instance.new("Frame")
+	TextFrame.Visible = false
+	TextFrame.Name = Library:GenerateRandomString()
+	TextFrame.Size = UDim2.fromScale(1, 1)
+	TextFrame.BackgroundTransparency = 1
+	TextFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	TextFrame.Parent = BillboardsFolder
+
+	local TextLabel = Instance.new("TextLabel")
+	TextLabel.Name = Library:GenerateRandomString()
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Text = Parameters.Text
+	TextLabel.TextTransparency = 1
+	TextLabel.TextStrokeTransparency = Library.TextOutlineTransparency
+	TextLabel.Size = UDim2.new(1, 0, 1, 0)
+	TextLabel.Font = Library.Font
+	TextLabel.TextSize = Library.TextSize
+	TextLabel.RichText = true
+	TextLabel.TextColor3 = Parameters.Color
+	TextLabel.Parent = TextFrame
+
+	Library.Frames[Object] = TextFrame
+	Library.Labels[Object] = TextLabel
+	Library.ColorTable[Object] = Parameters.Color
+	Library.TextTable[Object] = Parameters.Text
+	Library.Objects[Object] = Object
+	table.insert(Library.TotalObjects, Object)
+
+	PlayTween(Highlight, { FillTransparency = Library.FillTransparency })
+	PlayTween(Highlight, { OutlineTransparency = Library.OutlineTransparency })
+
+	local TextFadeIn = MakeTween(TextLabel, { TextTransparency = Library.TextTransparency })
+	TextFadeIn.Completed:Once(function()
+		Library.TransparencyEnabled[Object] = true
+	end)
+	TextFadeIn:Play()
+	PlayTween(TextLabel, { TextStrokeTransparency = Library.TextOutlineTransparency })
+
+	local LineFrame = Instance.new("Frame")
+	LineFrame.Size = UDim2.new(0, 0, 0, 0)
+	LineFrame.BackgroundTransparency = 1
+	LineFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	LineFrame.Name = Library:GenerateRandomString()
+	LineFrame.Parent = TracersFrame
+
+	local Stroke = Instance.new("UIStroke")
+	Stroke.Thickness = Library.TracerSize
+	Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	Stroke.Transparency = 1
+	Stroke.Name = Library:GenerateRandomString()
+	Stroke.Parent = LineFrame
+
+	PlayTween(LineFrame, { BackgroundTransparency = 0 })
+	PlayTween(Stroke, { Transparency = 0 })
+	Library.Lines[Object] = { LineFrame, Stroke }
+
+	task.spawn(function()
+		local Last = 0
+		local MinInterval = 1 / Library.RenderLimit
+
+		local function Render()
+			if not Object or not Object:IsDescendantOf(game) then
+				Library:RemoveESP(Object)
+				return
+			end
+
+			local ObjectPos = Object:GetPivot().Position
+			local ScreenPoint, OnScreen = Camera:WorldToViewportPoint(ObjectPos)
+
+			local Frame = Library.Frames[Object]
+			local Label = Library.Labels[Object]
+			local CachedHighlight = Library.Highlights[Object]
+			local LineData = Library.Lines[Object]
+
+			if LineData and LineData[1] then
+				LineData[1].Visible = OnScreen
+			end
+
+			if Frame then
+				Frame.Visible = OnScreen
+				if OnScreen then
+					Frame.Position = UDim2.new(0, ScreenPoint.X, 0, ScreenPoint.Y)
+				end
+			end
+
+			if not OnScreen then
+				if CachedHighlight then
+					CachedHighlight:Destroy()
+					Library.Highlights[Object] = nil
+					CachedHighlight = nil
+				end
+			elseif Library.ElementsEnabled[Object] == true and not CachedHighlight then
+				CachedHighlight = Instance.new("Highlight")
+				CachedHighlight.FillTransparency = 1
+				CachedHighlight.OutlineTransparency = 1
+				CachedHighlight.Name = Library:GenerateRandomString()
+				CachedHighlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+				CachedHighlight.Adornee = Object
+				CachedHighlight.Parent = HighlightsFolder
+				Library.Highlights[Object] = CachedHighlight
+			end
+
+			local ActiveColor = Library.Rainbow and RainbowState.Color or Library.ColorTable[Object] or Color3.fromRGB(255, 255, 255)
+
+			if Label then
+				Label.TextColor3 = ActiveColor
+			end
+
+			if CachedHighlight then
+				local Distance = math.floor((Camera.CFrame.Position - ObjectPos).Magnitude)
+				local DistanceText = Library.ShowDistance
+					and ("\n" .. '<font size="' .. math.round(Library.TextSize * Library.DistanceSizeRatio) .. '">[' .. Distance .. ']</font>')
+					or ""
+				if Label then
+					Label.Text = Library.TextTable[Object] .. DistanceText
+				end
+
+				CachedHighlight.Enabled = true
+				CachedHighlight.FillColor = ActiveColor
+				CachedHighlight.OutlineColor = Library.MatchColors and ActiveColor or Library.OutlineColor
+
+				if Library.TransparencyEnabled[Object] == true then
+					CachedHighlight.FillTransparency = Library.FillTransparency
+					CachedHighlight.OutlineTransparency = Library.OutlineTransparency
+					if Label then
+						Label.TextTransparency = Library.TextTransparency
+						Label.TextStrokeTransparency = Library.TextOutlineTransparency
+					end
+				end
+			end
+
+			if LineData and CachedHighlight and Library.Tracers == true and OnScreen then
+				local ScreenSize = Camera.ViewportSize
+				local Origin
+
+				if Library.TracerOrigin == "Center" then
+					Origin = Vector2.new(ScreenSize.X / 2, ScreenSize.Y / 2)
+				elseif Library.TracerOrigin == "Top" then
+					Origin = Vector2.new(ScreenSize.X / 2, 0)
+				elseif Library.TracerOrigin == "Mouse" then
+					local MouseLoc = UserInputService:GetMouseLocation()
+					Origin = Vector2.new(LocalPlayer:GetMouse().X, MouseLoc.Y)
+				else
+					Origin = Vector2.new(ScreenSize.X / 2, ScreenSize.Y)
+				end
+
+				local Destination = Vector2.new(ScreenPoint.X, ScreenPoint.Y)
+				local MidPoint = (Origin + Destination) / 2
+				local Rotation = math.deg(math.atan2(Destination.Y - Origin.Y, Destination.X - Origin.X))
+				local Length = (Origin - Destination).Magnitude
+				local LF = LineData[1]
+				local SK = LineData[2]
+
+				LF.Position = UDim2.new(0, MidPoint.X, 0, MidPoint.Y)
+				LF.Size = UDim2.new(0, Length, 0, 1)
+				LF.Rotation = Rotation
+				LF.BackgroundColor3 = ActiveColor
+				LF.BorderSizePixel = 0
+				LF.Visible = true
+				SK.Color = ActiveColor
+				SK.Thickness = Library.TracerSize
+			end
+
+			if Library.Arrows == true then
+				local Arrow = Library.ArrowsTable[Object]
+				if Arrow == nil and Library.ElementsEnabled[Object] == true then
+					Arrow = ArrowTemplate:Clone()
+					Arrow.Name = Library:GenerateRandomString()
+					Arrow:WaitForChild(ArrowConstraint.Name, 5)
+					Arrow.Parent = ArrowsFrame
+					Library.ArrowsTable[Object] = Arrow
+					PlayTween(Arrow, { ImageTransparency = 0 })
+				elseif Arrow and Library.ElementsEnabled[Object] == true then
+					if OnScreen and ScreenPoint.Z > 0 then
+						Arrow.Visible = false
+					else
+						local ScreenSize = Camera.ViewportSize
+						local ScreenCenter = Vector2.new(ScreenSize.X / 2, ScreenSize.Y / 2)
+						local ToObj = (ObjectPos - Camera.CFrame.Position).Unit
+						local Dir = Vector2.new(ScreenPoint.X, ScreenPoint.Y) - ScreenCenter
+						if Camera.CFrame.LookVector:Dot(ToObj) < 0 then
+							Dir = -Dir
+						end
+						local Angle = math.atan2(Dir.Y, Dir.X)
+						local Radius = math.min(ScreenSize.X, ScreenSize.Y) / 2 - (400 - Library.ArrowRadius)
+						local ArrowPos = ScreenCenter + Dir.Unit * Radius
+
+						Arrow.Position = UDim2.new(0, ArrowPos.X, 0, ArrowPos.Y)
+						Arrow.Rotation = math.deg(Angle) - 90
+						Arrow.Visible = true
+						Arrow.ImageColor3 = Library.Rainbow and Library.RainbowColor or Library.ColorTable[Object]
+					end
+				end
+			end
+		end
+
+		local Connection
+		Connection = RunService.Heartbeat:Connect(function(Delta)
+			Last = Last + Delta
+			if Last >= 1 / Library.RenderLimit then
+				Last = 0
+				if Library.ElementsEnabled[Object] ~= true then
+					Connection:Disconnect()
+					return
+				end
+				Render()
+			end
+		end)
+		table.insert(Library.ConnectionsTable[Object], Connection)
+	end)
+end
+
+function Library:RemoveESP(Object)
+	if Library.Unloaded == true or Library.ElementsEnabled[Object] ~= true then return end
+	Library.ElementsEnabled[Object] = false
+	Library.TransparencyEnabled[Object] = false
+
+	local Label = Library.Labels[Object]
+	if Label then
+		PlayTween(Label, { TextTransparency = 1 })
+	end
+
+	local LineData = Library.Lines[Object]
+	if LineData then
+		if LineData[1] then PlayTween(LineData[1], { BackgroundTransparency = 1 }) end
+		if LineData[2] then PlayTween(LineData[2], { Transparency = 1 }) end
+	end
+
+	local Highlight = Library.Highlights[Object]
+	if Highlight then
+		PlayTween(Highlight, { FillTransparency = 1 })
+		PlayTween(Highlight, { OutlineTransparency = 1 })
+	end
+
+	local Arrow = Library.ArrowsTable[Object]
+	if Arrow then
+		PlayTween(Arrow, { ImageTransparency = 1 })
+	end
+
+	local FadeTime = Library.FadeTime
+
+	if not Object.Parent then
+		task.delay(FadeTime + 0.05, function()
+			if Library.ElementsEnabled[Object] == false then
+				DestroyObjectData(Object)
+			end
+		end)
+	else
+		task.delay(FadeTime + 0.05, function()
+			if Library.ElementsEnabled[Object] == false then
+				DestroyObjectData(Object)
+			else
+				local ReHighlight = Library.Highlights[Object]
+				if ReHighlight then
+					PlayTween(ReHighlight, { FillTransparency = Library.FillTransparency })
+					PlayTween(ReHighlight, { OutlineTransparency = Library.OutlineTransparency })
+				end
+			end
+		end)
+	end
+end
+
+function Library:UpdateObjectText(Object, Text)
+	if Library.TextTable[Object] ~= nil then
+		Library.TextTable[Object] = Text
+	end
+end
+
+function Library:UpdateObjectColor(Object, Color)
+	Library.ColorTable[Object] = Color
+	if Library.Labels[Object] and Library.Rainbow ~= true then
+		Library.Labels[Object].TextColor3 = Color
+	end
+end
+
+function Library:SetColorTable(Name, Color)
+	Library.ColorTable[Name] = Color
+end
+
+function Library:SetFadeTime(Number)
+	Library.FadeTime = Number
+end
+
+function Library:SetRenderLimit(Number)
+	Library.RenderLimit = Number
+end
+
+function Library:SetTextTransparency(Number)
+	Library.TextTransparency = Number
+	for _, Label in pairs(Library.Labels) do
+		Label.TextTransparency = Number
+	end
+end
+
+function Library:SetFillTransparency(Number)
+	Library.FillTransparency = Number
+	for _, Highlight in pairs(Library.Highlights) do
+		if Highlight:IsA("Highlight") then
+			Highlight.FillTransparency = Number
+		end
+	end
+end
+
+function Library:SetOutlineTransparency(Number)
+	Library.OutlineTransparency = Number
+	for _, Highlight in pairs(Library.Highlights) do
+		if Highlight:IsA("Highlight") then
+			Highlight.OutlineTransparency = Number
+		end
+	end
+end
+
+function Library:SetTextSize(Number)
+	Library.TextSize = Number
+	for _, Label in pairs(Library.Labels) do
+		Label.TextSize = Number
+	end
+end
+
+function Library:SetTextOutlineTransparency(Number)
+	Library.TextOutlineTransparency = Number
+	for _, Label in pairs(Library.Labels) do
+		Label.TextStrokeTransparency = Number
+	end
+end
+
+function Library:SetFont(Font)
+	Library.Font = Font
+	for _, Label in pairs(Library.Labels) do
+		Label.Font = Font
+	end
+end
+
+function Library:SetOutlineColor(Color)
+	Library.OutlineColor = Color
+end
+
+function Library:SetRainbow(Value)
+	Library.Rainbow = Value
+end
+
+function Library:SetShowDistance(Value)
+	Library.ShowDistance = Value
+end
+
+function Library:SetMatchColors(Value)
+	Library.MatchColors = Value
+end
+
+function Library:SetTracers(Value)
+	Library.Tracers = Value
+	TracersFrame.Visible = Value
+end
+
+function Library:SetArrows(Value)
+	Library.Arrows = Value
+	ArrowsFrame.Visible = Value
+end
+
+function Library:SetArrowRadius(Value)
+	Library.ArrowRadius = Value
+end
+
+function Library:SetTracerOrigin(Value)
+	Library.TracerOrigin = Value
+end
+
+function Library:SetDistanceSizeRatio(Value)
+	Library.DistanceSizeRatio = Value
+end
+
+function Library:SetTracerSize(Value)
+	Library.TracerSize = 0.5 * Value
+end
+
+function Library:Unload()
+	if Library.Unloaded then return end
+	Library.Unloaded = true
+	for _, Object in pairs(Library.Objects) do
+		Library:RemoveESP(Object)
+	end
+	for _, Conns in pairs(Library.ConnectionsTable) do
+		for _, Conn in ipairs(Conns) do
+			Conn:Disconnect()
+		end
+	end
+	RainbowConnection:Disconnect()
+	CameraConnection:Disconnect()
+	ScreenGui.Enabled = false
+end
+
+RainbowConnection = RunService.RenderStepped:Connect(function(Delta)
+	RainbowState.Step = RainbowState.Step + Delta
+	if RainbowState.Step >= (1 / 60) then
+		RainbowState.Step = 0
+		RainbowState.HueSetup = RainbowState.HueSetup + (1 / 400)
+		if RainbowState.HueSetup > 1 then RainbowState.HueSetup = 0 end
+		RainbowState.Hue = RainbowState.HueSetup
+		RainbowState.Color = Color3.fromHSV(RainbowState.Hue, 0.8, 1)
+		Library.RainbowColor = RainbowState.Color
+	end
+end)
+
+CameraConnection = Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+	Camera = Workspace.CurrentCamera
+end)
+
+if getgenv then
+	getgenv().ESPLibrary = Library
+end
+
+return Library
+
+end
+-- ===== INTEGRATED: STX =====
+local function __MsFent_Load_STX()
+local GUI = game:GetService("CoreGui"):FindFirstChild("STX_Nofitication")
+if not GUI then
+    local STX_Nofitication = Instance.new("ScreenGui")
+    local STX_NofiticationUIListLayout = Instance.new("UIListLayout")
+    STX_Nofitication.Name = "STX_Nofitication"
+    STX_Nofitication.Parent = game.CoreGui
+    STX_Nofitication.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    STX_Nofitication.ResetOnSpawn = false
+    
+    STX_NofiticationUIListLayout.Name = "STX_NofiticationUIListLayout"
+    STX_NofiticationUIListLayout.Parent = STX_Nofitication
+    STX_NofiticationUIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    STX_NofiticationUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    STX_NofiticationUIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+else
+end
+
+local Nofitication = {}
+
+local GUI = game:GetService("CoreGui"):FindFirstChild("STX_Nofitication")
+function Nofitication:Notify(nofdebug, middledebug, all)
+    local SelectedType = string.lower(tostring(middledebug.Type))
+    local ambientShadow = Instance.new("ImageLabel")
+    local Window = Instance.new("Frame")
+    local Outline_A = Instance.new("Frame")
+    local WindowTitle = Instance.new("TextLabel")
+    local WindowDescription = Instance.new("TextLabel")
+    
+    ambientShadow.Name = "ambientShadow"
+    ambientShadow.Parent = GUI
+    ambientShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    ambientShadow.BackgroundTransparency = 1.000
+    ambientShadow.BorderSizePixel = 0
+    ambientShadow.Position = UDim2.new(0.91525954, 0, 0.936809778, 0)
+    ambientShadow.Size = UDim2.new(0, 0, 0, 0)
+    ambientShadow.Image = "rbxassetid://1316045217"
+    ambientShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    ambientShadow.ImageTransparency = 0.400
+    ambientShadow.ScaleType = Enum.ScaleType.Slice
+    ambientShadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    
+    Window.Name = "Window"
+    Window.Parent = ambientShadow
+    Window.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Window.BorderSizePixel = 0
+    Window.Position = UDim2.new(0, 5, 0, 5)
+    Window.Size = UDim2.new(0, 230, 0, 80)
+    Window.ZIndex = 2
+    
+    Outline_A.Name = "Outline_A"
+    Outline_A.Parent = Window
+    Outline_A.BackgroundColor3 = middledebug.OutlineColor
+    Outline_A.BorderSizePixel = 0
+    Outline_A.Position = UDim2.new(0, 0, 0, 25)
+    Outline_A.Size = UDim2.new(0, 230, 0, 2)
+    Outline_A.ZIndex = 5
+    
+    WindowTitle.Name = "WindowTitle"
+    WindowTitle.Parent = Window
+    WindowTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    WindowTitle.BackgroundTransparency = 1.000
+    WindowTitle.BorderColor3 = Color3.fromRGB(27, 42, 53)
+    WindowTitle.BorderSizePixel = 0
+    WindowTitle.Position = UDim2.new(0, 8, 0, 2)
+    WindowTitle.Size = UDim2.new(0, 222, 0, 22)
+    WindowTitle.ZIndex = 4
+    WindowTitle.Font = Enum.Font.GothamSemibold
+    WindowTitle.Text = nofdebug.Title
+    WindowTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
+    WindowTitle.TextSize = 12.000
+    WindowTitle.TextXAlignment = Enum.TextXAlignment.Left
+    
+    WindowDescription.Name = "WindowDescription"
+    WindowDescription.Parent = Window
+    WindowDescription.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    WindowDescription.BackgroundTransparency = 1.000
+    WindowDescription.BorderColor3 = Color3.fromRGB(27, 42, 53)
+    WindowDescription.BorderSizePixel = 0
+    WindowDescription.Position = UDim2.new(0, 8, 0, 34)
+    WindowDescription.Size = UDim2.new(0, 216, 0, 40)
+    WindowDescription.ZIndex = 4
+    WindowDescription.Font = Enum.Font.GothamSemibold
+    WindowDescription.Text = nofdebug.Description
+    WindowDescription.TextColor3 = Color3.fromRGB(180, 180, 180)
+    WindowDescription.TextSize = 12.000
+    WindowDescription.TextWrapped = true
+    WindowDescription.TextXAlignment = Enum.TextXAlignment.Left
+    WindowDescription.TextYAlignment = Enum.TextYAlignment.Top
+
+    if SelectedType == "default" then
+        local function ORBHB_fake_script()
+            local script = Instance.new('LocalScript', ambientShadow)
+        
+            ambientShadow:TweenSize(UDim2.new(0, 240, 0, 90), "Out", "Linear", 0.2)
+            Window.Size = UDim2.new(0, 230, 0, 80)
+            if typeof(middledebug.Time) == "Instance" then
+                middledebug.Time.Destroying:Wait()
+            else
+                Outline_A:TweenSize(UDim2.new(0, 0, 0, 2), "Out", "Linear", middledebug.Time)
+                wait(middledebug.Time)
+            end
+        
+            ambientShadow:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Linear", 0.2)
+            
+            wait(0.2)
+            ambientShadow:Destroy()
+        end
+        coroutine.wrap(ORBHB_fake_script)()
+    elseif SelectedType == "image" then
+        ambientShadow:TweenSize(UDim2.new(0, 240, 0, 90), "Out", "Linear", 0.2)
+        Window.Size = UDim2.new(0, 230, 0, 80)
+        WindowTitle.Position = UDim2.new(0, 24, 0, 2)
+        local ImageButton = Instance.new("ImageButton")
+        ImageButton.Parent = Window
+        ImageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        ImageButton.BackgroundTransparency = 1.000
+        ImageButton.BorderSizePixel = 0
+        ImageButton.Position = UDim2.new(0, 4, 0, 4)
+        ImageButton.Size = UDim2.new(0, 18, 0, 18)
+        ImageButton.ZIndex = 5
+        ImageButton.AutoButtonColor = false
+        ImageButton.Image = all.Image
+        ImageButton.ImageColor3 = all.ImageColor
+
+        local function ORBHB_fake_script()
+            local script = Instance.new('LocalScript', ambientShadow)
+
+            if typeof(middledebug.Time) == "Instance" then
+                middledebug.Time.Destroying:Wait()
+            else
+                Outline_A:TweenSize(UDim2.new(0, 0, 0, 2), "Out", "Linear", middledebug.Time)
+                wait(middledebug.Time)
+            end
+        
+            ambientShadow:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Linear", 0.2)
+            
+            wait(0.2)
+            ambientShadow:Destroy()
+        end
+        coroutine.wrap(ORBHB_fake_script)()
+    elseif SelectedType == "option" then
+        ambientShadow:TweenSize(UDim2.new(0, 240, 0, 110), "Out", "Linear", 0.2)
+        Window.Size = UDim2.new(0, 230, 0, 100)
+        local Uncheck = Instance.new("ImageButton")
+        local Check = Instance.new("ImageButton")
+        
+        Uncheck.Name = "Uncheck"
+        Uncheck.Parent = Window
+        Uncheck.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Uncheck.BackgroundTransparency = 1.000
+        Uncheck.BorderSizePixel = 0
+        Uncheck.Position = UDim2.new(0, 7, 0, 76)
+        Uncheck.Size = UDim2.new(0, 18, 0, 18)
+        Uncheck.ZIndex = 5
+        Uncheck.AutoButtonColor = false
+        Uncheck.Image = "http://www.roblox.com/asset/?id=6031094678"
+        Uncheck.ImageColor3 = Color3.fromRGB(255, 84, 84)
+        
+        Check.Name = "Check"
+        Check.Parent = Window
+        Check.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Check.BackgroundTransparency = 1.000
+        Check.BorderSizePixel = 0
+        Check.Position = UDim2.new(0, 28, 0, 76)
+        Check.Size = UDim2.new(0, 18, 0, 18)
+        Check.ZIndex = 5
+        Check.AutoButtonColor = false
+        Check.Image = "http://www.roblox.com/asset/?id=6031094667"
+        Check.ImageColor3 = Color3.fromRGB(83, 230, 50)
+
+        local function ORBHB_fake_script()
+            local script = Instance.new('LocalScript', ambientShadow)
+        
+            local Stilthere = true
+            local function Unchecked()
+                pcall(function()
+                    all.Callback(false)
+                end)
+                ambientShadow:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Linear", 0.2)
+                
+                wait(0.2)
+                ambientShadow:Destroy()
+                Stilthere = false
+            end
+            local function Checked()
+                pcall(function()
+                    all.Callback(true)
+                end)
+                ambientShadow:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Linear", 0.2)
+                
+                wait(0.2)
+                ambientShadow:Destroy()
+                Stilthere = false
+            end
+            Uncheck.MouseButton1Click:Connect(Unchecked)
+            Check.MouseButton1Click:Connect(Checked)
+            
+            Outline_A:TweenSize(UDim2.new(0, 0, 0, 2), "Out", "Linear", middledebug.Time)
+    
+            wait(middledebug.Time)
+
+            if Stilthere == true then
+        
+                ambientShadow:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Linear", 0.2)
+                
+                wait(0.2)
+                ambientShadow:Destroy()
+            end
+        end
+        coroutine.wrap(ORBHB_fake_script)()
+    end
+end
+
+return Nofitication
+
+end
+-- ===== INTEGRATED: SettingsTab =====
+local function __MsFent_Load_SettingsTab()
+return function(Window)
+	local function CloneReference(Object)
+		if Abysall and Abysall.Environment.cloneref then
+			return Abysall.Environment.cloneref(Object)
+		else
+			return Object
+		end
+	end
+	
+	local Services = setmetatable({}, {
+		__index = function(self, Name)
+			return CloneReference(game:GetService(Name))
+		end
+	})
+
+	local Library = Abysall.Interface.Library
+	local SaveManager = Abysall.Interface.SaveManager
+	local ThemeManager = Abysall.Interface.ThemeManager
+	
+	local Toggles = Library.Toggles
+	local Options = Library.Options
+	
+	local SettingsTab = Window:AddTab("Settings", "settings")
+	local MenuGroup = SettingsTab:AddLeftGroupbox("Menu")
+	
+	MenuGroup:AddToggle("KeybindMenuOpen", {
+		Default = Library.KeybindFrame.Visible,
+		Text = "Open Keybind Menu",
+		Callback = function(value)
+			Library.KeybindFrame.Visible = value
+		end,
+	})
+	MenuGroup:AddToggle("ShowCustomCursor", {
+		Text = "Custom Cursor",
+		Default = false,
+		Callback = function(Value)
+			Library.ShowCustomCursor = Value
+		end,
+	})
+
+	MenuGroup:AddDropdown("UILibrary", {
+		Text = "UI Style",
+		Values = {
+			"Obsidian",
+			"Linoria"
+		},
+		Default = (Abysall.UILibrary == "Linoria" and 2 or 1),
+		Callback = function(Value)
+			if Abysall.Environment.writefile and Abysall.Environment.readfile then
+				if not Abysall.Environment.isfile("Abysall/UserData.json") then
+					local Data = {
+						TotalExecutions = 0,
+						UILibrary = "Obsidian"
+					}
+					Abysall.Environment.writefile("Abysall/UserData.json", Services.HttpService:JSONEncode(Data))
+				end
+
+				local UserData = Abysall.Environment.readfile("Abysall/UserData.json")
+				local Decoded = Services.HttpService:JSONDecode(UserData)
+				Decoded.UILibrary = Value
+
+				if not Decoded.UILibrary then
+					Decoded.UILibrary = "Obsidian"
+				end
+
+				Abysall.TotalExecutions = Decoded.TotalExecutions
+				Abysall.UILibrary = Decoded.UILibrary
+
+				Abysall.Environment.writefile("Abysall/UserData.json", Services.HttpService:JSONEncode(Decoded))
+			end
+		end
+	})
+	
+	MenuGroup:AddDropdown("DPIDropdown", {
+		Values = { "50%", "75%", "100%", "125%", "150%", "175%", "200%" },
+		Default = "100%",
+	
+		Text = "DPI Scale",
+	
+		Callback = function(Value)
+			Value = Value:gsub("%%", "")
+			local DPI = tonumber(Value)
+	
+			Library:SetDPIScale(DPI)
+		end,
+	})
+	MenuGroup:AddDivider()
+	MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "Menu keybind" })
+	
+	MenuGroup:AddButton("Copy Discord Invite", function()
+		toclipboard("https://dsc.gg/jJd2JkkCTj")
+		Library:Notify("Discord invite copied.")
+	end)
+	
+	MenuGroup:AddButton("Unload", function()
+		Library:Unload()
+	end)
+	
+	Library.ToggleKeybind = Options.MenuKeybind
+	
+	ThemeManager:SetLibrary(Library)
+	SaveManager:SetLibrary(Library)
+	SaveManager:IgnoreThemeSettings()
+	SaveManager:SetIgnoreIndexes({"UILibrary"})
+	ThemeManager:SetFolder("Abysall")
+	SaveManager:SetFolder("Abysall/" .. Abysall.SavePath)
+	SaveManager:BuildConfigSection(SettingsTab)
+	ThemeManager:ApplyToTab(SettingsTab)
+	SaveManager:LoadAutoloadConfig()
+end
+
+end
+-- ===== INTEGRATED: InfoTab =====
+local function __MsFent_Load_InfoTab()
+return function(Window)
+    local LatestChangelog = {
+        "28/9/2026",
+        "<font color='rgb(0, 255, 0)'>+ Archives tab (Anti Ransom, Alma, Drones, Water, etc.)</font>",
+        "<font color='rgb(0, 255, 0)'>+ Bypass Bash (auto on/off with Bash)</font>",
+        "<font color='rgb(0, 255, 0)'>+ Glue To Ground movement</font>",
+        "<font color='rgb(0, 255, 0)'>+ Forget Me Not solver / Honcho box ESP</font>",
+        "<font color='rgb(255, 165, 0)'>~ Rooms features replaced with Archives</font>",
+        "<font color='rgb(100, 200, 255)'>* Fully integrated Ms fent build</font>",
+        "26/6/2026",
+        "<font color='rgb(0, 255, 0)'>+ Base release</font>",
+    }
+
+    local function CloneReference(Object)
+        if Abysall and Abysall.Environment and Abysall.Environment.cloneref then
+            return Abysall.Environment.cloneref(Object)
+        else
+            return Object
+        end
+    end
+
+    local Services = setmetatable({}, {
+        __index = function(self, Name)
+            return CloneReference(game:GetService(Name))
+        end
+    })
+
+    local Library = Abysall.Interface.Library
+    local LocalPlayer = Services.Players.LocalPlayer
+    local InfoTab = Window:AddTab("Info", "user")
+
+    local User = InfoTab:AddLeftGroupbox("User Info")
+    local Content = Services.Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+    User:AddImage("UserIcon", { Image = Content })
+    User:AddLabel("ID: " .. LocalPlayer.Name, true)
+    User:AddLabel("Total Executions: " .. (Abysall.TotalExecutions and Abysall.TotalExecutions or "N/A"), true)
+
+    local Credits = InfoTab:AddRightGroupbox("Credits")
+    Credits:AddLabel("<font color='rgb(255, 100, 180)'>Gab — Ms fent Hub</font>", true)
+    Credits:AddLabel("<font color='rgb(0, 255, 255)'>Meow :3</font>", true)
+    Credits:AddLabel("<font color='rgb(50, 205, 50)'>" .. LocalPlayer.Name .. " — Thanks For using this script</font>", true)
+
+    local Changelog = InfoTab:AddRightGroupbox("Changelog")
+    for Index, Change in pairs(LatestChangelog) do
+        Changelog:AddLabel(Change, true)
+    end
+
+    local Name, Version = "Unknown", "N/A"
+    pcall(function()
+        Name, Version = Abysall.Environment.identifyexecutor()
+    end)
+    local Executor = InfoTab:AddRightGroupbox("Executor Info")
+    Executor:AddLabel("Name: " .. tostring(Name), true)
+    Executor:AddLabel("Version: " .. tostring(Version or "N/A"), true)
+    if Abysall.Environment and Abysall.Environment.Results then
+        Executor:AddDivider()
+        Executor:AddLabel("Test Result: ", true)
+        for Index, Result in pairs(Abysall.Environment.Results) do
+            Result = tostring(Result):gsub("<", "("):gsub(">", ")")
+            Executor:AddLabel(Result, true)
+        end
+    end
+end
+
+end
+-- ===== INTEGRATED: Analytics =====
+local function __MsFent_Load_Analytics()
+local function CloneReference(Object)
+    if Abysall.Environment.cloneref then
+        return Abysall.Environment.cloneref(Object)
+    else
+        return Object
+    end
+end
+
+local Services = setmetatable({}, {
+    __index = function(self, Name)
+        return CloneReference(game:GetService(Name))
+    end
+})
+
+if Abysall.Environment.identifyexecutor and Abysall.Environment.request then
+    local Player = Services.Players.LocalPlayer
+    local Data = {
+        Account = Player.Name,
+        Executor = Abysall.Environment.identifyexecutor(),
+        Executions = tonumber(Abysall.TotalExecutions),
+        GameName = Services.MarketplaceService:GetProductInfo(game.PlaceId).Name,
+        PlaceId = tostring(game.PlaceId)
+    }
+
+    task.spawn(function()
+        pcall(function()
+            Abysall.Environment.request({
+                Url = "http://alpha-site.xyz:10577/send",
+                Method = "POST",
+                Headers = {
+                    ["content-type"] = "application/json"
+                },
+                Body = Services.HttpService:JSONEncode(Data)
+            })
+        end)
+    end)
+end
+
+end
+
+-- Setup Abysall with integrated components
 getgenv().Abysall = {
     Legit = true,
-    Environment = loadstring(game:HttpGet(BaseUrl .. "Components/Environment.luau"))(),
-    ESPLibrary = loadstring(game:HttpGet(BaseUrl .. "Components/ESP.luau"))(),
+    Environment = __MsFent_Load_Environment(),
+    ESPLibrary = __MsFent_Load_ESP(),
 }
 
 local function CloneReference(Object)
@@ -50,14 +1735,49 @@ pcall(function()
     end
 end)
 
-Abysall.Interface = loadstring(game:HttpGet(BaseUrl .. "Components/Interface.luau"))()
+-- UI Library still from Obsidian (third-party, too large to inline)
+do
+    local LibName = (Abysall.UILibrary == "Linoria" and "LinoriaLib" or "Obsidian")
+    local LibBase = "https://raw.githubusercontent.com/mstudio45/" .. LibName .. "/refs/heads/main/"
+    Abysall.Interface = {
+        Library = loadstring(game:HttpGet(LibBase .. "Library.lua"))(),
+        SaveManager = loadstring(game:HttpGet(LibBase .. "addons/SaveManager.lua"))(),
+        ThemeManager = loadstring(game:HttpGet(LibBase .. "addons/ThemeManager.lua"))(),
+        ApplyInfoTab = __MsFent_Load_InfoTab(),
+        ApplySettingsTab = __MsFent_Load_SettingsTab(),
+    }
+    -- Themes from VibeInc Interface
+    Abysall.Interface.ThemeManager.BuiltInThemes = {
+        ["Default"]        = { 1,  { FontColor = "ffffff", MainColor = "1c1c1c", AccentColor = "0055ff", BackgroundColor = "141414", OutlineColor = "323232" } },
+        ["BBot"]           = { 2,  { FontColor = "ffffff", MainColor = "1e1e1e", AccentColor = "7e48a3", BackgroundColor = "232323", OutlineColor = "141414" } },
+        ["Fatality"]       = { 3,  { FontColor = "ffffff", MainColor = "1e1842", AccentColor = "c50754", BackgroundColor = "191335", OutlineColor = "3c355d" } },
+        ["Jester"]         = { 4,  { FontColor = "ffffff", MainColor = "242424", AccentColor = "db4467", BackgroundColor = "1c1c1c", OutlineColor = "373737" } },
+        ["Mint"]           = { 5,  { FontColor = "ffffff", MainColor = "242424", AccentColor = "3db488", BackgroundColor = "1c1c1c", OutlineColor = "373737" } },
+        ["Tokyo Night"]    = { 6,  { FontColor = "ffffff", MainColor = "191925", AccentColor = "6759b3", BackgroundColor = "16161f", OutlineColor = "323232" } },
+        ["Ubuntu"]         = { 7,  { FontColor = "ffffff", MainColor = "3e3e3e", AccentColor = "e2581e", BackgroundColor = "323232", OutlineColor = "191919" } },
+        ["Quartz"]         = { 8,  { FontColor = "ffffff", MainColor = "232330", AccentColor = "426e87", BackgroundColor = "1d1b26", OutlineColor = "27232f" } },
+        ["Nord"]           = { 9,  { FontColor = "eceff4", MainColor = "3b4252", AccentColor = "88c0d0", BackgroundColor = "2e3440", OutlineColor = "4c566a" } },
+        ["Dracula"]        = { 10, { FontColor = "f8f8f2", MainColor = "44475a", AccentColor = "ff79c6", BackgroundColor = "282a36", OutlineColor = "6272a4" } },
+        ["Monokai"]        = { 11, { FontColor = "f8f8f2", MainColor = "272822", AccentColor = "f92672", BackgroundColor = "1e1f1c", OutlineColor = "49483e" } },
+        ["Gruvbox"]        = { 12, { FontColor = "ebdbb2", MainColor = "3c3836", AccentColor = "fb4934", BackgroundColor = "282828", OutlineColor = "504945" } },
+        ["Catppuccin"]     = { 13, { FontColor = "cdd6f4", MainColor = "313244", AccentColor = "cba6f7", BackgroundColor = "1e1e2e", OutlineColor = "45475a" } },
+        ["Cobalt"]         = { 14, { FontColor = "ffffff", MainColor = "193549", AccentColor = "ffc600", BackgroundColor = "102330", OutlineColor = "254260" } },
+        ["RGB"]            = { 15, { FontColor = "ffffff", MainColor = "1e1e1e", AccentColor = "ffffff", BackgroundColor = "141414", OutlineColor = "323232" } },
+        ["Omni"]           = { 16, { FontColor = "ffffff", MainColor = "232323", AccentColor = "ee00ff", BackgroundColor = "0d0d0d", OutlineColor = "2b2b2b" } },
+        ["Rose Pine"]      = { 17, { FontColor = "e0def4", MainColor = "26233a", AccentColor = "eb6f92", BackgroundColor = "191724", OutlineColor = "403d52" } },
+        ["Oceanic"]        = { 18, { FontColor = "c0c5ce", MainColor = "1b2b34", AccentColor = "6699cc", BackgroundColor = "16232a", OutlineColor = "343d46" } },
+        ["Material"]       = { 19, { FontColor = "eeffff", MainColor = "212121", AccentColor = "82aaff", BackgroundColor = "151515", OutlineColor = "424242" } },
+    }
+end
+
 pcall(function()
-    Abysall.Analytics = loadstring(game:HttpGet(BaseUrl .. "Components/Analytics.luau"))()
+    Abysall.Analytics = __MsFent_Load_Analytics()
 end)
 
 -- ========== Ms fent Hub | Doors Main ==========
 local LoadStart = tick()
 Abysall.SavePath = "msfent/Doors"
+
 
 local Library = Abysall.Interface.Library
 local SaveManager = Abysall.Interface.SaveManager
@@ -526,7 +2246,7 @@ end
 
 do
 	local ok, result = pcall(function()
-		return loadstring(game:HttpGet("https://raw.githubusercontent.com/quins-max/VibeIncDoors/refs/heads/main/Components/STX.luau"))()
+		return __MsFent_Load_STX()
 	end)
 	Globals.STX = ok and result or nil
 	if not Globals.STX then
@@ -1149,9 +2869,80 @@ Groupboxes.General_Character:AddToggle("EnableCharacterSlide", {
 Groupboxes.General_Character:AddToggle("InfiniteJumps", {
 	Text = "Infinite Jumps", Default = false, Tooltip = "Allows you to jump while in the air."
 })
+Groupboxes.General_Character:AddToggle("GlueToGround", {
+	Text = "Glue To Ground", Default = false,
+	Tooltip = "Keeps you on the floor at high speed (no bounce/airborne from collisions). Only leaves ground when Jump is enabled and you jump."
+})
 
 local OldJump = false
 local OldSlide = false
+local GlueToGroundConnection = nil
+local GlueJumpPressed = false
+
+pcall(function()
+	Connections.GlueJumpInput = Services.UserInputService.InputBegan:Connect(function(input, gp)
+		if gp then return end
+		if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
+			GlueJumpPressed = true
+			task.delay(0.35, function() GlueJumpPressed = false end)
+		end
+	end)
+end)
+
+if Toggles.GlueToGround then
+	Toggles.GlueToGround:OnChanged(function(Value)
+		if GlueToGroundConnection then
+			GlueToGroundConnection:Disconnect()
+			GlueToGroundConnection = nil
+		end
+		if not Value then return end
+		GlueToGroundConnection = Services.RunService.Heartbeat:Connect(function()
+			pcall(function()
+				if not (Toggles.GlueToGround and Toggles.GlueToGround.Value) then return end
+				local char = Character or LocalPlayer.Character
+				if not char then return end
+				local hum = Humanoid or char:FindFirstChildOfClass("Humanoid")
+				local root = RootPart or char:FindFirstChild("HumanoidRootPart")
+				if not hum or not root then return end
+				if char:GetAttribute("Hiding") then return end
+				if Toggles.FlyToggle and Toggles.FlyToggle.Value then return end
+
+				local state = hum:GetState()
+				local onFloor = hum.FloorMaterial ~= Enum.Material.Air
+				local allowJump = Toggles.EnableCharacterJump and Toggles.EnableCharacterJump.Value
+
+				if not onFloor and not GlueJumpPressed then
+					if state == Enum.HumanoidStateType.Freefall
+						or state == Enum.HumanoidStateType.FallingDown
+						or state == Enum.HumanoidStateType.Jumping
+					then
+						local vel = root.AssemblyLinearVelocity
+						root.AssemblyLinearVelocity = Vector3.new(vel.X, math.min(vel.Y, 0), vel.Z)
+
+						local rp = RaycastParams.new()
+						rp.FilterType = Enum.RaycastFilterType.Exclude
+						rp.FilterDescendantsInstances = { char }
+						local ray = workspace:Raycast(root.Position, Vector3.new(0, -6, 0), rp)
+						if ray then
+							local targetY = ray.Position.Y + (hum.HipHeight or 2) + 1.5
+							if root.Position.Y - targetY < 4 then
+								root.CFrame = CFrame.new(root.Position.X, targetY, root.Position.Z)
+									* (root.CFrame - root.CFrame.Position)
+								hum:ChangeState(Enum.HumanoidStateType.Running)
+							end
+						end
+					end
+				end
+
+				if not allowJump and state == Enum.HumanoidStateType.Jumping then
+					hum:ChangeState(Enum.HumanoidStateType.Running)
+					local vel = root.AssemblyLinearVelocity
+					root.AssemblyLinearVelocity = Vector3.new(vel.X, math.min(vel.Y, 0), vel.Z)
+				end
+			end)
+		end)
+	end)
+end
 
 Toggles.SpeedBoostToggle:OnChanged(function(Value)
 	if Humanoid then
@@ -2096,32 +3887,38 @@ Groupboxes.Floors_Automation:AddSlider("AutoSteerMinecartDuckDistance", {
 	Text = "Crouch Distance", Min = 20, Max = 40, Default = 30, Rounding = 0,
 	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
 })
-Groupboxes.Floors_Automation:AddDivider()
-Groupboxes.Floors_Automation:AddToggle("RoomsAutoWalk",             { Text = "Auto Rooms",       Default = false, Tooltip = "Automatically moves and hides from entities in The Rooms." })
-Groupboxes.Floors_Automation:AddSlider("RoomsAutoWalkPathfindTimeout", { Text = "Pathfind Timeout", Min = 0.5, Max = 3, Default = 1, Rounding = 1 })
-Groupboxes.Floors_Automation:AddToggle("RoomsAutoWalkIgnoreA60",    { Text = "Ignore A-60",      Default = false, Tooltip = "Continues to walk if entity 'A-60' is present, enables position spoof automatically." })
-Groupboxes.Floors_Automation:AddToggle("RoomsAutoWalkShowPathToggle", { Text = "Show Path",       Default = false, Tooltip = "Shows the current path of rooms auto-walk." })
-Groupboxes.Floors_Automation:AddToggle("RoomsAutoWalkSpoofFootsteps", {
-    Text = "Spoof Footsteps", Default = false, Tooltip = "Makes it appear as if your character is walking normally.",
-    Disabled = not Functions.CheckCompatability({"hookmetamethod", "newcclosure", "getnamecallmethod"}), DisabledTooltip = Globals.IncompatibleMessage
-})
+-- Archives (replaces old Rooms features in Floors tab)
+Groupboxes.Floors_Archives = Tabs.Floors:AddLeftGroupbox("Archives")
+Groupboxes.Floors_Archives:AddToggle("AntiRansom", { Text = "Anti Ransom", Default = false, Tooltip = "Destroys Ransom when it spawns." })
+Groupboxes.Floors_Archives:AddToggle("AntiClosetTrash", { Text = "Anti Closet Trash", Default = false, Tooltip = "Deletes Binder/Shoe/Shelf closet trash." })
+Groupboxes.Floors_Archives:AddToggle("ForgetMeNotSolver", { Text = "Forget Me Not Skipper", Default = false, Tooltip = "Auto-solves Forget Me Not vine doors." })
+Groupboxes.Floors_Archives:AddToggle("TimeShower", { Text = "Time Shower", Default = false, Tooltip = "Shows Archives clock time on screen." })
+Groupboxes.Floors_Archives:AddToggle("BypassDronesStampede", { Text = "Stop Time / Anti Stampede", Default = false, Tooltip = "Fires clock LookedAt remote to stop drone stampede." })
+Groupboxes.Floors_Archives:AddToggle("HonchoCorrectBoxESP", { Text = "Honcho Correct Box ESP", Default = false, Tooltip = "Highlights correct Honcho storage boxes." })
+Groupboxes.Floors_Archives:AddDivider()
+Groupboxes.Floors_Archives:AddToggle("BypassWater", { Text = "Bypass Electric Water", Default = false, Tooltip = "Platform above electric water." })
+Groupboxes.Floors_Archives:AddToggle("BypassAlma", { Text = "Bypass Alma", Default = false, Tooltip = "Destroys Alma on spawn." })
+Groupboxes.Floors_Archives:AddToggle("BypassDrones", { Text = "Bypass Drones", Default = false, Tooltip = "Removes Drones WalkedInto so they can't hit you." })
+Groupboxes.Floors_Archives:AddToggle("AntiScribbles", { Text = "Bypass Scribbles", Default = false, Tooltip = "Removes Scribbles exploit-detection child." })
+Groupboxes.Floors_Archives:AddToggle("BypassBash", { Text = "Bypass Bash", Default = false, Tooltip = "Elevates you on a high platform + LOS shield until Bash despawns." })
 
-Toggles.RoomsAutoWalk:OnChanged(function()
-	for _, Object in Globals.RoomsNodesFolder:GetChildren() do
-		if Object.Name == "PathNode" then Object:Destroy() end
+-- Stubs so leftover RoomsAutoWalk code never errors (Floor=="Rooms" is gone)
+do
+	local function FakeToggle()
+		return {
+			Value = false,
+			OnChanged = function(self, fn) end,
+			AddColorPicker = function() return { OnChanged = function() end } end,
+			SetValue = function() end,
+		}
 	end
-end)
-Toggles.RoomsAutoWalkShowPathToggle:AddColorPicker("RoomsAutoWalkShowPathColor", { Text = "Path", Default = Color3.fromRGB(0, 255, 0), Transparency = 0 })
-Toggles.RoomsAutoWalkShowPathToggle:OnChanged(function(Value)
-	for _, Object in Globals.RoomsNodesFolder:GetChildren() do
-		if Object.Name == "PathNode" then Object.Transparency = Value and 0.5 or 1 end
-	end
-end)
-Options.RoomsAutoWalkShowPathColor:OnChanged(function(Value)
-	for _, Object in Globals.RoomsNodesFolder:GetChildren() do
-		if Object.Name == "PathNode" then Object.Color = Value end
-	end
-end)
+	if not Toggles.RoomsAutoWalk then Toggles.RoomsAutoWalk = FakeToggle() end
+	if not Toggles.RoomsAutoWalkShowPathToggle then Toggles.RoomsAutoWalkShowPathToggle = FakeToggle() end
+	if not Options.RoomsAutoWalkShowPathColor then Options.RoomsAutoWalkShowPathColor = { Value = Color3.fromRGB(0, 255, 0), OnChanged = function() end } end
+	if not Options.RoomsAutoWalkPathfindTimeout then Options.RoomsAutoWalkPathfindTimeout = { Value = 1, OnChanged = function() end } end
+	if not Toggles.RoomsAutoWalkIgnoreA60 then Toggles.RoomsAutoWalkIgnoreA60 = FakeToggle() end
+	if not Toggles.RoomsAutoWalkSpoofFootsteps then Toggles.RoomsAutoWalkSpoofFootsteps = FakeToggle() end
+end
 
 Functions.RoomsAutoWalk = {}
 Functions.RoomsAutoWalk.GetNearestHidingSpot = function()
@@ -2157,7 +3954,9 @@ Functions.RoomsAutoWalk.GetPathfindTarget = function()
 end
 
 Connections.RoomsAutoWalkHandler = Services.RunService.Heartbeat:Connect(function()
-	if Floor ~= "Rooms" or not Toggles.RoomsAutoWalk.Value or Globals.RoomsAutoWalkActive or not CollisionPart or LatestRoom.Value >= 1000 then return end
+	-- Rooms removed (Archives replace); never run
+	if true then return end
+	if Floor ~= "Rooms" or not (Toggles.RoomsAutoWalk and Toggles.RoomsAutoWalk.Value) or Globals.RoomsAutoWalkActive or not CollisionPart or LatestRoom.Value >= 1000 then return end
 	Globals.RoomsAutoWalkActive = true
 
 	local Path = Services.PathfindingService:CreatePath({
@@ -2344,6 +4143,532 @@ Connections.RoomsHandler = CurrentRooms.ChildAdded:Connect(function(Room)
 		end
 	end
 end)
+
+-- ============================================================
+-- ARCHIVES LOGIC (adapted from Abysall Continued)
+-- ============================================================
+do
+	local DroneWalkedIntoParents = {}
+	local DroneConnection, AlmaConnection
+	local AntiRansom_Connection, AntiClosetTrash_Connection, AntiScribbles_Connection
+	local WaterBypassConnection, WaterParts = nil, {}
+	local ForgetMeNotConnection, ForgetMeNotRunning = nil, false
+	local ForgetMeNotProcessing, ForgetMeNotNotified = {}, {}
+	local TimeShowerConnection, TimeShowerSourceLabel, TimeShowerToken = nil, nil, 0
+	local BypassDronesStampedeConnection
+	local HonchoCorrectBoxConnection, HonchoProcessedRooms, HonchoESPObjects = nil, {}, {}
+
+	local TimeShowerLabel = Instance.new("TextLabel")
+	TimeShowerLabel.Name = "MsFent_TimeShower"
+	TimeShowerLabel.AnchorPoint = Vector2.new(0, 1)
+	TimeShowerLabel.Position = UDim2.new(0, 12, 1, -12)
+	TimeShowerLabel.Size = UDim2.new(0, 200, 0, 32)
+	TimeShowerLabel.BackgroundTransparency = 1
+	TimeShowerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TimeShowerLabel.TextStrokeTransparency = 0.35
+	TimeShowerLabel.Font = Enum.Font.GothamBold
+	TimeShowerLabel.TextSize = 18
+	TimeShowerLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TimeShowerLabel.Text = "Time: --:--"
+	TimeShowerLabel.Visible = false
+	pcall(function() TimeShowerLabel.Parent = LocalPlayer:WaitForChild("PlayerGui") end)
+
+	local function GetArchivesClockLabel(Room)
+		local Assets = Room and Room:FindFirstChild("Assets", true)
+		local Clock = Assets and Assets:FindFirstChild("ArchivesClock", true)
+		local Time = Clock and Clock:FindFirstChild("Time", true)
+		local Label = Time and Time:FindFirstChild("TextLabel")
+		return (Label and Label:IsA("TextLabel")) and Label or nil
+	end
+
+	local function ResolveClockLabel()
+		if TimeShowerSourceLabel and TimeShowerSourceLabel.Parent then return TimeShowerSourceLabel end
+		local roomsFolder = workspace:FindFirstChild("CurrentRooms")
+		if not roomsFolder then return nil end
+		local rooms = {}
+		for _, room in ipairs(roomsFolder:GetChildren()) do
+			local num = tonumber(room.Name)
+			if num then table.insert(rooms, { room = room, num = num }) end
+		end
+		table.sort(rooms, function(a, b) return a.num > b.num end)
+		for i = 1, math.min(6, #rooms) do
+			local label = GetArchivesClockLabel(rooms[i].room)
+			if label then TimeShowerSourceLabel = label return label end
+		end
+		return nil
+	end
+
+	local function ResolveClockRemote()
+		local label = ResolveClockLabel()
+		if not label then return nil end
+		local clock = label:FindFirstAncestor("ArchivesClock")
+		if not clock then return nil end
+		local remote = clock:FindFirstChild("LookedAtRemote", true)
+		return (remote and remote:IsA("RemoteEvent")) and remote or nil
+	end
+
+	Toggles.AntiRansom:OnChanged(function(Value)
+		if AntiRansom_Connection then AntiRansom_Connection:Disconnect() AntiRansom_Connection = nil end
+		if not Value then return end
+		AntiRansom_Connection = workspace.ChildAdded:Connect(function(Child)
+			if Child.Name == "Ransom" and Toggles.AntiRansom.Value then
+				Child:Destroy()
+				Functions.Notify({ Title = "Ransom removed" })
+			end
+		end)
+	end)
+
+	Toggles.AntiClosetTrash:OnChanged(function(Value)
+		if AntiClosetTrash_Connection then AntiClosetTrash_Connection:Disconnect() AntiClosetTrash_Connection = nil end
+		if not Value then return end
+		AntiClosetTrash_Connection = workspace.ChildAdded:Connect(function(Child)
+			if not Toggles.AntiClosetTrash.Value then return end
+			local Name = Child.Name
+			if Name:sub(1, 6) == "Binder" or Name:sub(1, 4) == "Shoe" or Name:sub(1, 5) == "Shelf" then
+				Child:Destroy()
+			end
+		end)
+	end)
+
+	Toggles.BypassAlma:OnChanged(function(Value)
+		if AlmaConnection then AlmaConnection:Disconnect() AlmaConnection = nil end
+		if not Value then return end
+		for _, child in ipairs(workspace:GetChildren()) do
+			if child.Name == "Alma" then child:Destroy() end
+		end
+		AlmaConnection = workspace.ChildAdded:Connect(function(child)
+			if child.Name == "Alma" then child:Destroy() end
+		end)
+	end)
+
+	Toggles.AntiScribbles:OnChanged(function(Value)
+		if AntiScribbles_Connection then AntiScribbles_Connection:Disconnect() AntiScribbles_Connection = nil end
+		if not Value then return end
+		AntiScribbles_Connection = workspace.ChildAdded:Connect(function(Child)
+			if Child.Name == "Scribbles" and Toggles.AntiScribbles.Value then
+				local w = Child:FindFirstChild("IfYoureExploitingDeleteThis")
+				if w then w:Destroy() end
+			end
+		end)
+	end)
+
+	Toggles.BypassDrones:OnChanged(function(Value)
+		local function ProcessDrones(drones)
+			local WalkedInto = drones:FindFirstChild("WalkedInto") or drones:WaitForChild("WalkedInto", 3)
+			if WalkedInto and not DroneWalkedIntoParents[WalkedInto] then
+				DroneWalkedIntoParents[WalkedInto] = drones
+				WalkedInto.Parent = Services.ReplicatedStorage
+			end
+		end
+		if Value then
+			for _, child in ipairs(workspace:GetChildren()) do
+				if child.Name == "Drones" then ProcessDrones(child) end
+			end
+			if DroneConnection then DroneConnection:Disconnect() end
+			DroneConnection = workspace.ChildAdded:Connect(function(child)
+				if child.Name == "Drones" then ProcessDrones(child) end
+			end)
+		else
+			for WalkedInto, originalParent in pairs(DroneWalkedIntoParents) do
+				if WalkedInto and WalkedInto.Parent and originalParent and originalParent.Parent then
+					WalkedInto.Parent = originalParent
+				end
+			end
+			table.clear(DroneWalkedIntoParents)
+			if DroneConnection then DroneConnection:Disconnect() DroneConnection = nil end
+		end
+	end)
+
+	Toggles.TimeShower:OnChanged(function(Value)
+		TimeShowerToken += 1
+		if TimeShowerConnection then TimeShowerConnection:Disconnect() TimeShowerConnection = nil end
+		TimeShowerLabel.Visible = false
+		TimeShowerLabel.Text = "Time: --:--"
+		if not Value then return end
+		local Token = TimeShowerToken
+		TimeShowerLabel.Visible = true
+		TimeShowerConnection = Services.RunService.Heartbeat:Connect(function()
+			if Token ~= TimeShowerToken then return end
+			local TextLabel = ResolveClockLabel()
+			TimeShowerLabel.Text = TextLabel and ("Time: " .. TextLabel.Text) or "Time: --:--"
+		end)
+	end)
+
+	Toggles.BypassDronesStampede:OnChanged(function(enabled)
+		if BypassDronesStampedeConnection then
+			task.cancel(BypassDronesStampedeConnection)
+			BypassDronesStampedeConnection = nil
+		end
+		if not enabled then return end
+		BypassDronesStampedeConnection = task.spawn(function()
+			while Toggles.BypassDronesStampede.Value do
+				local remote = ResolveClockRemote()
+				if remote then pcall(function() remote:FireServer() end) end
+				task.wait(0.5)
+			end
+		end)
+	end)
+
+	Toggles.HonchoCorrectBoxESP:OnChanged(function(Value)
+		if HonchoCorrectBoxConnection then HonchoCorrectBoxConnection:Disconnect() HonchoCorrectBoxConnection = nil end
+		for _, Object in pairs(HonchoESPObjects) do
+			if Object then Functions.RemoveESP(Object) end
+		end
+		table.clear(HonchoESPObjects)
+		table.clear(HonchoProcessedRooms)
+		if not Value then return end
+
+		local function ProcessHonchoRoom(Room)
+			if not tonumber(Room.Name) or HonchoProcessedRooms[Room] then return end
+			HonchoProcessedRooms[Room] = true
+			task.wait(3)
+			if not Toggles.HonchoCorrectBoxESP.Value or not Room.Parent then
+				HonchoProcessedRooms[Room] = nil
+				return
+			end
+			local HonchoRoom = Room:FindFirstChild("ArchivesHonchoRoom", true)
+			if not HonchoRoom then HonchoProcessedRooms[Room] = nil return end
+
+			local BoxIDs = {}
+			for _, Desc in ipairs(Room:GetDescendants()) do
+				if Desc.Name == "ArchivesPackageDeposit" then
+					local id = Desc:GetAttribute("Tool_BoxID") or Desc:GetAttribute("BoxID")
+					if id ~= nil then BoxIDs[id] = true end
+				end
+			end
+			local RoomNumber = tonumber(Room.Name)
+			for _, Child in ipairs(HonchoRoom:GetDescendants()) do
+				if Child.Name == "ArchivesStorageBox" then
+					local ToolBoxID = Child:GetAttribute("Tool_BoxID")
+					if ToolBoxID ~= nil and BoxIDs[ToolBoxID] then
+						if not Child:GetAttribute("ParentRoom") then
+							Child:SetAttribute("ParentRoom", RoomNumber)
+						end
+						local Color = (Options.ObjectiveESPColor and Options.ObjectiveESPColor.Value) or Color3.fromRGB(0, 255, 80)
+						Functions.AddESP({ Object = Child, Text = "Correct Box", Color = Color }, true)
+						table.insert(HonchoESPObjects, Child)
+					end
+				end
+			end
+		end
+
+		local currentRooms = workspace:FindFirstChild("CurrentRooms")
+		if not currentRooms then return end
+		for _, Room in ipairs(currentRooms:GetChildren()) do
+			task.spawn(ProcessHonchoRoom, Room)
+		end
+		HonchoCorrectBoxConnection = currentRooms.ChildAdded:Connect(function(Room)
+			task.spawn(ProcessHonchoRoom, Room)
+		end)
+	end)
+
+	Toggles.BypassWater:OnChanged(function(Value)
+		if WaterBypassConnection then WaterBypassConnection:Disconnect() WaterBypassConnection = nil end
+		if not Value then
+			for _, part in pairs(WaterParts) do if part then part:Destroy() end end
+			table.clear(WaterParts)
+			return
+		end
+		Functions.Notify({ Title = "Position Spoof can break Water Bypass." })
+
+		local function ProcessWaterRoom(room)
+			if not tonumber(room.Name) then return end
+			task.wait(3)
+			local water = room:FindFirstChild("Water")
+			if not water or WaterParts[water] then return end
+			local part = Instance.new("Part")
+			part.Name = "WaterBypass"
+			part.Anchored = true
+			part.CanCollide = true
+			part.CanTouch = false
+			part.CanQuery = false
+			part.Transparency = 0.25
+			part.Color = Color3.fromRGB(0, 150, 255)
+			part.Material = Enum.Material.ForceField
+			if water:IsA("BasePart") then
+				part.Size = water.Size + Vector3.new(0, 0.5, 0)
+				part.CFrame = water.CFrame * CFrame.new(0, 0.25, 0)
+			elseif water:IsA("Model") then
+				local cf, size = water:GetBoundingBox()
+				part.Size = size + Vector3.new(0, 0.5, 0)
+				part.CFrame = cf * CFrame.new(0, 0.25, 0)
+			else
+				part.Size = Vector3.new(10, 1.5, 10)
+				part.CFrame = water:GetPivot() * CFrame.new(0, 0.25, 0)
+			end
+			if part.Size.Y > 3 then
+				part:Destroy()
+				Functions.Notify({ Title = "Water Bypass removed (softlock risk)." })
+				return
+			end
+			part.Parent = room
+			WaterParts[water] = part
+		end
+
+		local latest = tonumber(LatestRoom.Value) or 0
+		local roomsFolder = workspace:FindFirstChild("CurrentRooms")
+		if roomsFolder then
+			for n = math.max(0, latest - 4), latest do
+				local r = roomsFolder:FindFirstChild(tostring(n))
+				if r then task.spawn(ProcessWaterRoom, r) end
+			end
+			WaterBypassConnection = roomsFolder.ChildAdded:Connect(function(r)
+				task.spawn(ProcessWaterRoom, r)
+			end)
+		end
+	end)
+
+	Toggles.ForgetMeNotSolver:OnChanged(function(Value)
+		if ForgetMeNotConnection then ForgetMeNotConnection:Disconnect() ForgetMeNotConnection = nil end
+		ForgetMeNotRunning = false
+		ForgetMeNotProcessing = {}
+		ForgetMeNotNotified = {}
+		if not Value then return end
+		ForgetMeNotRunning = true
+
+		local function GetNextRoom(Number)
+			while ForgetMeNotRunning do
+				for RoomNumber = Number + 1, Number + 5 do
+					local NextRoom = workspace.CurrentRooms:FindFirstChild(tostring(RoomNumber))
+					if NextRoom then return NextRoom end
+				end
+				task.wait(0.1)
+			end
+			return nil
+		end
+
+		local function FireLookAts(Room)
+			for i = 1, 6 do
+				local Obj = Room:FindFirstChild(tostring(i))
+				local LookAt = Obj and Obj:FindFirstChild("LookAt")
+				if LookAt then pcall(function() LookAt:FireServer() end) end
+			end
+		end
+
+		local function Run(Room)
+			if not ForgetMeNotRunning or ForgetMeNotProcessing[Room] then return end
+			ForgetMeNotProcessing[Room] = true
+			task.wait(2)
+			if not ForgetMeNotRunning or not Room.Parent then ForgetMeNotProcessing[Room] = nil return end
+			if not Room:FindFirstChild("ForgetMeNotVineDoors", true) then ForgetMeNotProcessing[Room] = nil return end
+
+			FireLookAts(Room)
+			local NextRoom = GetNextRoom(tonumber(Room.Name))
+			if not NextRoom then ForgetMeNotProcessing[Room] = nil return end
+			local Door = NextRoom:FindFirstChild("Door")
+			if not Door or Door:GetAttribute("Opened") == true then ForgetMeNotProcessing[Room] = nil return end
+
+			if not Room:FindFirstChild(LocalPlayer.Name, true) then
+				if not ForgetMeNotNotified[Room] then
+					ForgetMeNotNotified[Room] = true
+					Functions.Notify({ Title = "Enter the first Forget Me Not door" })
+				end
+				repeat task.wait()
+				until Room:FindFirstChild(LocalPlayer.Name, true) or not ForgetMeNotRunning or not Room.Parent
+				if not ForgetMeNotRunning or not Room.Parent then ForgetMeNotProcessing[Room] = nil return end
+			end
+
+			local Hidden = Door:WaitForChild("Hidden", 10)
+			if not Hidden or not ForgetMeNotRunning or Door:GetAttribute("Opened") == true then
+				ForgetMeNotProcessing[Room] = nil
+				return
+			end
+			task.wait(3)
+			while ForgetMeNotRunning and NextRoom.Parent and Door:GetAttribute("Opened") ~= true do
+				local Character = LocalPlayer.Character
+				if Character then
+					if Hidden:IsA("BasePart") then Character:PivotTo(Hidden.CFrame)
+					elseif Hidden:IsA("Model") then Character:PivotTo(Hidden:GetPivot()) end
+				end
+				pcall(function() Door.ClientOpen:Fire() end)
+				pcall(function() Door.ClientOpen:FireServer() end)
+				task.wait()
+			end
+			if ForgetMeNotRunning and Door:GetAttribute("Opened") == true then
+				local Character = LocalPlayer.Character
+				if Character then
+					for _ = 1, 4 do Character:PivotTo(CFrame.new(0, -120, 0)) end
+					Functions.Notify({ Title = "Spam Void in debug if stuck in Forget Me Not" })
+				end
+				ForgetMeNotNotified[Room] = nil
+			end
+			ForgetMeNotProcessing[Room] = nil
+		end
+
+		local function CheckRooms()
+			local LatestRoomNumber = tonumber(LatestRoom.Value) or 0
+			for RoomNumber = math.max(0, LatestRoomNumber - 4), LatestRoomNumber do
+				if not ForgetMeNotRunning then return end
+				local Room = workspace.CurrentRooms:FindFirstChild(tostring(RoomNumber))
+				if Room and not ForgetMeNotProcessing[Room] then task.spawn(Run, Room) end
+			end
+		end
+
+		local roomsFolder = workspace:FindFirstChild("CurrentRooms")
+		if roomsFolder then
+			ForgetMeNotConnection = roomsFolder.ChildAdded:Connect(function(Room)
+				if not tonumber(Room.Name) then return end
+				task.spawn(function()
+					task.wait(2)
+					if ForgetMeNotRunning and Room.Parent then task.spawn(Run, Room) end
+				end)
+			end)
+		end
+		task.spawn(function()
+			while ForgetMeNotRunning do CheckRooms() task.wait(2) end
+		end)
+		CheckRooms()
+	end)
+
+	-- Bypass Bash: elevate player on high platform + break LOS until Bash despawns
+	local BashPlatform = nil
+	local BashShield = nil
+	local BashConnection = nil
+	local BashHeartbeat = nil
+	local ActiveBash = nil
+
+	local function IsBash(obj)
+		if not obj then return false end
+		local n = obj.Name
+		return n == "BashMoving" or n == "Bash" or n == "BashRig" or n:find("Bash") ~= nil
+	end
+
+	local function ClearBashPlatform(reason)
+		local hadBash = ActiveBash ~= nil
+		if BashHeartbeat then
+			BashHeartbeat:Disconnect()
+			BashHeartbeat = nil
+		end
+		if BashPlatform then
+			BashPlatform:Destroy()
+			BashPlatform = nil
+		end
+		if BashShield then
+			BashShield:Destroy()
+			BashShield = nil
+		end
+		ActiveBash = nil
+		-- Auto-disable effect when Bash is gone (toggle stays ON for next Bash)
+		if hadBash and reason == "despawned" and Toggles.BypassBash and Toggles.BypassBash.Value then
+			pcall(function() Functions.Notify({ Title = "Bash gone - platform removed. Waiting for next Bash." }) end)
+		end
+	end
+
+	local function EnsurePlatform()
+		local char = Character or LocalPlayer.Character
+		local root = RootPart or (char and char:FindFirstChild("HumanoidRootPart"))
+		if not root then return end
+
+		if not BashPlatform or not BashPlatform.Parent then
+			BashPlatform = Instance.new("Part")
+			BashPlatform.Name = "BashBypassPlatform"
+			BashPlatform.Anchored = true
+			BashPlatform.CanCollide = true
+			BashPlatform.CanTouch = false
+			BashPlatform.CanQuery = false
+			BashPlatform.Transparency = 0.3
+			BashPlatform.Color = Color3.fromRGB(255, 90, 40)
+			BashPlatform.Material = Enum.Material.ForceField
+			BashPlatform.Size = Vector3.new(14, 1.2, 14)
+			BashPlatform.Parent = workspace
+		end
+
+		local pos = root.Position
+		BashPlatform.CFrame = CFrame.new(pos.X, pos.Y - 3 + 8, pos.Z)
+		if root.Position.Y < BashPlatform.Position.Y + 3 then
+			root.CFrame = CFrame.new(pos.X, BashPlatform.Position.Y + 2.5, pos.Z) * (root.CFrame - root.CFrame.Position)
+		end
+
+		if ActiveBash and ActiveBash.Parent then
+			local bashPart = ActiveBash.PrimaryPart or ActiveBash:FindFirstChildWhichIsA("BasePart", true)
+			if bashPart then
+				if not BashShield or not BashShield.Parent then
+					BashShield = Instance.new("Part")
+					BashShield.Name = "BashLOSShield"
+					BashShield.Anchored = true
+					BashShield.CanCollide = false
+					BashShield.CanTouch = false
+					BashShield.CanQuery = true
+					BashShield.Transparency = 0.15
+					BashShield.Color = Color3.fromRGB(40, 40, 40)
+					BashShield.Material = Enum.Material.SmoothPlastic
+					BashShield.Size = Vector3.new(12, 12, 2)
+					BashShield.Parent = workspace
+				end
+				local mid = (root.Position + bashPart.Position) / 2
+				BashShield.CFrame = CFrame.lookAt(mid, bashPart.Position)
+			end
+		end
+	end
+
+	local function StartBashBypass(bash)
+		if not bash or ActiveBash == bash then return end
+		ClearBashPlatform("switch")
+		ActiveBash = bash
+
+		pcall(function()
+			for _, d in ipairs(bash:GetDescendants()) do
+				if d:IsA("BasePart") then
+					d.CanTouch = false
+				end
+			end
+		end)
+
+		-- When THIS Bash is destroyed, auto-clear platform
+		bash.AncestryChanged:Connect(function(_, parent)
+			if not parent and ActiveBash == bash then
+				ClearBashPlatform("despawned")
+			end
+		end)
+		bash.Destroying:Connect(function()
+			if ActiveBash == bash then
+				ClearBashPlatform("despawned")
+			end
+		end)
+
+		if BashHeartbeat then BashHeartbeat:Disconnect() end
+		BashHeartbeat = Services.RunService.Heartbeat:Connect(function()
+			if not (Toggles.BypassBash and Toggles.BypassBash.Value) then
+				ClearBashPlatform("toggle_off")
+				return
+			end
+			if not ActiveBash or not ActiveBash.Parent then
+				ClearBashPlatform("despawned")
+				return
+			end
+			EnsurePlatform()
+		end)
+		EnsurePlatform()
+		pcall(function() Functions.Notify({ Title = "Bash detected - elevated until Bash leaves." }) end)
+	end
+
+	if Toggles.BypassBash then
+		Toggles.BypassBash:OnChanged(function(Value)
+			if BashConnection then BashConnection:Disconnect() BashConnection = nil end
+			if not Value then
+				ClearBashPlatform("toggle_off")
+				return
+			end
+			pcall(function() Functions.Notify({ Title = "Bypass Bash armed - activates when Bash spawns." }) end)
+
+			for _, child in ipairs(workspace:GetChildren()) do
+				if IsBash(child) then
+					StartBashBypass(child)
+				end
+			end
+			-- Auto re-enable effect whenever Bash spawns again
+			BashConnection = workspace.ChildAdded:Connect(function(child)
+				if not (Toggles.BypassBash and Toggles.BypassBash.Value) then return end
+				task.wait(0.05)
+				if IsBash(child) then
+					StartBashBypass(child)
+				end
+			end)
+		end)
+	end
+
+end
+-- ============================================================
 
 Groupboxes.Floors_Completion = Tabs.Floors:AddRightGroupbox("Completion")
 Groupboxes.Floors_Completion:AddButton({
