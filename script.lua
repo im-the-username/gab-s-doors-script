@@ -1566,7 +1566,7 @@ return function(Window)
 	MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "Menu keybind" })
 	
 	MenuGroup:AddButton("Copy Discord Invite", function()
-		toclipboard("https://dsc.gg/jJd2JkkCTj")
+		toclipboard("https://discord.gg/GHMF7JeBGU")
 		Library:Notify("Discord invite copied.")
 	end)
 	
@@ -1592,6 +1592,9 @@ end
 local function __MsFent_Load_InfoTab()
 return function(Window)
     local LatestChangelog = {
+        "29/9/2026",
+        "<font color='rgb(0, 255, 0)'>+ Stairwell support</font>",
+        "<font color='rgb(255, 0, 0)'>- some weird glitches for when you unloaded the script u got flung and died</font>",
         "28/9/2026",
         "<font color='rgb(0, 255, 0)'>+ Archives tab (Anti Ransom, Alma, Drones, Water, etc.)</font>",
         "<font color='rgb(0, 255, 0)'>+ Bypass Bash (auto on/off with Bash)</font>",
@@ -1841,6 +1844,36 @@ Functions.CheckCompatability = function(Array)
 end
 
 local Entities = {
+
+	-- Stairwell / Archives entities (from Abysall Continued, inlined)
+	["StemsEntity"] = {
+		Alias = "Balls",
+		NotifyMessage = { Title = "Balls", Body = "Balls." }
+	},
+	["NoiseModel"] = {
+		Alias = "Noise",
+		NotifyMessage = { Title = "Entity 'Noise' has spawned.", Body = "Dont let it touch you." }
+	},
+	["Creak"] = {
+		Alias = "Creak",
+		NotifyMessage = { Title = "Entity 'Creak' has spawned.", Body = "Dont touch him." }
+	},
+	["DronesStampede"] = {
+		Alias = "DronesStampede",
+		NotifyMessage = { Title = "Entity 'Drones Stampede' has spawned.", Body = "Find a hiding spot." }
+	},
+	["TellerRig"] = {
+		Alias = "Teller",
+		NotifyMessage = { Title = "Entity 'Teller' has spawned.", Body = "Dont worry, hes only annoying." }
+	},
+	["Scribbles"] = {
+		Alias = "Scribbles",
+		NotifyMessage = { Title = "Entity 'Scribbles' has spawned.", Body = "Find a hiding spot." }
+	},
+	["BashMoving"] = {
+		Alias = "Bash",
+		NotifyMessage = { Title = "Entity 'Bash' has spawned.", Body = "Find a hiding spot." }
+	},
 	["RushMoving"] = {
 		Alias = "Rush",
 		NotifyMessage = { Title = "Entity 'Rush' has spawned.", Body = "Find a hiding spot." }
@@ -3549,7 +3582,7 @@ Groupboxes.Visuals_EntitySettings = Groupboxes.Visuals_RightTab:AddTab("Settings
 
 Groupboxes.Visuals_Entities:AddDropdown("EntityList", {
 	Text = "Entity List",
-	Values = { "Rush","Ambush","Eyes","Halt","Blitz","Lookman","Gloombat Swarm","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Monument","AR0xMBUSH","RNIUSHCG==" },
+	Values = { "Rush","Bash","Scribbles","Teller","DronesStampede","Creak","Noise","Balls","Ambush","Eyes","Halt","Blitz","Lookman","Gloombat Swarm","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Monument","AR0xMBUSH","RNIUSHCG==" },
 	Multi = true, AllowNull = true
 })
 Groupboxes.Visuals_Entities:AddToggle("NotifyEntities",    { Text = "Notify Entities",    Default = false, Tooltip = "Sends a notification when an entity spawns." })
@@ -3623,6 +3656,7 @@ local ObjectiveLabels = {
 	["LeverForGate"]           = "Gate Lever",
 	["MinesGateButton"]        = "Gate Button",
 	["GardenGateButton"]       = "Gate Button",
+	["StairwellFireAlarm"]     = "Fire Alarm",
 }
 
 Toggles.ObjectiveESPToggle:OnChanged(function(Value)
@@ -3658,8 +3692,15 @@ Groupboxes.Visuals_ESP_Toggles:AddToggle("PlayerESPToggle",     { Text = "Player
 Groupboxes.Visuals_ESP_Toggles:AddToggle("ChestESPToggle",      { Text = "Chests",       Default = false, Tooltip = "Highlights objects that can contain loot." })
 Groupboxes.Visuals_ESP_Toggles:AddToggle("ItemESPToggle",       { Text = "Items",        Default = false, Tooltip = "Highlights all collectable items/consumables." })
 Groupboxes.Visuals_ESP_Toggles:AddToggle("CurrencyESPToggle",   { Text = "Currency",     Default = false, Tooltip = "Highlights all currency that spawns." })
-Groupboxes.Visuals_ESP_Toggles:AddToggle("EntityESPToggle",     { Text = "Entities",     Default = false, Tooltip = "Highlights all entities that spawn." })
 Groupboxes.Visuals_ESP_Toggles:AddToggle("LadderESPToggle",     { Text = "Ladders",      Default = false, Tooltip = "Highlights ladders that can be used to disable the anticheat." })
+Groupboxes.Visuals_ESP_Toggles:AddDivider()
+Groupboxes.Visuals_ESP_Toggles:AddDropdown("EntityESPOptions", {
+	Text = "Entity List",
+	Values = { "Rush","Bash","Scribbles","Teller","DronesStampede","Creak","Noise","Balls","Ambush","Eyes","Dupe","Figure","Blitz","Lookman","Snare","Giggle","Gloombat Eggs","Grumble","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Mandrake Hole","Monument","Bramble","AR0xMBUSH","RNIUSHCG==" },
+	Multi = true,
+	AllowNull = true
+})
+Groupboxes.Visuals_ESP_Toggles:AddToggle("EntityESPToggle",     { Text = "Entities",     Default = false, Tooltip = "Highlights all entities that spawn." })
 
 Toggles.DoorESPToggle:AddColorPicker("DoorESPColor",           { Text = "Doors",        Default = Color3.fromRGB(0, 200, 255),  Transparency = 0 })
 Toggles.HidingSpotESPToggle:AddColorPicker("HidingSpotESPColor", { Text = "Hiding Spots", Default = Color3.fromRGB(255, 170, 0),  Transparency = 0 })
@@ -3667,8 +3708,8 @@ Toggles.PlayerESPToggle:AddColorPicker("PlayerESPColor",       { Text = "Players
 Toggles.ChestESPToggle:AddColorPicker("ChestESPColor",         { Text = "Chests",       Default = Color3.fromRGB(255, 255, 0),   Transparency = 0 })
 Toggles.ItemESPToggle:AddColorPicker("ItemESPColor",           { Text = "Items",        Default = Color3.fromRGB(170, 0, 255),   Transparency = 0 })
 Toggles.CurrencyESPToggle:AddColorPicker("CurrencyESPColor",   { Text = "Currency",     Default = Color3.fromRGB(255, 255, 0),   Transparency = 0 })
-Toggles.EntityESPToggle:AddColorPicker("EntityESPColor",       { Text = "Entities",     Default = Color3.fromRGB(255, 0, 0),     Transparency = 0 })
 Toggles.LadderESPToggle:AddColorPicker("LadderESPColor",       { Text = "Ladders",      Default = Color3.fromRGB(255, 255, 255), Transparency = 0 })
+Toggles.EntityESPToggle:AddColorPicker("EntityESPColor",       { Text = "Entities",     Default = Color3.fromRGB(255, 0, 0),     Transparency = 0 })
 
 local HidingSpotLabels = {
 	Wardrobe = "Closet", ["Backdoor_Wardrobe"] = "Closet", Toolshed = "Closet",
@@ -3683,6 +3724,8 @@ local ChestLabels = {
 local EntityESPLabels = {
 	KeyObtainFake = "Fake Key", JeffTheKiller = "Jeff the Killer", GiggleCeiling = "Giggle",
 	Snare = "Snare", GrumbleRig = "Grumble",
+	BashMoving = "Bash", Scribbles = "Scribbles", TellerRig = "Teller", DronesStampede = "DronesStampede",
+	Creak = "Creak", NoiseModel = "Noise", StemsEntity = "Balls",
 	Drakobloxxer = "Drakobloxxer", Hole = "Mandrake Hole", Groundskeeper = "Groundskeeper",
 	LiveEntityBramble = "Bramble", Figure = "Figure", FigureRig = "Figure", FigureRagdoll = "Figure"
 }
@@ -3785,19 +3828,33 @@ Options.CurrencyESPColor:OnChanged(function(Value)
 	for _, Object in Objects.Currency do Abysall.ESPLibrary:UpdateObjectColor(Object, Value) end
 end)
 
-Toggles.EntityESPToggle:OnChanged(function(Value)
+local NodeEntities = { Rush = true, Bash = true, Scribbles = true, DronesStampede = true, Ambush = true, Eyes = true, Blitz = true, Lookman = true, ["A-60"] = true, ["A-120"] = true, Sally = true, ["Jeff The Killer"] = true, Monument = true, ["AR0xMBUSH"] = true, ["RNIUSHCG=="] = true, Creak = true, Noise = true, Balls = true }
+
+local function RefreshEntityESP()
 	for _, Object in Objects.Entities do
-		if Value then
+		if Toggles.EntityESPToggle.Value then
 			local Label = EntityESPLabels[Object.Name]
 			if not Label and Entities[Object.Name] then Label = Entities[Object.Name].Alias end
-			if Label then
-				Functions.AddESP({ Object = Object, Text = Label, Color = Options.EntityESPColor.Value }, true)
+			local opts = Options.EntityESPOptions and Options.EntityESPOptions.Value
+			if Label and (not opts or opts[Label]) then
+				Functions.AddESP({ Object = Object, Text = Label, Color = Options.EntityESPColor.Value }, NodeEntities[Label] ~= true)
+			else
+				Functions.RemoveESP(Object)
 			end
 		else
 			Functions.RemoveESP(Object)
 		end
 	end
+end
+
+Toggles.EntityESPToggle:OnChanged(function(Value)
+	RefreshEntityESP()
 end)
+if Options.EntityESPOptions then
+	Options.EntityESPOptions:OnChanged(function()
+		RefreshEntityESP()
+	end)
+end
 Options.EntityESPColor:OnChanged(function(Value)
 	for _, Object in Objects.Entities do Abysall.ESPLibrary:UpdateObjectColor(Object, Value) end
 end)
@@ -3901,6 +3958,165 @@ Groupboxes.Floors_Archives:AddToggle("BypassAlma", { Text = "Bypass Alma", Defau
 Groupboxes.Floors_Archives:AddToggle("BypassDrones", { Text = "Bypass Drones", Default = false, Tooltip = "Removes Drones WalkedInto so they can't hit you." })
 Groupboxes.Floors_Archives:AddToggle("AntiScribbles", { Text = "Bypass Scribbles", Default = false, Tooltip = "Removes Scribbles exploit-detection child." })
 Groupboxes.Floors_Archives:AddToggle("BypassBash", { Text = "Bypass Bash", Default = false, Tooltip = "Elevates you on a high platform + LOS shield until Bash despawns." })
+
+-- ===== STAIRWELL (Abysall Continued, inlined) =====
+Groupboxes.Floors_Stairwell = Tabs.Floors:AddLeftGroupbox("Stairwell")
+local droppedItemsIntervalRunning = false
+
+local function BringDroppedItems()
+	local workspaceDropsFolder = workspace:FindFirstChild("Drops")
+	local char = Character or LocalPlayer.Character
+	local root = RootPart or (char and char:FindFirstChild("HumanoidRootPart"))
+	if root and workspaceDropsFolder then
+		for _, itemToBring in ipairs(workspaceDropsFolder:GetChildren()) do
+			if itemToBring:IsA("Model") then
+				pcall(function() itemToBring:PivotTo(root.CFrame) end)
+			elseif itemToBring:IsA("BasePart") then
+				pcall(function() itemToBring.CFrame = root.CFrame end)
+			end
+		end
+	end
+end
+
+Groupboxes.Floors_Stairwell:AddButton({
+	Text = "Bring Dropped Items",
+	Func = function() BringDroppedItems() end,
+	DoubleClick = false,
+	Tooltip = "Brings all dropped items to you."
+})
+Groupboxes.Floors_Stairwell:AddToggle("EnableDroppedItemsInterval", {
+	Text = "Enable Interval",
+	Default = false,
+	Tooltip = "Automatically brings dropped items at the selected interval."
+})
+Groupboxes.Floors_Stairwell:AddSlider("DroppedItemsInterval", {
+	Text = "Interval", Default = 1, Min = 0, Max = 60, Rounding = 1, Compact = false,
+	Tooltip = "How often dropped items are brought."
+})
+Toggles.EnableDroppedItemsInterval:OnChanged(function(enabled)
+	if enabled then
+		if droppedItemsIntervalRunning then return end
+		droppedItemsIntervalRunning = true
+		task.spawn(function()
+			while Toggles.EnableDroppedItemsInterval.Value do
+				BringDroppedItems()
+				local interval = Options.DroppedItemsInterval.Value
+				if interval <= 0 then task.wait() else task.wait(interval) end
+			end
+			droppedItemsIntervalRunning = false
+		end)
+	end
+end)
+
+Groupboxes.Floors_Stairwell:AddDivider()
+Groupboxes.Floors_Stairwell:AddToggle("AntiNoise", {
+	Text = "Anti Noise", Default = false,
+	Tooltip = "Client movement that avoids Noise tracking (silent move)."
+})
+Groupboxes.Floors_Stairwell:AddToggle("BypassNoise", {
+	Text = "Noise TV Breaker", Default = false,
+	Tooltip = "Breaks Noise TV while you are holding/pushing it."
+})
+
+local AntiNoiseConn = nil
+Toggles.AntiNoise:OnChanged(function(value)
+	if AntiNoiseConn then
+		AntiNoiseConn:Disconnect()
+		AntiNoiseConn = nil
+	end
+	if not value then return end
+	local Controls
+	pcall(function()
+		Controls = require(LocalPlayer.PlayerScripts:WaitForChild("PlayerModule")):GetControls()
+	end)
+	AntiNoiseConn = Services.RunService.PreSimulation:Connect(function(dt)
+		if not Toggles.AntiNoise.Value then return end
+		if not LocalPlayer:GetAttribute("Alive") then return end
+		local character = LocalPlayer.Character
+		if not character then return end
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		local camera = workspace.CurrentCamera
+		if not rootPart or not humanoid or not camera then return end
+		if humanoid.Health <= 0 or rootPart.Anchored then return end
+		local state = humanoid:GetState()
+		if state == Enum.HumanoidStateType.Dead
+			or state == Enum.HumanoidStateType.Ragdoll
+			or state == Enum.HumanoidStateType.Climbing
+			or state == Enum.HumanoidStateType.Swimming
+		then return end
+
+		humanoid.AutoRotate = false
+		humanoid:Move(Vector3.zero, false)
+
+		local inputVector = Vector3.zero
+		if Controls then
+			pcall(function() inputVector = Controls:GetMoveVector() end)
+		end
+		local inputMagnitude = inputVector.Magnitude
+		if inputMagnitude <= 0 then
+			rootPart.AssemblyLinearVelocity = Vector3.zero
+			return
+		end
+
+		local cameraCFrame = camera.CFrame
+		local cameraForward = Vector3.new(cameraCFrame.LookVector.X, 0, cameraCFrame.LookVector.Z)
+		local cameraRight = Vector3.new(cameraCFrame.RightVector.X, 0, cameraCFrame.RightVector.Z)
+		if cameraForward.Magnitude < 0.001 or cameraRight.Magnitude < 0.001 then return end
+		cameraForward = cameraForward.Unit
+		cameraRight = cameraRight.Unit
+		local worldDirection = (cameraRight * inputVector.X) + (cameraForward * -inputVector.Z)
+		if worldDirection.Magnitude <= 0 then return end
+		worldDirection = worldDirection.Unit
+		local finalSpeed = humanoid.WalkSpeed * math.clamp(inputMagnitude, 0, 1)
+		local clampedDt = math.clamp(dt, 0, 1/30)
+		rootPart.AssemblyLinearVelocity = Vector3.zero
+		rootPart.CFrame = rootPart.CFrame + (worldDirection * finalSpeed * clampedDt)
+		rootPart.CFrame = CFrame.new(rootPart.Position, rootPart.Position + worldDirection)
+	end)
+end)
+
+local BypassNoiseChildConn = nil
+Toggles.BypassNoise:OnChanged(function(value)
+	if BypassNoiseChildConn then
+		BypassNoiseChildConn:Disconnect()
+		BypassNoiseChildConn = nil
+	end
+	if not value then return end
+	local myId = LocalPlayer.UserId
+	local function checkBypassNoiseTvStand(targetTvStand)
+		if not targetTvStand:IsA("Model") then return end
+		if targetTvStand.Name ~= "TV_Stand" then return end
+		if targetTvStand:GetAttribute("LastPusherId") ~= myId then return end
+		local cf = targetTvStand:GetPivot()
+		if cf.Position.Y > -119 then
+			targetTvStand:PivotTo(CFrame.new(cf.Position.X, -120, cf.Position.Z))
+			pcall(function() Functions.Notify({ Title = "Unequip the tv." }) end)
+		end
+	end
+	local function checkAll()
+		local misc = workspace:FindFirstChild("Misc")
+		if not misc then return end
+		for _, child in ipairs(misc:GetChildren()) do
+			checkBypassNoiseTvStand(child)
+		end
+	end
+	local misc = workspace:FindFirstChild("Misc")
+	if misc then
+		BypassNoiseChildConn = misc.ChildAdded:Connect(function(child)
+			task.wait(0.1)
+			checkBypassNoiseTvStand(child)
+		end)
+	end
+	task.spawn(function()
+		while Toggles.BypassNoise.Value do
+			checkAll()
+			task.wait(1)
+		end
+	end)
+end)
+-- ===== END STAIRWELL =====
+
 
 -- Stubs so leftover RoomsAutoWalk code never errors (Floor=="Rooms" is gone)
 do
@@ -6665,7 +6881,7 @@ Connections.FogHandler2 = Services.Lighting.DescendantAdded:Connect(function(Obj
 	table.insert(Globals.FogInstances, Object)
 end)
 
-local RusherAliases = { Rush=true, Ambush=true, Eyes=true, Lookman=true, Blitz=true, ["A-60"]=true, ["A-120"]=true, AR0xMBUSH=true, ["RNIUSHCG=="]=true, ["Custom Entity"]=true }
+local RusherAliases = { Rush=true, Bash=true, Ambush=true, Eyes=true, Lookman=true, Blitz=true, ["A-60"]=true, ["A-120"]=true, AR0xMBUSH=true, ["RNIUSHCG=="]=true, ["Custom Entity"]=true, Creak=true, Noise=true, Scribbles=true, DronesStampede=true }
 
 Connections.EntityHandler = Services.Workspace.ChildAdded:Connect(function(Entity)
 	local EntityData = Entities[Entity.Name]
