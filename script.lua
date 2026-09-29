@@ -1566,7 +1566,7 @@ return function(Window)
 	MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "Menu keybind" })
 	
 	MenuGroup:AddButton("Copy Discord Invite", function()
-		toclipboard("https://discord.gg/GHMF7JeBGU")
+		toclipboard("https://dsc.gg/jJd2JkkCTj")
 		Library:Notify("Discord invite copied.")
 	end)
 	
@@ -1592,9 +1592,12 @@ end
 local function __MsFent_Load_InfoTab()
 return function(Window)
     local LatestChangelog = {
+        "unknown date",
+        "<font color='rgb(100, 0, 100)'>* Meow OwO </font>",
         "29/9/2026",
-        "<font color='rgb(0, 255, 0)'>+ Stairwell support</font>",
-        "<font color='rgb(255, 0, 0)'>- some weird glitches for when you unloaded the script u got flung and died</font>",
+        "<font color='rgb(0, 255, 0)'>+ stairwell support :3</font>",
+        "<font color='rgb(0, 255, 0)'>+ more archives support :3</font>",
+        "<font color='rgb(255, 0, 0)'>- some glitches</font>",
         "28/9/2026",
         "<font color='rgb(0, 255, 0)'>+ Archives tab (Anti Ransom, Alma, Drones, Water, etc.)</font>",
         "<font color='rgb(0, 255, 0)'>+ Bypass Bash (auto on/off with Bash)</font>",
@@ -1864,7 +1867,7 @@ local Entities = {
 	},
 	["TellerRig"] = {
 		Alias = "Teller",
-		NotifyMessage = { Title = "Entity 'Teller' has spawned.", Body = "Dont worry, hes only annoying." }
+		NotifyMessage = { Title = "Entity 'Teller' has spawned.", Body = "Dont worry, hes only miguel." }
 	},
 	["Scribbles"] = {
 		Alias = "Scribbles",
@@ -1874,6 +1877,49 @@ local Entities = {
 		Alias = "Bash",
 		NotifyMessage = { Title = "Entity 'Bash' has spawned.", Body = "Find a hiding spot." }
 	},
+
+	-- Alternate / in-room names (Archives + Stairwell)
+	["Bash"] = {
+		Alias = "Bash",
+		NotifyMessage = { Title = "Entity 'Bash' has spawned.", Body = "Find a hiding spot." }
+	},
+	["BashRig"] = {
+		Alias = "Bash",
+		NotifyMessage = { Title = "Entity 'Bash' has spawned.", Body = "Find a hiding spot." }
+	},
+	["Noise"] = {
+		Alias = "Noise",
+		NotifyMessage = { Title = "Entity 'Noise' has spawned.", Body = "Dont let it touch you." }
+	},
+	["CreakRig"] = {
+		Alias = "Creak",
+		NotifyMessage = { Title = "Entity 'Creak' has spawned.", Body = "Dont touch him." }
+	},
+	["Teller"] = {
+		Alias = "Teller",
+		NotifyMessage = { Title = "Entity 'Teller' has spawned.", Body = "Dont worry, hes only annoying." }
+	},
+	["Drones"] = {
+		Alias = "DronesStampede",
+		NotifyMessage = { Title = "Entity 'Drones' has spawned.", Body = "Dont run into them." }
+	},
+	["Stem"] = {
+		Alias = "Balls",
+		NotifyMessage = { Title = "Balls", Body = "Balls." }
+	},
+	["Stems"] = {
+		Alias = "Balls",
+		NotifyMessage = { Title = "Balls", Body = "Balls." }
+	},
+	["Meld"] = {
+		Alias = "Meld",
+		NotifyMessage = { Title = "Entity 'Meld' has spawned.", Body = "Watch the doors / chords." }
+	},
+	["Cobbler"] = {
+		Alias = "Cobbler",
+		NotifyMessage = { Title = "Entity 'Cobbler' has spawned.", Body = "Talk after fire alarm." }
+	},
+
 	["RushMoving"] = {
 		Alias = "Rush",
 		NotifyMessage = { Title = "Entity 'Rush' has spawned.", Body = "Find a hiding spot." }
@@ -3582,7 +3628,7 @@ Groupboxes.Visuals_EntitySettings = Groupboxes.Visuals_RightTab:AddTab("Settings
 
 Groupboxes.Visuals_Entities:AddDropdown("EntityList", {
 	Text = "Entity List",
-	Values = { "Rush","Bash","Scribbles","Teller","DronesStampede","Creak","Noise","Balls","Ambush","Eyes","Halt","Blitz","Lookman","Gloombat Swarm","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Monument","AR0xMBUSH","RNIUSHCG==" },
+	Values = { "Rush","Bash","Scribbles","Teller","DronesStampede","Creak","Noise","Balls","Meld","Cobbler","Ambush","Eyes","Halt","Blitz","Lookman","Gloombat Swarm","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Monument","AR0xMBUSH","RNIUSHCG==" },
 	Multi = true, AllowNull = true
 })
 Groupboxes.Visuals_Entities:AddToggle("NotifyEntities",    { Text = "Notify Entities",    Default = false, Tooltip = "Sends a notification when an entity spawns." })
@@ -3696,7 +3742,7 @@ Groupboxes.Visuals_ESP_Toggles:AddToggle("LadderESPToggle",     { Text = "Ladder
 Groupboxes.Visuals_ESP_Toggles:AddDivider()
 Groupboxes.Visuals_ESP_Toggles:AddDropdown("EntityESPOptions", {
 	Text = "Entity List",
-	Values = { "Rush","Bash","Scribbles","Teller","DronesStampede","Creak","Noise","Balls","Ambush","Eyes","Dupe","Figure","Blitz","Lookman","Snare","Giggle","Gloombat Eggs","Grumble","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Mandrake Hole","Monument","Bramble","AR0xMBUSH","RNIUSHCG==" },
+	Values = { "Rush","Bash","Scribbles","Teller","DronesStampede","Creak","Noise","Balls","Meld","Cobbler","Ambush","Eyes","Dupe","Figure","Blitz","Lookman","Snare","Giggle","Gloombat Eggs","Grumble","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Mandrake Hole","Monument","Bramble","AR0xMBUSH","RNIUSHCG==" },
 	Multi = true,
 	AllowNull = true
 })
@@ -3724,8 +3770,9 @@ local ChestLabels = {
 local EntityESPLabels = {
 	KeyObtainFake = "Fake Key", JeffTheKiller = "Jeff the Killer", GiggleCeiling = "Giggle",
 	Snare = "Snare", GrumbleRig = "Grumble",
-	BashMoving = "Bash", Scribbles = "Scribbles", TellerRig = "Teller", DronesStampede = "DronesStampede",
-	Creak = "Creak", NoiseModel = "Noise", StemsEntity = "Balls",
+	BashMoving = "Bash", Bash = "Bash", BashRig = "Bash", Scribbles = "Scribbles", TellerRig = "Teller", Teller = "Teller",
+	DronesStampede = "DronesStampede", Drones = "DronesStampede", Creak = "Creak", CreakRig = "Creak",
+	NoiseModel = "Noise", Noise = "Noise", StemsEntity = "Balls", Stem = "Balls", Stems = "Balls", Meld = "Meld", Cobbler = "Cobbler",
 	Drakobloxxer = "Drakobloxxer", Hole = "Mandrake Hole", Groundskeeper = "Groundskeeper",
 	LiveEntityBramble = "Bramble", Figure = "Figure", FigureRig = "Figure", FigureRagdoll = "Figure"
 }
@@ -3830,24 +3877,42 @@ end)
 
 local NodeEntities = { Rush = true, Bash = true, Scribbles = true, DronesStampede = true, Ambush = true, Eyes = true, Blitz = true, Lookman = true, ["A-60"] = true, ["A-120"] = true, Sally = true, ["Jeff The Killer"] = true, Monument = true, ["AR0xMBUSH"] = true, ["RNIUSHCG=="] = true, Creak = true, Noise = true, Balls = true }
 
+local function EntityESPAllowed(Label)
+	if not Label then return false end
+	local opts = Options.EntityESPOptions and Options.EntityESPOptions.Value
+	if not opts then return true end
+	local anySelected = false
+	for _, v in pairs(opts) do
+		if v then anySelected = true break end
+	end
+	if not anySelected then return true end
+	return opts[Label] == true
+end
+
 local function RefreshEntityESP()
 	for _, Object in Objects.Entities do
-		if Toggles.EntityESPToggle.Value then
+		if Toggles.EntityESPToggle.Value and Object and Object.Parent then
 			local Label = EntityESPLabels[Object.Name]
 			if not Label and Entities[Object.Name] then Label = Entities[Object.Name].Alias end
-			local opts = Options.EntityESPOptions and Options.EntityESPOptions.Value
-			if Label and (not opts or opts[Label]) then
-				Functions.AddESP({ Object = Object, Text = Label, Color = Options.EntityESPColor.Value }, NodeEntities[Label] ~= true)
+			if EntityESPAllowed(Label) then
+				local target = Object
+				if Object.Name == "MonumentEntity" and Object:FindFirstChild("Top") then
+					target = Object.Top
+				end
+				Functions.AddESP({ Object = target, Text = Label or Object.Name, Color = Options.EntityESPColor.Value }, NodeEntities[Label] ~= true)
 			else
 				Functions.RemoveESP(Object)
 			end
 		else
-			Functions.RemoveESP(Object)
+			if Object then Functions.RemoveESP(Object) end
 		end
 	end
 end
 
-Toggles.EntityESPToggle:OnChanged(function(Value)
+Toggles.EntityESPToggle:OnChanged(function()
+	if Toggles.EntityESPToggle.Value and Globals.ScanEntitiesForESP then
+		pcall(Globals.ScanEntitiesForESP)
+	end
 	RefreshEntityESP()
 end)
 if Options.EntityESPOptions then
@@ -6881,64 +6946,204 @@ Connections.FogHandler2 = Services.Lighting.DescendantAdded:Connect(function(Obj
 	table.insert(Globals.FogInstances, Object)
 end)
 
-local RusherAliases = { Rush=true, Bash=true, Ambush=true, Eyes=true, Lookman=true, Blitz=true, ["A-60"]=true, ["A-120"]=true, AR0xMBUSH=true, ["RNIUSHCG=="]=true, ["Custom Entity"]=true, Creak=true, Noise=true, Scribbles=true, DronesStampede=true }
+local RusherAliases = { Rush=true, Bash=true, Ambush=true, Eyes=true, Lookman=true, Blitz=true, ["A-60"]=true, ["A-120"]=true, AR0xMBUSH=true, ["RNIUSHCG=="]=true, ["Custom Entity"]=true, Creak=true, Noise=true, Scribbles=true, DronesStampede=true, Teller=true, Balls=true }
 
-Connections.EntityHandler = Services.Workspace.ChildAdded:Connect(function(Entity)
-	local EntityData = Entities[Entity.Name]
+local TrackedEntityModels = setmetatable({}, { __mode = "k" })
+
+local function HandleEntitySpawn(Model)
+	if not Model or not Model:IsA("Model") then return end
+	local EntityData = Entities[Model.Name]
 	if not EntityData then return end
+	if TrackedEntityModels[Model] then return end
 
-	while not Entity.PrimaryPart do
-		for _, Child in Entity:GetChildren() do
-			if Child:IsA("BasePart") then Entity.PrimaryPart = Child end
+	-- wait for primary part (some entities spawn incomplete)
+	local tries = 0
+	while not Model.PrimaryPart and Model.Parent and tries < 50 do
+		for _, Child in Model:GetChildren() do
+			if Child:IsA("BasePart") then
+				Model.PrimaryPart = Child
+				break
+			end
 		end
+		tries += 1
 		task.wait()
 	end
 	task.wait(0.1)
 
-	if not Entity.PrimaryPart or LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position) >= 10000 then return end
+	if not Model.Parent then return end
+	if not Model.PrimaryPart then return end
+	if LocalPlayer:DistanceFromCharacter(Model.PrimaryPart.Position) >= 10000 then return end
+
+	TrackedEntityModels[Model] = true
 
 	local Alias = EntityData.Alias
+	local RealAlias = Alias
+
 	if Options.EntityList.Value[Alias] and Toggles.NotifyEntities.Value then
 		local NotifyTitle = EntityData.NotifyMessage.Title
 		local NotifyBody  = EntityData.NotifyMessage.Body
-		local NotifyImage = EntityIcons[Entity.Name]
+		local NotifyImage = EntityIcons[Model.Name]
 
-		if Entity.Name == "RushMoving" and Entity.PrimaryPart.Name ~= "RushNew" then
-			NotifyTitle = NotifyTitle:gsub("Rush", Entity.PrimaryPart.Name)
-			NotifyImage = Entity.PrimaryPart:WaitForChild("Attachment").ParticleEmitter.Texture
-			Alias = Entity.PrimaryPart.Name
+		if Model.Name == "RushMoving" and Model.PrimaryPart.Name ~= "RushNew" then
+			NotifyTitle = NotifyTitle:gsub("Rush", Model.PrimaryPart.Name)
+			local att = Model.PrimaryPart:FindFirstChild("Attachment")
+			if att and att:FindFirstChild("ParticleEmitter") then
+				NotifyImage = att.ParticleEmitter.Texture
+			end
+			Alias = Model.PrimaryPart.Name
 		end
 
-		Functions.Notify({ Title = NotifyTitle, Body = NotifyBody, Image = NotifyImage, Time = Toggles.NotifyKeepNotifications.Value and Entity or nil })
+		Functions.Notify({ Title = NotifyTitle, Body = NotifyBody, Image = NotifyImage, Time = Toggles.NotifyKeepNotifications.Value and Model or nil })
 
 		if Toggles.EntityChatToggle.Value then
 			Functions.SendChat(Alias .. " " .. Options.EntityChatMessage.Value)
 		end
 	end
 
-	if Entity.Name ~= "GloombatSwarm" then
-		if Toggles.EntityESPToggle.Value then
-			if Entity.Name == "MonumentEntity" then
-				Functions.AddESP({ Object = Entity.Top, Text = Alias, Color = Options.EntityESPColor.Value })
+	if Model.Name ~= "GloombatSwarm" then
+		table.insert(Objects.Entities, Model)
+		if Toggles.EntityESPToggle.Value and EntityESPAllowed(RealAlias) then
+			if Model.Name == "MonumentEntity" and Model:FindFirstChild("Top") then
+				Functions.AddESP({ Object = Model.Top, Text = RealAlias, Color = Options.EntityESPColor.Value }, NodeEntities[RealAlias] ~= true)
 			else
-				Functions.AddESP({ Object = Entity, Text = Alias, Color = Options.EntityESPColor.Value })
+				Functions.AddESP({ Object = Model, Text = RealAlias, Color = Options.EntityESPColor.Value }, NodeEntities[RealAlias] ~= true)
 			end
 		end
-		table.insert(Objects.Entities, Entity)
 	end
 
 	if RusherAliases[EntityData.Alias] then
-		Instance.new("Humanoid", Entity).Name = "HighlightHumanoid"
-		local Root = Entity.PrimaryPart
+		if not Model:FindFirstChild("HighlightHumanoid") then
+			Instance.new("Humanoid", Model).Name = "HighlightHumanoid"
+		end
+		local Root = Model.PrimaryPart
 		if Root then Root.Transparency = 0.999 Root.Material = Enum.Material.Glass end
 	end
 
-	if Entity.Name == "Lookman" then
-		CurrentRooms.ChildAdded:Wait()
-		task.wait(10)
-		Entity:Destroy()
+	if Model.Name == "Lookman" then
+		task.spawn(function()
+			CurrentRooms.ChildAdded:Wait()
+			task.wait(10)
+			if Model.Parent then Model:Destroy() end
+		end)
+	end
+end
+
+-- Robust entity registration (Workspace + descendants + name aliases)
+local function RegisterEntityModel(Model)
+	if not Model or not Model:IsA("Model") then return end
+	local EntityData = Entities[Model.Name]
+	if not EntityData then return end
+	if Model:GetAttribute("MsFent_EntityHandled") then return end
+	Model:SetAttribute("MsFent_EntityHandled", true)
+
+	-- Resolve PrimaryPart
+	local tries = 0
+	while not Model.PrimaryPart and tries < 50 do
+		for _, Child in Model:GetChildren() do
+			if Child:IsA("BasePart") then
+				Model.PrimaryPart = Child
+				break
+			end
+		end
+		if not Model.PrimaryPart then
+			tries += 1
+			task.wait(0.05)
+		end
+	end
+	if not Model.PrimaryPart then
+		-- still allow ESP without PrimaryPart using model pivot
+		pcall(function()
+			if not Model.PrimaryPart then
+				local pp = Model:FindFirstChildWhichIsA("BasePart", true)
+				if pp then Model.PrimaryPart = pp end
+			end
+		end)
+	end
+
+	local Alias = EntityData.Alias
+	local RealAlias = Alias
+
+	-- Distance gate (skip only if we have a position and it's insanely far)
+	if Model.PrimaryPart then
+		local ok, dist = pcall(function()
+			return LocalPlayer:DistanceFromCharacter(Model.PrimaryPart.Position)
+		end)
+		if ok and dist and dist >= 10000 then return end
+	end
+
+	if Options.EntityList.Value[Alias] and Toggles.NotifyEntities.Value then
+		local NotifyTitle = EntityData.NotifyMessage.Title
+		local NotifyBody  = EntityData.NotifyMessage.Body
+		local NotifyImage = EntityIcons and EntityIcons[Model.Name] or nil
+
+		if Model.Name == "RushMoving" and Model.PrimaryPart and Model.PrimaryPart.Name ~= "RushNew" then
+			NotifyTitle = NotifyTitle:gsub("Rush", Model.PrimaryPart.Name)
+			pcall(function()
+				NotifyImage = Model.PrimaryPart:WaitForChild("Attachment", 1).ParticleEmitter.Texture
+			end)
+			Alias = Model.PrimaryPart.Name
+		end
+
+		Functions.Notify({ Title = NotifyTitle, Body = NotifyBody, Image = NotifyImage, Time = Toggles.NotifyKeepNotifications.Value and Model or nil })
+
+		if Toggles.EntityChatToggle.Value then
+			Functions.SendChat(Alias .. " " .. Options.EntityChatMessage.Value)
+		end
+	end
+
+	if Model.Name ~= "GloombatSwarm" then
+		table.insert(Objects.Entities, Model)
+		if Toggles.EntityESPToggle.Value and EntityESPAllowed(RealAlias) then
+			local target = Model
+			if Model.Name == "MonumentEntity" and Model:FindFirstChild("Top") then
+				target = Model.Top
+			end
+			Functions.AddESP({ Object = target, Text = Alias, Color = Options.EntityESPColor.Value }, NodeEntities[RealAlias] ~= true)
+		end
+	end
+
+	if RusherAliases[EntityData.Alias] then
+		pcall(function()
+			Instance.new("Humanoid", Model).Name = "HighlightHumanoid"
+			local Root = Model.PrimaryPart
+			if Root then Root.Transparency = 0.999 Root.Material = Enum.Material.Glass end
+		end)
+	end
+
+	if Model.Name == "Lookman" then
+		task.spawn(function()
+			CurrentRooms.ChildAdded:Wait()
+			task.wait(10)
+			pcall(function() Model:Destroy() end)
+		end)
+	end
+end
+
+Connections.EntityHandler = Services.Workspace.ChildAdded:Connect(function(Entity)
+	RegisterEntityModel(Entity)
+end)
+
+-- Catch entities that appear as descendants (Humanoid under a model, or parented into rooms)
+Connections.EntityDescendantHandler = Services.Workspace.DescendantAdded:Connect(function(Descendant)
+	if Descendant:IsA("Humanoid") then
+		local Model = Descendant.Parent
+		if Model and Model:IsA("Model") and Entities[Model.Name] then
+			task.defer(RegisterEntityModel, Model)
+		end
+	elseif Descendant:IsA("Model") and Entities[Descendant.Name] then
+		task.defer(RegisterEntityModel, Descendant)
 	end
 end)
+
+-- Scan anything already in workspace (late execute / existing floor entities)
+task.spawn(function()
+	for _, Inst in ipairs(Services.Workspace:GetDescendants()) do
+		if Inst:IsA("Model") and Entities[Inst.Name] and not Inst:GetAttribute("MsFent_EntityHandled") then
+			RegisterEntityModel(Inst)
+		end
+	end
+end)
+
 
 local LastClean = tick()
 Connections.Cleaner = Services.RunService.Heartbeat:Connect(function()
