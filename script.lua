@@ -1595,6 +1595,7 @@ return function(Window)
        "unknown date",
         "<font color='rgb(100, 0, 100)'>* Meow OwO </font>",
         "30/9/2026",
+        "<font color='rgb(0, 255, 0)'>fixed some more entity shit not working.</font>",
         "<font color='rgb(0, 255, 0)'>+ Working anti screech :3</font>",
         "<font color='rgb(0, 255, 0)'>+ debug menu if something goes terrible</font>",
         "<font color='rgb(255, 0, 0)'>- non working anti screech >:3</font>",
@@ -3337,9 +3338,11 @@ Toggles.BypassLookman:OnChanged(function(Value)
 end)
 Toggles.BypassGloombatEggs:OnChanged(function(Value)
 	for _, Object in Objects.Entities do
-		for _, Part in Object:GetDescendants() do
-			if Part:IsA("BasePart") then
-				Part.CanTouch = not Value
+		if Object.Name == "GloomPile" then
+			for _, Part in Object:GetDescendants() do
+				if Part:IsA("BasePart") then
+					Part.CanTouch = not Value
+				end
 			end
 		end
 	end
@@ -3532,7 +3535,6 @@ end)
 local Modules = {}
 
 Toggles.RemoveScreech:OnChanged(function(Value)
-	-- Abysall Continued style: destroy Screech model on Camera + disable module
 	pcall(function()
 		if Modules.Screech then
 			Modules.Screech.Name = Value and "Screech_Disabled" or "Screech"
@@ -3544,9 +3546,9 @@ Toggles.RemoveScreech:OnChanged(function(Value)
 	if Value then
 		task.spawn(function()
 			while Toggles.RemoveScreech.Value do
-				local Cam = workspace:FindFirstChild("Camera") or workspace.CurrentCamera
-				if Cam then
-					local Screech = Cam:FindFirstChild("Screech")
+				local Camera = workspace:FindFirstChild("Camera") or workspace.CurrentCamera
+				if Camera then
+					local Screech = Camera:FindFirstChild("Screech")
 					if Screech then
 						pcall(function() Screech:Destroy() end)
 					end
@@ -3557,7 +3559,9 @@ Toggles.RemoveScreech:OnChanged(function(Value)
 	end
 end)
 Toggles.RemoveHalt:OnChanged(function(Value)
-	Modules.Shade.Name = Value and "Shade_Disabled" or "Shade"
+	if Modules.Shade then
+		Modules.Shade.Name = Value and "Shade_Disabled" or "Shade"
+	end
 end)
 Toggles.RemoveA90:OnChanged(function(Value)
 	if Modules.A90 then
@@ -3697,10 +3701,12 @@ Groupboxes.Visuals_Effects:AddToggle("DisableFiredampEffect",    { Text = "Disab
 Groupboxes.Visuals_Effects:AddToggle("DisableEntityJumpscares",  { Text = "Disable Entity Jumpscares",  Default = false, Tooltip = "Disables jumpscares from entities like Rush and Ambush." })
 
 Toggles.DisableGlitchJumpscare:OnChanged(function(Value)
-	Modules.Glitch.Name = Value and "Glitch_Disabled" or "Glitch"
+	if Modules.Glitch then Modules.Glitch.Name = Value and "Glitch_Disabled" or "Glitch" end
 end)
 Toggles.DisableTimothyJumpscare:OnChanged(function(Value)
-	Modules.SpiderJumpscare.Name = Value and "SpiderJumpscare_Disabled" or "SpiderJumpscare"
+	if Modules.SpiderJumpscare then
+		if Modules.SpiderJumpscare then Modules.SpiderJumpscare.Name = Value and "SpiderJumpscare_Disabled" or "SpiderJumpscare" end
+	end
 end)
 Toggles.DisableVoidJumpscare:OnChanged(function(Value)
 	if Modules.Void then Modules.Void.Name = Value and "Void_Disabled" or "Void" end
