@@ -1592,8 +1592,12 @@ end
 local function __MsFent_Load_InfoTab()
 return function(Window)
     local LatestChangelog = {
-        "unknown date",
+       "unknown date",
         "<font color='rgb(100, 0, 100)'>* Meow OwO </font>",
+        "30/9/2026",
+        "<font color='rgb(0, 255, 0)'>+ Working anti screech :3</font>",
+        "<font color='rgb(0, 255, 0)'>+ debug menu if something goes terrible</font>",
+        "<font color='rgb(255, 0, 0)'>- non working anti screech >:3</font>",
         "29/9/2026",
         "<font color='rgb(0, 255, 0)'>+ stairwell support :3</font>",
         "<font color='rgb(0, 255, 0)'>+ more archives support :3</font>",
@@ -1867,7 +1871,7 @@ local Entities = {
 	},
 	["TellerRig"] = {
 		Alias = "Teller",
-		NotifyMessage = { Title = "Entity 'Teller' has spawned.", Body = "Dont worry, hes only miguel." }
+		NotifyMessage = { Title = "Entity 'Teller' has spawned.", Body = "Dont worry, hes only annoying." }
 	},
 	["Scribbles"] = {
 		Alias = "Scribbles",
@@ -1901,7 +1905,7 @@ local Entities = {
 	},
 	["Drones"] = {
 		Alias = "DronesStampede",
-		NotifyMessage = { Title = "Entity 'Drones' has spawned.", Body = "Dont run into them." }
+		NotifyMessage = { Title = "Entity 'Drones Stampede' has spawned.", Body = "Find a hiding spot." }
 	},
 	["Stem"] = {
 		Alias = "Balls",
@@ -3191,6 +3195,97 @@ Groupboxes.Self_Misc:AddButton({
 	end
 })
 
+
+-- ===== DEBUG (Abysall Continued, inlined) =====
+Groupboxes.Debug = Tabs.General:AddRightGroupbox("Debug")
+Groupboxes.Debug:AddButton({
+	Text = "Void",
+	Tooltip = "Teleports your character to Y -120.",
+	Func = function()
+		if not Character then return end
+		local Pivot = Character:GetPivot()
+		for _ = 1, 22 do
+			pcall(function()
+				Character:PivotTo(Pivot + Vector3.new(0, -120 - Pivot.Position.Y, 0))
+			end)
+		end
+	end
+})
+Groupboxes.Debug:AddButton({
+	Text = "Exit Closet",
+	Tooltip = "Exits the current closet.",
+	Func = function()
+		if RemotesFolder and RemotesFolder:FindFirstChild("CamLock") then
+			RemotesFolder.CamLock:FireServer()
+		end
+	end
+})
+
+local TpNextDoorConnection
+
+local function getNextClosedDoor()
+	if not Character then return nil end
+	local GameData = Services.ReplicatedStorage:FindFirstChild("GameData")
+	if not GameData then return nil end
+	local LatestRoom = GameData:FindFirstChild("LatestRoom")
+	if not LatestRoom then return nil end
+
+	local startRoom = LatestRoom.Value
+	local bestDoor = nil
+	local bestNumber = math.huge
+
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		if obj.Name == "Door" and obj:IsA("Model") then
+			local openAttr = obj:GetAttribute("Open")
+			if openAttr == false or openAttr == nil then
+				local roomModel = obj.Parent
+				local roomNum = tonumber(roomModel and roomModel.Name)
+				if roomNum and roomNum >= startRoom and roomNum < bestNumber then
+					bestNumber = roomNum
+					bestDoor = obj
+				end
+			end
+		end
+	end
+	return bestDoor
+end
+
+Groupboxes.Debug:AddButton({
+	Text = "Tp Next Door",
+	Tooltip = "Teleports you to the next sequential unopened door.",
+	Func = function()
+		local door = getNextClosedDoor()
+		if door and Character then
+			Character:PivotTo(door:GetPivot())
+		end
+	end
+})
+
+Toggles.TpNextDoor = Groupboxes.Debug:AddToggle("TpNextDoor", {
+	Text = "Auto Tp Next Door",
+	Tooltip = "Continuously teleports you to the next sequential unopened door.",
+	Default = false
+})
+
+Toggles.TpNextDoor:OnChanged(function(TpNextDoorEnabled)
+	if TpNextDoorConnection then
+		task.cancel(TpNextDoorConnection)
+		TpNextDoorConnection = nil
+	end
+	if not TpNextDoorEnabled then return end
+	TpNextDoorConnection = task.spawn(function()
+		while Toggles.TpNextDoor.Value do
+			local door = getNextClosedDoor()
+			if door and Character then
+				pcall(function() Character:PivotTo(door:GetPivot()) end)
+			end
+			task.wait(0.15)
+		end
+		TpNextDoorConnection = nil
+	end)
+end)
+-- ===== END DEBUG =====
+
 Groupboxes.Exploits_Bypass = Tabs.Exploits:AddLeftGroupbox("Bypass")
 Groupboxes.Exploits_Bypass:AddToggle("BypassGiggle",         { Text = "Bypass Giggle",           Default = false, Tooltip = "Prevents 'Giggle' from attacking you." })
 Groupboxes.Exploits_Bypass:AddToggle("BypassDupe",           { Text = "Bypass Dupe",             Default = false, Tooltip = "Prevents you from open 'Dupe' fake doors." })
@@ -3383,7 +3478,7 @@ Toggles.CrouchSpoof:OnChanged(function(Value)
 end)
 
 Groupboxes.Exploits_Remove = Tabs.Exploits:AddRightGroupbox("Remove")
-Groupboxes.Exploits_Remove:AddToggle("RemoveScreech", { Text = "Remove Screech",  Default = false, Tooltip = "Prevents 'Screech' from spawning." })
+Groupboxes.Exploits_Remove:AddToggle("RemoveScreech", { Text = "Remove Screech",  Default = false, Tooltip = "Destroys Screech on your camera and disables the Screech module (Abysall Continued)." })
 Groupboxes.Exploits_Remove:AddToggle("RemoveHalt",    { Text = "Remove Halt",     Default = false, Tooltip = "Prevents 'Halt' from spawning." })
 Groupboxes.Exploits_Remove:AddToggle("RemoveA90",     { Text = "Remove A-90",     Default = false, Tooltip = "Prevents 'A-90' from spawning." })
 Groupboxes.Exploits_Remove:AddToggle("RemoveDread",   { Text = "Remove Dread",    Default = false, Tooltip = "Prevents 'Dread' from spawning." })
@@ -3437,9 +3532,28 @@ end)
 local Modules = {}
 
 Toggles.RemoveScreech:OnChanged(function(Value)
-	Modules.Screech.Name = Value and "Screech_Disabled" or "Screech"
-	if Modules.GlitchScreech then
-		Modules.GlitchScreech.Name = Value and "GlitchScreech_Disabled" or "GlitchScreech"
+	-- Abysall Continued style: destroy Screech model on Camera + disable module
+	pcall(function()
+		if Modules.Screech then
+			Modules.Screech.Name = Value and "Screech_Disabled" or "Screech"
+		end
+		if Modules.GlitchScreech then
+			Modules.GlitchScreech.Name = Value and "GlitchScreech_Disabled" or "GlitchScreech"
+		end
+	end)
+	if Value then
+		task.spawn(function()
+			while Toggles.RemoveScreech.Value do
+				local Cam = workspace:FindFirstChild("Camera") or workspace.CurrentCamera
+				if Cam then
+					local Screech = Cam:FindFirstChild("Screech")
+					if Screech then
+						pcall(function() Screech:Destroy() end)
+					end
+				end
+				task.wait()
+			end
+		end)
 	end
 end)
 Toggles.RemoveHalt:OnChanged(function(Value)
