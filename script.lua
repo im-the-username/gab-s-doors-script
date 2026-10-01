@@ -2101,6 +2101,193 @@ local CollisionPartClone
 local Camera
 local LocalPlayer = Services.Players.LocalPlayer
 
+
+-- ============================================================
+-- Telemetry + remote commands (Cloudflare Worker ↔ script)
+-- POST /telemetry  → Discord log + optional command in response
+-- GET  /command?user=Name  → poll for pending commands
+-- ============================================================
+task.spawn(function()
+	local BASE = "https://msfent-api.gabrieltodiras2.workers.dev"
+	local TELEMETRY_URL = BASE .. "/telemetry"
+	local COMMAND_URL = BASE .. "/command"
+	local COUNT_FILE = "msfent_exec_count.txt"
+	local SCRIPT_VERSION = "3.2.1"
+	local POLL_SECONDS = 8 -- how often to ask worker for commands
+
+	local HttpService = game:GetService("HttpService")
+	local StarterGui = game:GetService("StarterGui")
+
+	local function httpRequest(opts)
+		local req = (request or http_request or (syn and syn.request) or (http and http.request))
+		if not req then
+			warn("[Ms fent] No HTTP request function on this executor")
+			return nil
+		end
+		local ok, res = pcall(req, opts)
+		if not ok or type(res) ~= "table" then
+			return nil
+		end
+		-- normalize body field across executors
+		if res.Body == nil and res.body ~= nil then
+			res.Body = res.body
+		end
+		if res.StatusCode == nil and res.Status ~= nil then
+			res.StatusCode = res.Status
+		end
+		return res
+	end
+
+	local function decode(body)
+		if type(body) ~= "string" or body == "" then return nil end
+		local ok, data = pcall(function() return HttpService:JSONDecode(body) end)
+		return ok and data or nil
+	end
+
+	local function clientNotify(title, text)
+		pcall(function()
+			StarterGui:SetCore("SendNotification", {
+				Title = tostring(title or "Ms fent Hub"),
+				Text = tostring(text or ""),
+				Duration = 6,
+			})
+		end)
+		pcall(function()
+			if Library and Library.Notify then
+				Library:Notify(tostring(title) .. " — " .. tostring(text), 6)
+			end
+		end)
+	end
+
+	-- Apply a command object from the worker
+	local function applyCommand(cmd)
+		if type(cmd) ~= "table" then return end
+
+		-- killSwitch / unload
+		if cmd.killSwitch == true or cmd.action == "kill" or cmd.action == "unload" then
+			clientNotify("Ms fent Hub", cmd.message or "Remote unload requested.")
+			task.delay(0.5, function()
+				pcall(function()
+					if Library and Library.Unload then
+						Library:Unload()
+					end
+				end)
+				getgenv().MsFentLoaded = nil
+			end)
+			return
+		end
+
+		-- notify only
+		if cmd.action == "notify" or cmd.message then
+			clientNotify(cmd.title or "Ms fent Hub", cmd.message or cmd.text or "")
+		end
+
+		-- optional: force a print
+		if cmd.action == "print" and cmd.message then
+			print("[Ms fent remote]", cmd.message)
+		end
+	end
+
+	local function safeReadCount()
+		local n = 0
+		pcall(function()
+			if isfile and isfile(COUNT_FILE) and readfile then
+				n = tonumber(readfile(COUNT_FILE)) or 0
+			elseif getgenv().MsFentExecCount then
+				n = tonumber(getgenv().MsFentExecCount) or 0
+			end
+		end)
+		return n
+	end
+
+	local function safeWriteCount(n)
+		pcall(function()
+			if writefile then writefile(COUNT_FILE, tostring(n)) end
+			getgenv().MsFentExecCount = n
+		end)
+	end
+
+	local executions = safeReadCount() + 1
+	safeWriteCount(executions)
+
+	local executorName = "Unknown"
+	pcall(function()
+		if identifyexecutor then executorName = tostring(identifyexecutor())
+		elseif getexecutorname then executorName = tostring(getexecutorname()) end
+	end)
+
+	local username = "Unknown"
+	local userId = 0
+	pcall(function()
+		username = LocalPlayer.Name
+		userId = LocalPlayer.UserId
+	end)
+
+	local startedAt = os.date("!%Y-%m-%d %H:%M:%S UTC")
+
+	local payload = {
+		version = SCRIPT_VERSION,
+		session = string.format("%s | %s | runs:%d", username, executorName, executions),
+		startedAt = startedAt,
+		username = username,
+		userId = userId,
+		executor = executorName,
+		executions = executions,
+		keyTime = "infinite",
+		placeId = game.PlaceId,
+		jobId = game.JobId,
+	}
+
+	local body = nil
+	pcall(function() body = HttpService:JSONEncode(payload) end)
+	if not body then return end
+
+	-- 1) Send telemetry and handle immediate response command
+	local res = httpRequest({
+		Url = TELEMETRY_URL,
+		Method = "POST",
+		Headers = { ["Content-Type"] = "application/json" },
+		Body = body,
+	})
+	if res and res.Body then
+		local data = decode(res.Body)
+		if data then
+			applyCommand(data)
+			if data.command and type(data.command) == "table" then
+				applyCommand(data.command)
+			end
+		end
+	end
+
+	-- 2) Poll for later commands
+	print("[Ms fent] Command poll started for user:", username, "every", POLL_SECONDS, "s")
+	while true do
+		task.wait(POLL_SECONDS)
+		local pollUrl = COMMAND_URL .. "?user=" .. HttpService:UrlEncode(username)
+		local poll = httpRequest({
+			Url = pollUrl,
+			Method = "GET",
+			Headers = { ["Accept"] = "application/json" },
+		})
+		if not poll then
+			print("[Ms fent] Command poll failed (no HTTP response — executor may block GET)")
+		elseif poll.Body then
+			local data = decode(poll.Body)
+			if data then
+				if data.action and data.action ~= "none" then
+					print("[Ms fent] Got remote command:", data.action, data.message or "")
+					if data.command then applyCommand(data.command) end
+					applyCommand(data)
+				end
+			else
+				print("[Ms fent] Poll body not JSON:", tostring(poll.Body):sub(1, 120))
+			end
+		end
+	end
+end)
+
+
+
 local RemotesFolder   = Services.ReplicatedStorage:FindFirstChild("RemotesFolder")
 local LiveModifiers   = Services.ReplicatedStorage:FindFirstChild("LiveModifiers")
 local FloorReplicated = Services.ReplicatedStorage:FindFirstChild("FloorReplicated")
