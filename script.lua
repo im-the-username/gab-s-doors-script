@@ -5,11 +5,302 @@
     ╚══════════════════════════════════════╝
 ]]
 
+
+-- Shared Universal helper definitions (used by both paths)
+getgenv().__MsFent_NDS_Scripts = {
+	{ group = "Misc", text = "Touch fling", url = "https://pastebin.com/raw/LgZwZ7ZB", autorunNDS = false, doorsOk = false },
+	{ group = "Misc", text = "Kilaskis multi fling", url = "https://raw.githubusercontent.com/K1LAS1K/Ultimate-Fling-GUI/main/flingscript.lua", autorunNDS = true, doorsOk = false },
+	{ group = "Misc", text = "Flight anims", url = "https://obj.wearedevs.net/197198/scripts/invincible%20flight%20animation.lua", autorunNDS = true, doorsOk = false },
+	{ group = "Misc", text = "anti stuff", url = "https://raw.githubusercontent.com/OMNIMANRUSSIA/NDS-OMNIMAN-GOD-TOUCH-FLING-ANTISIT-ANTIBANG/main/main.lua", autorunNDS = true, doorsOk = false },
+	{ group = "Misc", text = "Drop kick (buggy)", url = "https://raw.githubusercontent.com/gsm231/Fe-DropKick/refs/heads/main/V0.1", autorunNDS = false, doorsOk = false },
+	{ group = "Misc", text = "Infinite Yield", url = "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", autorunNDS = true, doorsOk = true },
+	{ group = "OP", text = "Super ring v5 lukas", url = "https://raw.githubusercontent.com/Lukashub-coder/Super-ring-V5/refs/heads/main/By%20lukas!!", autorunNDS = false, doorsOk = false },
+	{ group = "OP", text = "GABS SUPER RING", url = "https://raw.githubusercontent.com/im-the-username/meow.lua/refs/heads/main/meow1.lua", autorunNDS = false, doorsOk = false },
+	{ group = "OP", text = "supering by foxy9694", url = "https://raw.githubusercontent.com/northernline23/Super-ring-parts-V1/refs/heads/main/script.lua", autorunNDS = false, doorsOk = false },
+	{ group = "Other", text = "gab's aimbot", url = "https://raw.githubusercontent.com/im-the-username/gab-s-aimbot/refs/heads/main/Aimbot.lua", autorunNDS = false, doorsOk = false },
+}
+
+getgenv().__MsFent_IsNDSGame = function()
+	local ok, result = pcall(function()
+		-- Classic Natural Disaster Survival + common clones
+		local ndsPlaces = {
+			[189707] = true, -- Natural Disaster Survival
+		}
+		if ndsPlaces[game.PlaceId] then return true end
+		local name = ""
+		pcall(function()
+			name = string.lower(tostring(game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name))
+		end)
+		if name:find("natural disaster", 1, true) then return true end
+		if name:find("nds", 1, true) and not name:find("doors", 1, true) then return true end
+		return false
+	end)
+	return ok and result == true
+end
+
+getgenv().__MsFent_RunHelper = function(item, Library)
+	local ok, err = pcall(function()
+		loadstring(game:HttpGet(item.url))()
+	end)
+	if ok then
+		pcall(function()
+			if Library and Library.Notify then
+				Library:Notify("Loaded: " .. item.text, 3)
+			end
+		end)
+		print("[Ms fent Universal] Loaded:", item.text)
+	else
+		pcall(function()
+			if Library and Library.Notify then
+				Library:Notify("Failed: " .. item.text, 5)
+			end
+		end)
+		warn("[Ms fent Universal] Failed", item.text, err)
+	end
+	return ok
+end
+
+-- mode: "full" (outside Doors) | "doors" (only Infinite Yield enabled)
+getgenv().__MsFent_BuildNDSTab = function(Window, Library, mode)
+	local isDoorsMode = (mode == "doors" or mode == false)
+	local tab = Window:AddTab("Universal", "swords")
+
+	local function canUse(item)
+		if isDoorsMode then
+			return item.doorsOk == true
+		end
+		return true
+	end
+
+	local function addGroup(title, items)
+		local box = tab:AddLeftGroupbox(title)
+		for _, item in ipairs(items) do
+			local allowed = canUse(item)
+			local tip = allowed and "Runs this helper via loadstring."
+				or (isDoorsMode and "Only Infinite Yield is available anywhere" or "Unavailable.")
+			local btnOpts = {
+				Text = item.text,
+				Tooltip = tip,
+				Func = function()
+					if not canUse(item) then
+						pcall(function()
+							Library:Notify(isDoorsMode and "Only Infinite Yield works in Doors." or "Unavailable here.", 4)
+						end)
+						return
+					end
+					getgenv().__MsFent_RunHelper(item, Library)
+				end,
+			}
+			if not allowed then
+				btnOpts.Disabled = true
+				btnOpts.DisabledTooltip = tip
+			end
+			box:AddButton(btnOpts)
+		end
+	end
+
+	local byGroup = { Misc = {}, OP = {}, Other = {} }
+	for _, s in ipairs(getgenv().__MsFent_NDS_Scripts) do
+		table.insert(byGroup[s.group] or byGroup.Other, s)
+	end
+	addGroup("Misc", byGroup.Misc)
+	addGroup("OP Scripts", byGroup.OP)
+	addGroup("Other", byGroup.Other)
+
+	local info = tab:AddRightGroupbox("Status")
+	if isDoorsMode then
+		info:AddLabel("In Doors")
+		info:AddLabel("Only Infinite Yield is enabled.")
+		info:AddLabel("Other helpers are locked.")
+	else
+		info:AddLabel("Universal mode")
+		info:AddLabel("PlaceId: " .. tostring(game.PlaceId))
+		if getgenv().__MsFent_IsNDSGame and getgenv().__MsFent_IsNDSGame() then
+			info:AddLabel("NDS detected — auto-running presets")
+		else
+			info:AddLabel("Re-run loader anytime.")
+		end
+	end
+	return tab
+end
+
+getgenv().__MsFent_AutorunNDSPresets = function(Library)
+	if not (getgenv().__MsFent_IsNDSGame and getgenv().__MsFent_IsNDSGame()) then
+		return
+	end
+	warn("[Ms fent] NDS detected — auto-running IY, Flight anims, Kilaskis, anti stuff")
+	task.spawn(function()
+		for _, item in ipairs(getgenv().__MsFent_NDS_Scripts or {}) do
+			if item.autorunNDS then
+				task.wait(0.35)
+				getgenv().__MsFent_RunHelper(item, Library)
+			end
+		end
+	end)
+end
+
+getgenv().__MsFent_BuildDoorsLockedTab = function(Window, Library)
+	local tab = Window:AddTab("Doors", "door-open")
+	local box = tab:AddLeftGroupbox("Doors Hub")
+	local function locked(text)
+		box:AddButton({
+			Text = text,
+			Disabled = true,
+			DisabledTooltip = "Only available in Doors.",
+			Tooltip = "Only available in Doors.",
+			Func = function()
+				pcall(function() Library:Notify("Join Doors to use the full hub.", 4) end)
+			end,
+		})
+	end
+	locked("Speed Boost / Fly / Noclip")
+	locked("Entity ESP / Notify")
+	locked("Bypass / Remove entities")
+	locked("Archives / Stairwell")
+	locked("Debug (Void, Tp Door)")
+	local info = tab:AddRightGroupbox("Status")
+	info:AddLabel("You are NOT in Doors.")
+	info:AddLabel("Doors features are disabled.")
+	info:AddLabel("Join Doors to unlock this tab.")
+	return tab
+end
+
+-- ============================================================
+-- Game router
+-- Doors  → Ms fent Hub (single-load lock)
+-- Other  → load ALL universal helpers (can re-execute freely)
+-- ============================================================
+local function __MsFent_IsDoorsGame()
+	local ok, result = pcall(function()
+		local rs = game:GetService("ReplicatedStorage")
+		if rs:FindFirstChild("GameData") then return true end
+		if rs:FindFirstChild("RemotesFolder") then return true end
+		local doorsPlaces = {
+			[6516141723] = true, -- lobby
+			[6839171747] = true,
+			[2440500124] = true,
+			[5130598377] = true,
+			[10511121194] = true,
+			[12394881069] = true,
+		}
+		if doorsPlaces[game.PlaceId] then return true end
+		local name = string.lower(tostring(game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name))
+		if string.find(name, "doors", 1, true) then return true end
+		return false
+	end)
+	return ok and result == true
+end
+
+local function __MsFent_SendTelemetry(scriptName)
+	pcall(function()
+		local HttpService = game:GetService("HttpService")
+		local Players = game:GetService("Players")
+		local lp = Players.LocalPlayer
+		local username = lp and lp.Name or "Unknown"
+		local userId = lp and lp.UserId or 0
+		local executorName = "Unknown"
+		pcall(function()
+			if identifyexecutor then executorName = tostring(identifyexecutor())
+			elseif getexecutorname then executorName = tostring(getexecutorname()) end
+		end)
+
+		local COUNT_FILE = "msfent_exec_count.txt"
+		local executions = 1
+		pcall(function()
+			if isfile and isfile(COUNT_FILE) and readfile then
+				executions = (tonumber(readfile(COUNT_FILE)) or 0) + 1
+			elseif getgenv().MsFentExecCount then
+				executions = (tonumber(getgenv().MsFentExecCount) or 0) + 1
+			end
+			if writefile then writefile(COUNT_FILE, tostring(executions)) end
+			getgenv().MsFentExecCount = executions
+		end)
+
+		local startedAt = os.date("!%Y-%m-%d %H:%M:%S UTC")
+		local payload = {
+			version = "3.2.1",
+			session = string.format("%s | %s | runs:%d | %s", username, executorName, executions, scriptName),
+			startedAt = startedAt,
+			username = username,
+			userId = userId,
+			executor = executorName,
+			executions = executions,
+			keyTime = "infinite",
+			placeId = game.PlaceId,
+			jobId = game.JobId,
+			script = scriptName,
+		}
+		local body = HttpService:JSONEncode(payload)
+		local req = (request or http_request or (syn and syn.request) or (http and http.request))
+		if req then
+			req({
+				Url = "https://msfent-api.gabrieltodiras2.workers.dev/telemetry",
+				Method = "POST",
+				Headers = { ["Content-Type"] = "application/json" },
+				Body = body,
+			})
+		end
+	end)
+end
+
+if not __MsFent_IsDoorsGame() then
+	-- Non-Doors: unified Obsidian UI — NDS active, Doors tab grayed
+	-- No MsFentLoaded lock → can re-execute
+	warn("[Ms fent] Not Doors (PlaceId " .. tostring(game.PlaceId) .. ") — NDS UI")
+
+	local okUI, errUI = pcall(function()
+		local BaseUrl = "https://raw.githubusercontent.com/mstudio45/Obsidian/refs/heads/main/"
+		local Library = loadstring(game:HttpGet(BaseUrl .. "Library.lua"))()
+		local ThemeManager = loadstring(game:HttpGet(BaseUrl .. "addons/ThemeManager.lua"))()
+		local SaveManager = loadstring(game:HttpGet(BaseUrl .. "addons/SaveManager.lua"))()
+		ThemeManager:SetLibrary(Library)
+		SaveManager:SetLibrary(Library)
+		SaveManager:SetFolder("msfent-nds")
+
+		local Window = Library:CreateWindow({
+			Title = "Ms fent Hub",
+			Footer = "Universal • Doors locked",
+			NotifySide = "Right",
+			ShowCustomCursor = false,
+			AutoShow = true,
+		})
+
+		-- NDS enabled
+		getgenv().__MsFent_BuildNDSTab(Window, Library, "full")
+		getgenv().__MsFent_AutorunNDSPresets(Library)
+		-- Doors grayed out
+		getgenv().__MsFent_BuildDoorsLockedTab(Window, Library)
+
+		local info = Window:AddTab("Info", "user")
+		local box = info:AddLeftGroupbox("Session")
+		box:AddLabel("Mode: Universal")
+		box:AddLabel("User: " .. (game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Name or "?"))
+		box:AddLabel("PlaceId: " .. tostring(game.PlaceId))
+		pcall(function()
+			SaveManager:BuildConfigSection(info)
+			ThemeManager:ApplyToTab(info)
+		end)
+
+		Library:Notify("Ms fent • Universal mode (Doors locked)", 5)
+	end)
+
+	if not okUI then
+		warn("[Ms fent] NDS UI failed: " .. tostring(errUI))
+	end
+
+	local tel = (getgenv().__MsFent_IsNDSGame and getgenv().__MsFent_IsNDSGame()) and "Ms fent Hub | NDS (autorun)" or "Ms fent Hub | Universal"
+	__MsFent_SendTelemetry(tel)
+	return
+end
+
+-- Doors path: single-load lock (prevent double hub)
 if getgenv().MsFentLoaded then
-    warn("[Ms fent Hub] Already loaded")
-    return
+	warn("[Ms fent Hub] Already loaded (Doors)")
+	return
 end
 getgenv().MsFentLoaded = true
+-- Telemetry for Doors is sent later in the main telemetry block
+
 
 -- ===== INTEGRATED: Environment =====
 local function __MsFent_Load_Environment()
@@ -1594,6 +1885,9 @@ return function(Window)
     local LatestChangelog = {
        "unknown date",
         "<font color='rgb(100, 0, 100)'>* Meow OwO </font>",
+        "2/10/2025",
+        "<font color='rgb(255, 255, 255)'>* Project msfent is expanding!</font>",
+        "<font color='rgb(255, 255, 255)'>* implemented my nds gui into this now... and its all in one project! </font>",
         "30/9/2026",
         "<font color='rgb(0, 255, 0)'>fixed some more entity shit not working.</font>",
         "<font color='rgb(0, 255, 0)'>+ Working anti screech :3</font>",
@@ -2227,7 +2521,7 @@ task.spawn(function()
 
 	local payload = {
 		version = SCRIPT_VERSION,
-		session = string.format("%s | %s | runs:%d", username, executorName, executions),
+		session = string.format("%s | %s | runs:%d | Ms fent Hub | Doors", username, executorName, executions),
 		startedAt = startedAt,
 		username = username,
 		userId = userId,
@@ -2236,6 +2530,7 @@ task.spawn(function()
 		keyTime = "infinite",
 		placeId = game.PlaceId,
 		jobId = game.JobId,
+		script = "Ms fent Hub | Doors",
 	}
 
 	local body = nil
@@ -3084,6 +3379,13 @@ local Tabs = {
 	Visuals  = Window:AddTab("Visuals", "eye"),
 	Floors   = Window:AddTab("Floors", "earth"),
 }
+
+-- NDS tab (grayed out while in Doors)
+pcall(function()
+	if getgenv().__MsFent_BuildNDSTab then
+		Tabs.Universal = getgenv().__MsFent_BuildNDSTab(Window, Library, "doors")
+	end
+end)
 
 Groupboxes.General_Character = Tabs.General:AddLeftGroupbox("Character")
 Groupboxes.General_Character:AddSlider("SpeedBoostSlider", {
