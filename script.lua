@@ -1875,6 +1875,18 @@ return function(Window)
 	SaveManager:SetFolder("Abysall/" .. Abysall.SavePath)
 	SaveManager:BuildConfigSection(SettingsTab)
 	ThemeManager:ApplyToTab(SettingsTab)
+	-- Re-register custom themes so they show in the picker
+	pcall(function()
+		if ThemeManager.BuiltInThemes then
+			-- already set on Abysall.Interface.ThemeManager earlier
+		end
+		local month = tonumber(os.date("%m"))
+		if month == 10 and ThemeManager.ApplyTheme then
+			pcall(function() ThemeManager:ApplyTheme("Halloween") end)
+		elseif month == 12 and ThemeManager.ApplyTheme then
+			pcall(function() ThemeManager:ApplyTheme("Christmas") end)
+		end
+	end)
 	SaveManager:LoadAutoloadConfig()
 end
 
@@ -2072,7 +2084,16 @@ do
         ["Rose Pine"]      = { 17, { FontColor = "e0def4", MainColor = "26233a", AccentColor = "eb6f92", BackgroundColor = "191724", OutlineColor = "403d52" } },
         ["Oceanic"]        = { 18, { FontColor = "c0c5ce", MainColor = "1b2b34", AccentColor = "6699cc", BackgroundColor = "16232a", OutlineColor = "343d46" } },
         ["Material"]       = { 19, { FontColor = "eeffff", MainColor = "212121", AccentColor = "82aaff", BackgroundColor = "151515", OutlineColor = "424242" } },
+        ["Halloween"]      = { 20, { FontColor = "ffe6a7", MainColor = "2b1a12", AccentColor = "ff6a00", BackgroundColor = "140c08", OutlineColor = "5a3a1e" } },
+        ["Christmas"]      = { 21, { FontColor = "ffffff", MainColor = "1a2e24", AccentColor = "e63946", BackgroundColor = "0f1a14", OutlineColor = "2d4a3a" } },
+        ["Spooky"]         = { 22, { FontColor = "e8d5b7", MainColor = "1a1220", AccentColor = "9b59b6", BackgroundColor = "0d0a12", OutlineColor = "3d2a4d" } },
     }
+    -- force ThemeManager to see custom list (Obsidian reads BuiltInThemes)
+    pcall(function()
+        if Abysall.Interface and Abysall.Interface.ThemeManager then
+            Abysall.Interface.ThemeManager.BuiltInThemes = Abysall.Interface.ThemeManager.BuiltInThemes
+        end
+    end)
 end
 
 pcall(function()
@@ -4320,6 +4341,7 @@ Toggles.ObjectiveESPToggle:OnChanged(function(Value)
 	for _, Object in Objects.Objectives do
 		if Value then
 			local Label = ObjectiveLabels[Object.Name]
+			local nLow = string.lower(tostring(Object.Name))
 			if Object.Name == "TimerLever" then
 				Label = "Time Lever [+" .. Object:GetAttribute("AddTime") .. "s]"
 			elseif Object.Name == "MinesAnchor" then
@@ -4328,9 +4350,15 @@ Toggles.ObjectiveESPToggle:OnChanged(function(Value)
 				Functions.AddESP({ Object = Object.Wheel, Text = "Water Pump", Color = Options.ObjectiveESPColor.Value }, true)
 			elseif Object.Name == "VineGuillotine" then
 				Functions.AddESP({ Object = Object.Lever, Text = "Vine Lever", Color = Options.ObjectiveESPColor.Value }, true)
+			elseif Object:GetAttribute("MsFent_FireAlarm") or (nLow:find("fire", 1, true) and nLow:find("alarm", 1, true)) then
+				Label = "Fire Alarm"
 			end
 			if Label then
-				Functions.AddESP({ Object = Object, Text = Label, Color = Options.ObjectiveESPColor.Value }, true)
+				local target = Object
+				if Label == "Fire Alarm" and Object:IsA("Model") then
+					target = Object.PrimaryPart or Object:FindFirstChildWhichIsA("BasePart", true) or Object
+				end
+				Functions.AddESP({ Object = target, Text = Label, Color = Options.ObjectiveESPColor.Value }, true)
 			end
 		else
 			Functions.RemoveESP(Object)
@@ -6924,12 +6952,22 @@ Functions.HandleObject = function(Object)
 			Functions.BlacklistESP(Object)
 		end)
 		table.insert(Objects.Objectives, Object)
-	elseif Name == "StairwellFireAlarm" or Name == "FireAlarm" or Name == "Fire_Alarm" then
-		-- Stairwell fire alarms
+	elseif Name == "StairwellFireAlarm" or Name == "FireAlarm" or Name == "Fire_Alarm"
+		or Name == "FireAlarmSwitch" or Name == "AlarmSwitch" or Name == "FireEscapeAlarm"
+		or Name == "PullStation" or Name == "FirePull"
+		or (string.lower(Name):find("fire", 1, true) and string.lower(Name):find("alarm", 1, true)) then
+		-- Stairwell fire alarms (name varies by build)
+		local espTarget = Object
+		if Object:IsA("Model") then
+			local pp = Object.PrimaryPart or Object:FindFirstChildWhichIsA("BasePart", true)
+			if pp then espTarget = pp end
+		end
 		if Toggles.ObjectiveESPToggle.Value then
-			Functions.AddESP({ Object = Object, Text = "Fire Alarm", Color = Options.ObjectiveESPColor.Value }, true)
+			Functions.AddESP({ Object = espTarget, Text = "Fire Alarm", Color = Options.ObjectiveESPColor.Value }, true)
 		end
 		table.insert(Objects.Objectives, Object)
+		-- keep mapping for toggle refresh
+		pcall(function() Object:SetAttribute("MsFent_FireAlarm", true) end)
 	elseif Name == "Ladder" then
 		if Toggles.LadderESPToggle.Value then Functions.AddESP({ Object = Object, Text = "Ladder", Color = Options.LadderESPColor.Value }, true) end
 		table.insert(Objects.Ladders, Object)
@@ -7525,11 +7563,17 @@ local AllowedInstances = {
 	MovingDoor=true, StardustPickup=true, Hole=true, Groundskeeper=true, MandrakeLive=true,
 	GardenGateButton=true, LotusPetalPickup=true, VineGuillotine=true, LiveEntityBramble=true,
 	RiftSpawn=true, ElevatorBreaker=true, RunnerNodes=true, PathLights=true, DuckBoard=true,
-	Padlock=true, EyestalkEndCutscene=true, MinecartRig=true, SeekMovingNewClone=true
+	Padlock=true, EyestalkEndCutscene=true, MinecartRig=true, SeekMovingNewClone=true,
+	StairwellFireAlarm=true, FireAlarm=true, Fire_Alarm=true, FireAlarmSwitch=true,
+	AlarmSwitch=true, FireEscapeAlarm=true, PullStation=true, FirePull=true
 }
 
 Functions.QueueObject = function(Object)
-	if not AllowedInstances[Object.Name] and Object.ClassName ~= "ProximityPrompt" and Object.Parent ~= CurrentRooms and not ItemNames[Object.Name] then
+	local n = string.lower(tostring(Object.Name))
+	local isFireAlarm = (n:find("fire", 1, true) and n:find("alarm", 1, true))
+		or n == "pullstation" or n == "alarmswitch" or n:find("firepull", 1, true)
+	if not AllowedInstances[Object.Name] and not isFireAlarm
+		and Object.ClassName ~= "ProximityPrompt" and Object.Parent ~= CurrentRooms and not ItemNames[Object.Name] then
 		return
 	end
 	table.insert(Globals.ObjectQueue, Object)
