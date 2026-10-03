@@ -1,7 +1,7 @@
 --[[
     ╔══════════════════════════════════════╗
     ║         Ms fent Hub | Doors          ║
-    ║            Fully integrated          ║
+    ║   Fully integrated (VibeInc inlined) ║
     ╚══════════════════════════════════════╝
 ]]
 
@@ -1857,7 +1857,7 @@ return function(Window)
 	MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "Menu keybind" })
 	
 	MenuGroup:AddButton("Copy Discord Invite", function()
-		toclipboard("https://dsc.gg/jJd2JkkCTj")
+		toclipboard("https://discord.gg/fKqb9Hznud")
 		Library:Notify("Discord invite copied.")
 	end)
 	
@@ -4312,6 +4312,8 @@ local ObjectiveLabels = {
 	["MinesGateButton"]        = "Gate Button",
 	["GardenGateButton"]       = "Gate Button",
 	["StairwellFireAlarm"]     = "Fire Alarm",
+	["FireAlarm"]              = "Fire Alarm",
+	["Fire_Alarm"]             = "Fire Alarm",
 }
 
 Toggles.ObjectiveESPToggle:OnChanged(function(Value)
@@ -4507,6 +4509,10 @@ local function RefreshEntityESP()
 				local target = Object
 				if Object.Name == "MonumentEntity" and Object:FindFirstChild("Top") then
 					target = Object.Top
+				-- Creak / Noise: use a single part for ESP so Highlight doesn't break model animations
+				elseif Label == "Creak" or Label == "Noise" then
+					local pp = Object.PrimaryPart or Object:FindFirstChildWhichIsA("BasePart", true)
+					if pp then target = pp end
 				end
 				Functions.AddESP({ Object = target, Text = Label or Object.Name, Color = Options.EntityESPColor.Value }, NodeEntities[Label] ~= true)
 			else
@@ -4633,10 +4639,36 @@ Groupboxes.Floors_Archives:AddToggle("BypassDrones", { Text = "Bypass Drones", D
 Groupboxes.Floors_Archives:AddToggle("AntiScribbles", { Text = "Bypass Scribbles", Default = false, Tooltip = "Removes Scribbles exploit-detection child." })
 Groupboxes.Floors_Archives:AddToggle("BypassBash", { Text = "Bypass Bash", Default = false, Tooltip = "Elevates you on a high platform + LOS shield until Bash despawns." })
 Groupboxes.Floors_Archives:AddToggle("ArchivesChairACBypass", {
-	Text = "Chair AC Bypass",
+	Text = "Chair Anticheat Bypass",
 	Default = false,
 	Risky = true,
-	Tooltip = "Vynixu-style: grab BACK → chair vanishes. Reappears in hands at every *-50 for console, then vanishes again.",
+	Tooltip = "Allows you to bypass the anticheat using an office chair. Use Start Bypass near a chair.",
+})
+Groupboxes.Floors_Archives:AddSlider("ChairSpeed", {
+	Text = "Chair Speed",
+	Default = 50,
+	Min = 1,
+	Max = 100,
+	Rounding = 0,
+	Tooltip = "Movement speed while chair anticheat bypass is active.",
+})
+Groupboxes.Floors_Archives:AddButton({
+	Text = "Start Bypass",
+	Tooltip = "Start chair anticheat bypass (stand near an office chair).",
+	Func = function()
+		if Functions.ArchivesChairAC_Start then
+			Functions.ArchivesChairAC_Start()
+		end
+	end,
+})
+Groupboxes.Floors_Archives:AddButton({
+	Text = "Stop Bypass",
+	Tooltip = "Stop chair anticheat bypass and restore chair.",
+	Func = function()
+		if Functions.ArchivesChairAC_Stop then
+			Functions.ArchivesChairAC_Stop()
+		end
+	end,
 })
 
 -- ===== STAIRWELL (Abysall Continued, inlined) =====
@@ -5104,115 +5136,45 @@ do
 	end
 
 	
-	-- Archives Impact (cart prop) anticheat bypass
-	-- Vynixius: "Bypasses the game's anti-cheat using cart props."
-	-- Remotes: CartControl, SeatControl
-	-- Movement often carries .Collider + .SeatAttachment (Nil Parent when pocketed)
-	-- Flow: grab Impact BACK → pocket (hide + keep refs) → AC on
-	--       leave / *-50 → AC off, show prop for console
-	local ArchivesChairAC_Conn = nil
-	local ArchivesChairAC_PromptConns = {}
-	local ArchivesChairAC_RoomConn = nil
+	-- Archives Chair Anticheat Bypass (Start Bypass + Chair Speed)
+	local ArchivesChairAC_Active = false
+	local ArchivesChairAC_RenderConn = nil
 	local ArchivesChairAC_Heartbeat = nil
-	local ArchivesChairAC_RemoteConns = {}
+	local ArchivesChairAC_RoomConn = nil
+	local ArchivesChairAC_LagbackConns = {}
+	local ArchivesChairAC_LagbackDisabled = false
 	local ArchivesChairAC_Held = nil
 	local ArchivesChairAC_PartProps = {}
 	local ArchivesChairAC_OrigParent = nil
-	local ArchivesChairAC_Collider = nil
-	local ArchivesChairAC_SeatAttachment = nil
-	local ArchivesChairAC_AtBoundary = false
-	local ArchivesChairAC_Steering = false
-	local ArchivesChairAC_LastNotify = 0
-	local ArchivesChairAC_CartRemote = nil
-	local ArchivesChairAC_SeatRemote = nil
-	local ArchivesChairAC_LastGoodCF = nil
 	local ArchivesChairAC_DesiredCF = nil
+	local ArchivesChairAC_AtBoundary = false
 
-	local function ArchivesChairAC_Cleanup()
-		if ArchivesChairAC_Held then
-			pcall(function()
-				for part, props in pairs(ArchivesChairAC_PartProps) do
-					if part and part.Parent then
-						if props.ltm ~= nil then part.LocalTransparencyModifier = props.ltm end
-						if props.trans ~= nil then part.Transparency = props.trans end
-						if props.cc ~= nil then part.CanCollide = props.cc end
-						if props.cq ~= nil then part.CanQuery = props.cq end
-						if props.ct ~= nil then part.CanTouch = props.ct end
-					end
-				end
-				if ArchivesChairAC_OrigParent and ArchivesChairAC_Held.Parent then
-					ArchivesChairAC_Held.Parent = ArchivesChairAC_OrigParent
-				end
-			end)
-		end
-		if ArchivesChairAC_Conn then pcall(function() ArchivesChairAC_Conn:Disconnect() end) ArchivesChairAC_Conn = nil end
-		if ArchivesChairAC_RoomConn then pcall(function() ArchivesChairAC_RoomConn:Disconnect() end) ArchivesChairAC_RoomConn = nil end
-		if ArchivesChairAC_Heartbeat then pcall(function() ArchivesChairAC_Heartbeat:Disconnect() end) ArchivesChairAC_Heartbeat = nil end
-		for _, c in pairs(ArchivesChairAC_PromptConns) do pcall(function() c:Disconnect() end) end
-		table.clear(ArchivesChairAC_PromptConns)
-		for _, c in pairs(ArchivesChairAC_RemoteConns) do pcall(function() c:Disconnect() end) end
-		table.clear(ArchivesChairAC_RemoteConns)
-		table.clear(ArchivesChairAC_PartProps)
-		ArchivesChairAC_Held = nil
-		ArchivesChairAC_OrigParent = nil
-		ArchivesChairAC_Collider = nil
-		ArchivesChairAC_SeatAttachment = nil
-		ArchivesChairAC_AtBoundary = false
-		ArchivesChairAC_Steering = false
-		ArchivesChairAC_CartRemote = nil
-		ArchivesChairAC_SeatRemote = nil
-		-- restore lagback handlers
-		pcall(function()
-			if ArchivesChairAC_LagbackConns then
-				for _, rec in ipairs(ArchivesChairAC_LagbackConns) do
-					if rec[2] then pcall(function() rec[1]:Enable() end) end
-				end
-				table.clear(ArchivesChairAC_LagbackConns)
-			end
-			ArchivesChairAC_LagbackDisabled = false
-		end)
-	end
-
-	local function ArchivesChairAC_IsBoundaryRoom(roomVal)
+	local function ArchivesChairAC_IsBoundary(roomVal)
 		local n = tonumber(roomVal)
 		return n and n > 0 and (n % 50 == 0)
 	end
 
-	local function ArchivesChairAC_LooksLikeImpact(inst)
+	local function ArchivesChairAC_LooksLikeChair(inst)
 		if not inst then return false end
 		local n = string.lower(tostring(inst.Name))
-		for _, k in ipairs({ "chair", "office", "rolling", "impact", "cart", "tv", "television", "caster", "stool" }) do
+		for _, k in ipairs({ "chair", "office", "rolling", "impact", "cart", "caster", "stool" }) do
 			if n:find(k, 1, true) then return true end
 		end
 		if inst:IsA("Model") then
-			if inst:FindFirstChild("Collider", true) or inst:FindFirstChild("SeatAttachment", true) then
-				return true
-			end
-			if inst:FindFirstChildWhichIsA("Seat", true) or inst:FindFirstChildWhichIsA("VehicleSeat", true) then
-				return true
-			end
+			if inst:FindFirstChild("Collider", true) or inst:FindFirstChild("SeatAttachment", true) then return true end
+			if inst:FindFirstChildWhichIsA("Seat", true) or inst:FindFirstChildWhichIsA("VehicleSeat", true) then return true end
 		end
 		return false
 	end
 
-	local function ArchivesChairAC_GetImpactFrom(obj)
-		local cur = obj
-		for _ = 1, 14 do
-			if not cur then break end
-			if cur:IsA("Model") and ArchivesChairAC_LooksLikeImpact(cur) then return cur end
-			cur = cur.Parent
-		end
-		return nil
-	end
-
-	local function ArchivesChairAC_NearestImpact(maxDist)
-		maxDist = maxDist or 20
+	local function ArchivesChairAC_NearestChair(maxDist)
+		maxDist = maxDist or 22
 		local char = LocalPlayer.Character
 		local hrp = char and char:FindFirstChild("HumanoidRootPart")
 		if not hrp then return nil end
 		local best, bestD = nil, maxDist
 		for _, m in ipairs(workspace:GetDescendants()) do
-			if m:IsA("Model") and ArchivesChairAC_LooksLikeImpact(m) then
+			if m:IsA("Model") and ArchivesChairAC_LooksLikeChair(m) then
 				local ok, pos = pcall(function() return m:GetPivot().Position end)
 				if ok and pos then
 					local d = (pos - hrp.Position).Magnitude
@@ -5223,54 +5185,17 @@ do
 		return best
 	end
 
-	local function ArchivesChairAC_FindRemotes()
-		pcall(function()
-			if RemotesFolder then
-				ArchivesChairAC_CartRemote = RemotesFolder:FindFirstChild("CartControl") or ArchivesChairAC_CartRemote
-				ArchivesChairAC_SeatRemote = RemotesFolder:FindFirstChild("SeatControl") or ArchivesChairAC_SeatRemote
-			end
-		end)
-		if not ArchivesChairAC_CartRemote or not ArchivesChairAC_SeatRemote then
-			pcall(function()
-				for _, d in ipairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
-					if d:IsA("RemoteEvent") or d:IsA("RemoteFunction") then
-						if d.Name == "CartControl" then ArchivesChairAC_CartRemote = d end
-						if d.Name == "SeatControl" then ArchivesChairAC_SeatRemote = d end
-					end
-				end
-			end)
-		end
-	end
-
-	local function ArchivesChairAC_CaptureRefs(model)
-		if not model then return end
-		pcall(function()
-			local col = model:FindFirstChild("Collider", true)
-			local seat = model:FindFirstChild("SeatAttachment", true)
-			if col then ArchivesChairAC_Collider = col end
-			if seat then ArchivesChairAC_SeatAttachment = seat end
-			-- also grab any Seat/VehicleSeat as collider fallback
-			if not ArchivesChairAC_Collider then
-				ArchivesChairAC_Collider = model:FindFirstChildWhichIsA("BasePart", true)
-			end
-		end)
-	end
-
-	local function ArchivesChairAC_HideImpact(model)
+	local function ArchivesChairAC_Hide(model)
 		if not model then return end
 		ArchivesChairAC_Held = model
 		ArchivesChairAC_OrigParent = model.Parent
-		ArchivesChairAC_CaptureRefs(model)
 		table.clear(ArchivesChairAC_PartProps)
 		pcall(function()
 			for _, p in ipairs(model:GetDescendants()) do
 				if p:IsA("BasePart") then
 					ArchivesChairAC_PartProps[p] = {
-						ltm = p.LocalTransparencyModifier,
-						trans = p.Transparency,
-						cc = p.CanCollide,
-						cq = p.CanQuery,
-						ct = p.CanTouch,
+						ltm = p.LocalTransparencyModifier, trans = p.Transparency,
+						cc = p.CanCollide, cq = p.CanQuery, ct = p.CanTouch,
 					}
 					p.LocalTransparencyModifier = 1
 					p.Transparency = 1
@@ -5278,23 +5203,18 @@ do
 					p.CanQuery = false
 					p.CanTouch = false
 				elseif p:IsA("Decal") or p:IsA("Texture") then
-					pcall(function()
-						ArchivesChairAC_PartProps[p] = { trans = p.Transparency }
-						p.Transparency = 1
-					end)
-				elseif p:IsA("ProximityPrompt") or p:IsA("BillboardGui") or p:IsA("SurfaceGui") then
+					pcall(function() p.Transparency = 1 end)
+				elseif p:IsA("ProximityPrompt") then
 					pcall(function() p.Enabled = false end)
 				end
 			end
-			-- parent to nil like Vynixu (Collider/SeatAttachment show Nil Parent in spy)
-			pcall(function() model.Parent = nil end)
+			model.Parent = nil
 		end)
 	end
 
-	local function ArchivesChairAC_ShowImpact(model)
+	local function ArchivesChairAC_Show(model)
 		if not model then return end
-		local char = LocalPlayer.Character
-		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 		pcall(function()
 			for part, props in pairs(ArchivesChairAC_PartProps) do
 				if part and part.Parent then
@@ -5303,11 +5223,6 @@ do
 					if props.cc ~= nil then part.CanCollide = props.cc end
 					if props.cq ~= nil then part.CanQuery = props.cq end
 					if props.ct ~= nil then part.CanTouch = props.ct end
-				end
-			end
-			for _, p in ipairs(model:GetDescendants()) do
-				if p:IsA("ProximityPrompt") or p:IsA("BillboardGui") or p:IsA("SurfaceGui") then
-					pcall(function() p.Enabled = true end)
 				end
 			end
 			if ArchivesChairAC_OrigParent and ArchivesChairAC_OrigParent.Parent then
@@ -5321,289 +5236,140 @@ do
 		end)
 	end
 
-	local function ArchivesChairAC_SetBypassed(on, reason)
-		local now = tick()
-		if on then
-			if not ArchivesChairAC_Steering then
-				ArchivesChairAC_Steering = true
-				Globals.AnticheatDisabled = true
-				if now - ArchivesChairAC_LastNotify > 0.8 then
-					ArchivesChairAC_LastNotify = now
-					Functions.Notify({
-						Title = "Anti-Cheat Bypass",
-						Body = "You have successfully bypassed the anti-cheat!",
-					})
+	local function ArchivesChairAC_SetLagbackBlocked(block)
+		if block == ArchivesChairAC_LagbackDisabled then return end
+		ArchivesChairAC_LagbackDisabled = block
+		pcall(function()
+			if not getconnections then return end
+			local remotes = {}
+			if RemotesFolder then
+				table.insert(remotes, RemotesFolder:FindFirstChild("ServerTeleported"))
+				table.insert(remotes, RemotesFolder:FindFirstChild("Teleport"))
+			end
+			for _, d in ipairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
+				if d:IsA("RemoteEvent") and (d.Name == "ServerTeleported" or d.Name == "Teleport") then
+					table.insert(remotes, d)
+				end
+			end
+			if block then
+				for _, remote in ipairs(remotes) do
+					if not remote then continue end
+					for _, conn in ipairs(getconnections(remote.OnClientEvent)) do
+						local already = false
+						for _, rec in ipairs(ArchivesChairAC_LagbackConns) do
+							if rec[1] == conn then already = true break end
+						end
+						if not already then
+							local enabled = true
+							pcall(function() enabled = conn.Enabled end)
+							table.insert(ArchivesChairAC_LagbackConns, { conn, enabled })
+							pcall(function() conn:Disable() end)
+						end
+					end
 				end
 			else
-				Globals.AnticheatDisabled = true
-			end
-		else
-			if ArchivesChairAC_Steering then
-				ArchivesChairAC_Steering = false
-				Globals.AnticheatDisabled = false
-				if now - ArchivesChairAC_LastNotify > 0.8 then
-					ArchivesChairAC_LastNotify = now
-					Functions.Notify({
-						Title = "Anti-Cheat Bypass",
-						Body = reason or "Anti-Cheat bypass disabled due to leaving cart prop.",
-					})
+				for _, rec in ipairs(ArchivesChairAC_LagbackConns) do
+					if rec[2] then pcall(function() rec[1]:Enable() end) end
 				end
-			else
-				Globals.AnticheatDisabled = false
+				table.clear(ArchivesChairAC_LagbackConns)
 			end
-		end
-	end
-
-	local function ArchivesChairAC_OnGrab(impact, how)
-		if not Toggles.ArchivesChairACBypass.Value then return end
-		if ArchivesChairAC_AtBoundary then return end
-		ArchivesChairAC_FindRemotes()
-		if impact then
-			ArchivesChairAC_HideImpact(impact)
-		end
-		ArchivesChairAC_SetBypassed(true)
-		print("[ChairAC] grab", how, impact and impact:GetFullName() or "nil",
-			"Collider=", ArchivesChairAC_Collider and ArchivesChairAC_Collider.Name,
-			"SeatAtt=", ArchivesChairAC_SeatAttachment and ArchivesChairAC_SeatAttachment.Name)
-	end
-
-	local function ArchivesChairAC_OnRoomChange()
-		if not Toggles.ArchivesChairACBypass.Value then return end
-		local roomVal = LatestRoom and LatestRoom.Value
-		local boundary = ArchivesChairAC_IsBoundaryRoom(roomVal)
-		if boundary and not ArchivesChairAC_AtBoundary then
-			ArchivesChairAC_AtBoundary = true
-			if ArchivesChairAC_Held then
-				ArchivesChairAC_ShowImpact(ArchivesChairAC_Held)
-			end
-			ArchivesChairAC_SetBypassed(false, "Anti-Cheat bypass disabled due to leaving cart prop.")
-		elseif not boundary and ArchivesChairAC_AtBoundary then
-			ArchivesChairAC_AtBoundary = false
-		end
-	end
-
-	local function ArchivesChairAC_HookPrompt(prompt)
-		if not prompt or ArchivesChairAC_PromptConns[prompt] then return end
-		if not prompt:IsA("ProximityPrompt") then return end
-		local impact = ArchivesChairAC_GetImpactFrom(prompt)
-		local txt = string.lower(tostring(prompt.Name) .. " " .. tostring(prompt.ActionText) .. " " .. tostring(prompt.ObjectText))
-		local parentN = prompt.Parent and string.lower(tostring(prompt.Parent.Name)) or ""
-		local looks = impact
-			or txt:find("grab") or txt:find("push") or txt:find("back") or txt:find("pull")
-			or txt:find("steer") or txt:find("hold") or txt:find("cart") or txt:find("chair")
-			or parentN:find("back") or parentN:find("handle") or parentN:find("chair") or parentN:find("cart")
-		if not looks then return end
-		if not impact then impact = ArchivesChairAC_NearestImpact(14) end
-		local c = prompt.Triggered:Connect(function(plr)
-			if plr and plr ~= LocalPlayer then return end
-			if not Toggles.ArchivesChairACBypass.Value then return end
-			task.spawn(ArchivesChairAC_OnGrab, impact, "prompt:" .. prompt.Name)
 		end)
-		ArchivesChairAC_PromptConns[prompt] = c
 	end
 
-	local function ArchivesChairAC_Scan()
-		ArchivesChairAC_FindRemotes()
-		for _, d in ipairs(workspace:GetDescendants()) do
-			if d:IsA("ProximityPrompt") then ArchivesChairAC_HookPrompt(d) end
+	local function ArchivesChairAC_StopInternal(reason)
+		ArchivesChairAC_Active = false
+		Globals.AnticheatDisabled = false
+		ArchivesChairAC_SetLagbackBlocked(false)
+		ArchivesChairAC_DesiredCF = nil
+		if ArchivesChairAC_RenderConn then pcall(function() ArchivesChairAC_RenderConn:Disconnect() end) ArchivesChairAC_RenderConn = nil end
+		if ArchivesChairAC_Heartbeat then pcall(function() ArchivesChairAC_Heartbeat:Disconnect() end) ArchivesChairAC_Heartbeat = nil end
+		if ArchivesChairAC_Held then
+			ArchivesChairAC_Show(ArchivesChairAC_Held)
+			ArchivesChairAC_Held = nil
+		end
+		table.clear(ArchivesChairAC_PartProps)
+		if reason then
+			Functions.Notify({ Title = "Anti-Cheat Bypass", Body = reason })
 		end
 	end
 
-	local ArchivesChairAC_PPS = nil
+	Functions.ArchivesChairAC_Stop = function()
+		ArchivesChairAC_StopInternal("Anti-Cheat bypass disabled due to leaving cart prop.")
+	end
 
-	Toggles.ArchivesChairACBypass:OnChanged(function(Value)
-		ArchivesChairAC_Cleanup()
-		if ArchivesChairAC_PPS then pcall(function() ArchivesChairAC_PPS:Disconnect() end) ArchivesChairAC_PPS = nil end
-		if not Value then
-			Globals.AnticheatDisabled = false
-			Functions.Notify({ Title = "Anti-Cheat Bypass", Body = "Disabled." })
+	Functions.ArchivesChairAC_Start = function()
+		if not Toggles.ArchivesChairACBypass or not Toggles.ArchivesChairACBypass.Value then
+			Functions.Notify({ Title = "Anti-Cheat Bypass", Body = "Turn Chair Anticheat Bypass ON first." })
+			return
+		end
+		if ArchivesChairAC_AtBoundary then
+			Functions.Notify({ Title = "Anti-Cheat Bypass", Body = "At *-50 — use console, bypass paused." })
+			return
+		end
+		if ArchivesChairAC_Active then
+			Functions.Notify({ Title = "Anti-Cheat Bypass", Body = "Already active." })
 			return
 		end
 
+		local chair = ArchivesChairAC_NearestChair(22)
+		if not chair then
+			Functions.Notify({ Title = "Anti-Cheat Bypass", Body = "No office chair nearby. Stand closer." })
+			return
+		end
+
+		ArchivesChairAC_Hide(chair)
+		ArchivesChairAC_Active = true
+		Globals.AnticheatDisabled = true
+		ArchivesChairAC_SetLagbackBlocked(true)
+
+		local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+		if hrp then ArchivesChairAC_DesiredCF = hrp.CFrame end
+
 		Functions.Notify({
 			Title = "Anti-Cheat Bypass",
-			Body = "ON — grab cart/chair BACK (cart props). Matches Vynixius cart-prop bypass.",
+			Body = "You have successfully bypassed the anti-cheat!",
 		})
+		print("[ChairAC] Start Bypass", chair:GetFullName())
 
-		ArchivesChairAC_Scan()
-		if LatestRoom and ArchivesChairAC_IsBoundaryRoom(LatestRoom.Value) then
-			ArchivesChairAC_AtBoundary = true
-		end
-
-		ArchivesChairAC_Conn = workspace.DescendantAdded:Connect(function(d)
-			if d:IsA("ProximityPrompt") then ArchivesChairAC_HookPrompt(d) end
-			if (d:IsA("RemoteEvent") or d:IsA("RemoteFunction")) then
-				if d.Name == "CartControl" then ArchivesChairAC_CartRemote = d end
-				if d.Name == "SeatControl" then ArchivesChairAC_SeatRemote = d end
-			end
-		end)
-
-		pcall(function()
-			if LatestRoom then
-				ArchivesChairAC_RoomConn = LatestRoom:GetPropertyChangedSignal("Value"):Connect(ArchivesChairAC_OnRoomChange)
-			end
-		end)
-
-		-- PromptTriggered fallback
-		pcall(function()
-			ArchivesChairAC_PPS = Services.ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
-				if player and player ~= LocalPlayer then return end
-				if not Toggles.ArchivesChairACBypass.Value or ArchivesChairAC_AtBoundary then return end
-				local impact = ArchivesChairAC_GetImpactFrom(prompt) or ArchivesChairAC_NearestImpact(14)
-				if impact then task.spawn(ArchivesChairAC_OnGrab, impact, "pps") end
-			end)
-		end)
-
-		-- When server fires CartControl / SeatControl to us, treat as steering start
-		task.spawn(function()
-			ArchivesChairAC_FindRemotes()
-			local function onCartSignal(...)
-				if not Toggles.ArchivesChairACBypass.Value or ArchivesChairAC_AtBoundary then return end
-				local impact = ArchivesChairAC_Held or ArchivesChairAC_NearestImpact(16)
-				if impact and not ArchivesChairAC_Held then
-					ArchivesChairAC_HideImpact(impact)
-				end
-				ArchivesChairAC_SetBypassed(true)
-				print("[ChairAC] CartControl/SeatControl signal")
-			end
-			pcall(function()
-				if ArchivesChairAC_CartRemote and ArchivesChairAC_CartRemote:IsA("RemoteEvent") then
-					table.insert(ArchivesChairAC_RemoteConns, ArchivesChairAC_CartRemote.OnClientEvent:Connect(onCartSignal))
-				end
-			end)
-			pcall(function()
-				if ArchivesChairAC_SeatRemote and ArchivesChairAC_SeatRemote:IsA("RemoteEvent") then
-					table.insert(ArchivesChairAC_RemoteConns, ArchivesChairAC_SeatRemote.OnClientEvent:Connect(onCartSignal))
-				end
-			end)
-		end)
-
-		-- Full anti-rubberband while on cart (Vynixu has zero lagback; remotes still fire)
-		ArchivesChairAC_LagbackDisabled = false
-		local ArchivesChairAC_LagbackConns = {}
-		local ArchivesChairAC_CFrameHook = nil
-
-		local function ArchivesChairAC_SetLagbackBlocked(block)
-			if block == ArchivesChairAC_LagbackDisabled then return end
-			ArchivesChairAC_LagbackDisabled = block
-			pcall(function()
-				if getconnections then
-					local remotes = {}
-					if RemotesFolder then
-						table.insert(remotes, RemotesFolder:FindFirstChild("ServerTeleported"))
-						table.insert(remotes, RemotesFolder:FindFirstChild("Teleport"))
-					end
-					for _, d in ipairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
-						if d:IsA("RemoteEvent") and (d.Name == "ServerTeleported" or d.Name == "Teleport") then
-							table.insert(remotes, d)
-						end
-					end
-					for _, remote in ipairs(remotes) do
-						if not remote then continue end
-						for _, conn in ipairs(getconnections(remote.OnClientEvent)) do
-							if block then
-								local already = false
-								for _, rec in ipairs(ArchivesChairAC_LagbackConns) do
-									if rec[1] == conn then already = true break end
-								end
-								if not already then
-									local enabled = true
-									pcall(function() enabled = conn.Enabled end)
-									table.insert(ArchivesChairAC_LagbackConns, {conn, enabled})
-									pcall(function() conn:Disable() end)
-								end
-							end
-						end
-					end
-					if not block then
-						for _, rec in ipairs(ArchivesChairAC_LagbackConns) do
-							if rec[2] then pcall(function() rec[1]:Enable() end) end
-						end
-						table.clear(ArchivesChairAC_LagbackConns)
-					end
-				end
-			end)
-			print("[ChairAC] lagback block =", block)
-		end
-
-		ArchivesChairAC_LastGoodCF = nil
-		ArchivesChairAC_DesiredCF = nil
-
-		-- Preempt teleports: RenderStepped LAST priority forces our CFrame after game applies lagback
-		local ArchivesChairAC_RenderConn = nil
 		ArchivesChairAC_RenderConn = Services.RunService.RenderStepped:Connect(function(dt)
-			if not Toggles.ArchivesChairACBypass.Value then return end
-			if ArchivesChairAC_AtBoundary or not ArchivesChairAC_Steering then return end
+			if not ArchivesChairAC_Active or ArchivesChairAC_AtBoundary then return end
 			local char = LocalPlayer.Character
 			local hrp = char and char:FindFirstChild("HumanoidRootPart")
 			local hum = char and char:FindFirstChildOfClass("Humanoid")
 			if not hrp or not hum then return end
 
-			-- integrate movement from input so we don't freeze
-			local move = hum.MoveDirection
-			if move.Magnitude > 0.05 then
-				local speed = hum.WalkSpeed
-				if speed < 1 then speed = 16 end
-				local nextPos = hrp.Position + move * speed * dt
-				ArchivesChairAC_DesiredCF = CFrame.new(nextPos) * (ArchivesChairAC_DesiredCF and (ArchivesChairAC_DesiredCF - ArchivesChairAC_DesiredCF.Position) or (hrp.CFrame - hrp.Position))
-			else
-				if not ArchivesChairAC_DesiredCF then
-					ArchivesChairAC_DesiredCF = hrp.CFrame
-				else
-					-- keep rotation updated from camera/character
-					ArchivesChairAC_DesiredCF = CFrame.new(ArchivesChairAC_DesiredCF.Position) * (hrp.CFrame - hrp.Position)
+			local speed = 50
+			pcall(function()
+				if Options.ChairSpeed then
+					speed = math.clamp(tonumber(Options.ChairSpeed.Value) or 50, 1, 100)
 				end
+			end)
+
+			local move = hum.MoveDirection
+			if not ArchivesChairAC_DesiredCF then
+				ArchivesChairAC_DesiredCF = hrp.CFrame
+			end
+			if move.Magnitude > 0.05 then
+				local nextPos = ArchivesChairAC_DesiredCF.Position + move.Unit * speed * dt
+				local rot = hrp.CFrame - hrp.Position
+				ArchivesChairAC_DesiredCF = CFrame.new(nextPos) * rot
+			else
+				local rot = hrp.CFrame - hrp.Position
+				ArchivesChairAC_DesiredCF = CFrame.new(ArchivesChairAC_DesiredCF.Position) * rot
 			end
 
-			ArchivesChairAC_LastGoodCF = ArchivesChairAC_DesiredCF
 			pcall(function()
 				hrp.CFrame = ArchivesChairAC_DesiredCF
-				hrp.AssemblyLinearVelocity = move.Magnitude > 0.05 and (move * math.max(hum.WalkSpeed, 16)) or Vector3.zero
+				hrp.AssemblyLinearVelocity = move.Magnitude > 0.05 and (move.Unit * speed) or Vector3.zero
 				hrp.AssemblyAngularVelocity = Vector3.zero
 			end)
 		end)
-		table.insert(ArchivesChairAC_RemoteConns, ArchivesChairAC_RenderConn)
 
 		ArchivesChairAC_Heartbeat = Services.RunService.Heartbeat:Connect(function()
-			if not Toggles.ArchivesChairACBypass.Value then return end
-			if ArchivesChairAC_AtBoundary then
-				if ArchivesChairAC_LagbackDisabled then ArchivesChairAC_SetLagbackBlocked(false) end
-				ArchivesChairAC_DesiredCF = nil
-				return
-			end
-
-			local char = LocalPlayer.Character
-			local hrp = char and char:FindFirstChild("HumanoidRootPart")
-
-			if ArchivesChairAC_Steering then
-				if not ArchivesChairAC_LagbackDisabled then
-					ArchivesChairAC_SetLagbackBlocked(true)
-				end
-				if hrp and not ArchivesChairAC_DesiredCF then
-					ArchivesChairAC_DesiredCF = hrp.CFrame
-					ArchivesChairAC_LastGoodCF = hrp.CFrame
-				end
-				pcall(function()
-					if Globals.ManipulateBody and hrp then
-						Globals.ManipulateBody.Parent = hrp
-						local md = char:FindFirstChildOfClass("Humanoid")
-						local move = md and md.MoveDirection or Vector3.zero
-						Globals.ManipulateBody.Velocity = move.Magnitude > 0.05 and (move * 2.25) or (hrp.CFrame.LookVector * 2.25)
-					end
-				end)
-			else
-				if ArchivesChairAC_LagbackDisabled then ArchivesChairAC_SetLagbackBlocked(false) end
-				ArchivesChairAC_DesiredCF = nil
-				if hrp and Globals.ManipulateBody and not (Toggles.VelocityManipulationToggle and Toggles.VelocityManipulationToggle.Value) then
-					pcall(function() Globals.ManipulateBody.Parent = nil end)
-				end
-			end
-
+			if not ArchivesChairAC_Active then return end
 			if ArchivesChairAC_Held then
 				pcall(function()
-					if ArchivesChairAC_Held.Parent ~= nil then
-						ArchivesChairAC_Held.Parent = nil
-					end
+					if ArchivesChairAC_Held.Parent ~= nil then ArchivesChairAC_Held.Parent = nil end
 					for p, _ in pairs(ArchivesChairAC_PartProps) do
 						if p and p.Parent then
 							p.LocalTransparencyModifier = 1
@@ -5613,28 +5379,50 @@ do
 					end
 				end)
 			end
+			local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+			if hrp and Globals.ManipulateBody then
+				pcall(function()
+					Globals.ManipulateBody.Parent = hrp
+					local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+					local move = hum and hum.MoveDirection or Vector3.zero
+					local spd = 2.25
+					pcall(function()
+						if Options.ChairSpeed then
+							spd = math.clamp((tonumber(Options.ChairSpeed.Value) or 50) / 25, 1, 4)
+						end
+					end)
+					Globals.ManipulateBody.Velocity = move.Magnitude > 0.05 and (move.Unit * spd) or (hrp.CFrame.LookVector * spd)
+				end)
+			end
 		end)
+	end
+
+	pcall(function()
+		if LatestRoom then
+			ArchivesChairAC_RoomConn = LatestRoom:GetPropertyChangedSignal("Value"):Connect(function()
+				local boundary = ArchivesChairAC_IsBoundary(LatestRoom.Value)
+				if boundary and not ArchivesChairAC_AtBoundary then
+					ArchivesChairAC_AtBoundary = true
+					if ArchivesChairAC_Active then
+						ArchivesChairAC_StopInternal("*-50 — AC off for console (chair restored).")
+					end
+				elseif not boundary and ArchivesChairAC_AtBoundary then
+					ArchivesChairAC_AtBoundary = false
+				end
+			end)
+		end
 	end)
 
-	Groupboxes.Floors_Archives:AddButton({
-		Text = "Pocket Nearest Impact",
-		Tooltip = "Hide nearest cart/chair (Parent=nil) and enable cart-prop AC bypass.",
-		Func = function()
-			if not Toggles.ArchivesChairACBypass.Value then
-				Functions.Notify({ Title = "Anti-Cheat Bypass", Body = "Turn the toggle ON first." })
-				return
-			end
-			if ArchivesChairAC_AtBoundary then
-				Functions.Notify({ Title = "Anti-Cheat Bypass", Body = "At *-50 — console mode." })
-				return
-			end
-			local impact = ArchivesChairAC_NearestImpact(20)
-			ArchivesChairAC_OnGrab(impact, "manual")
-			if not impact then
-				Functions.Notify({ Title = "Anti-Cheat Bypass", Body = "No cart prop nearby." })
-			end
-		end,
-	})
+	Toggles.ArchivesChairACBypass:OnChanged(function(Value)
+		if not Value and ArchivesChairAC_Active then
+			ArchivesChairAC_StopInternal("Chair Anticheat Bypass disabled.")
+		elseif Value then
+			Functions.Notify({
+				Title = "Chair Anticheat Bypass",
+				Body = "ON — stand by a chair, set Chair Speed, press Start Bypass.",
+			})
+		end
+	end)
 
 Toggles.AntiRansom:OnChanged(function(Value)
 		if AntiRansom_Connection then AntiRansom_Connection:Disconnect() AntiRansom_Connection = nil end
@@ -7136,6 +6924,12 @@ Functions.HandleObject = function(Object)
 			Functions.BlacklistESP(Object)
 		end)
 		table.insert(Objects.Objectives, Object)
+	elseif Name == "StairwellFireAlarm" or Name == "FireAlarm" or Name == "Fire_Alarm" then
+		-- Stairwell fire alarms
+		if Toggles.ObjectiveESPToggle.Value then
+			Functions.AddESP({ Object = Object, Text = "Fire Alarm", Color = Options.ObjectiveESPColor.Value }, true)
+		end
+		table.insert(Objects.Objectives, Object)
 	elseif Name == "Ladder" then
 		if Toggles.LadderESPToggle.Value then Functions.AddESP({ Object = Object, Text = "Ladder", Color = Options.LadderESPColor.Value }, true) end
 		table.insert(Objects.Ladders, Object)
@@ -8094,7 +7888,7 @@ Connections.FogHandler2 = Services.Lighting.DescendantAdded:Connect(function(Obj
 	table.insert(Globals.FogInstances, Object)
 end)
 
-local RusherAliases = { Rush=true, Bash=true, Ambush=true, Eyes=true, Lookman=true, Blitz=true, ["A-60"]=true, ["A-120"]=true, AR0xMBUSH=true, ["RNIUSHCG=="]=true, ["Custom Entity"]=true, Creak=true, Noise=true, Scribbles=true, DronesStampede=true, Teller=true, Balls=true }
+local RusherAliases = { Rush=true, Bash=true, Ambush=true, Eyes=true, Lookman=true, Blitz=true, ["A-60"]=true, ["A-120"]=true, AR0xMBUSH=true, ["RNIUSHCG=="]=true, ["Custom Entity"]=true, Scribbles=true, DronesStampede=true, Teller=true, Balls=true }
 
 local TrackedEntityModels = setmetatable({}, { __mode = "k" })
 
@@ -8153,13 +7947,17 @@ local function HandleEntitySpawn(Model)
 		if Toggles.EntityESPToggle.Value and EntityESPAllowed(RealAlias) then
 			if Model.Name == "MonumentEntity" and Model:FindFirstChild("Top") then
 				Functions.AddESP({ Object = Model.Top, Text = RealAlias, Color = Options.EntityESPColor.Value }, NodeEntities[RealAlias] ~= true)
+			elseif RealAlias == "Creak" or RealAlias == "Noise" then
+				local pp = Model.PrimaryPart or Model:FindFirstChildWhichIsA("BasePart", true)
+				Functions.AddESP({ Object = pp or Model, Text = RealAlias, Color = Options.EntityESPColor.Value }, NodeEntities[RealAlias] ~= true)
 			else
 				Functions.AddESP({ Object = Model, Text = RealAlias, Color = Options.EntityESPColor.Value }, NodeEntities[RealAlias] ~= true)
 			end
 		end
 	end
 
-	if RusherAliases[EntityData.Alias] then
+	local AnimSensitive = { Creak = true, Noise = true }
+	if RusherAliases[EntityData.Alias] and not AnimSensitive[EntityData.Alias] then
 		if not Model:FindFirstChild("HighlightHumanoid") then
 			Instance.new("Humanoid", Model).Name = "HighlightHumanoid"
 		end
@@ -8250,7 +8048,9 @@ local function RegisterEntityModel(Model)
 		end
 	end
 
-	if RusherAliases[EntityData.Alias] then
+	-- Skip HighlightHumanoid for entities whose animations break with extra Humanoid / glass root
+	local AnimSensitive = { Creak = true, Noise = true }
+	if RusherAliases[EntityData.Alias] and not AnimSensitive[EntityData.Alias] then
 		pcall(function()
 			Instance.new("Humanoid", Model).Name = "HighlightHumanoid"
 			local Root = Model.PrimaryPart
