@@ -1,7 +1,7 @@
 --[[
     ╔══════════════════════════════════════╗
     ║         Ms fent Hub | Doors          ║
-    ║           Fully integrated           ║
+    ║        Fully integrated meow         ║
     ╚══════════════════════════════════════╝
 ]]
 
@@ -1900,11 +1900,11 @@ local function __MsFent_Load_InfoTab()
 return function(Window)
     local LatestChangelog = {
        "unknown date",
-        "<font color='rgb(100, 0, 100)'>* Meow OwO Love you cuties</font>",
+        "<font color='rgb(100, 0, 100)'>* Meow OwO Love you cuties!</font>",
         "10/4/2026",
-        "<font color='rgb(150, 50, 67)'>attemted fix for fire alarm esp</font>",
-        "<font color='rgb(0, 255, 0)'>Fully fixed revive recalibration </font>",
-        "<font color='rgb(0, 255, 0)'>+ infinite crucifix(can not work) </font>",
+        "<font color='rgb(150, 50, 67)'>attemted fix for fire alarm esp :3</font>",
+        "<font color='rgb(0, 255, 0)'>Fully fixed revive recalibration :3</font>",
+        "<font color='rgb(0, 255, 0)'>+ infinite crucifix(can not work) :3</font>",
         "2/10/2025",
         "<font color='rgb(255, 255, 255)'>* Project msfent is expanding!</font>",
         "<font color='rgb(255, 255, 255)'>* implemented my nds gui into this now... and its all in one project! </font>",
