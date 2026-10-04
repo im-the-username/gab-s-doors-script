@@ -1,7 +1,7 @@
 --[[
     ╔══════════════════════════════════════╗
     ║         Ms fent Hub | Doors          ║
-    ║   Fully integrated (VibeInc inlined) ║
+    ║           Fully integrated           ║
     ╚══════════════════════════════════════╝
 ]]
 
@@ -258,8 +258,10 @@ if not __MsFent_IsDoorsGame() then
 		SaveManager:SetFolder("msfent-nds")
 
 		local Window = Library:CreateWindow({
-			Title = "Ms fent Hub",
+			Title = "💉 Ms fent Hub 💉",
 			Footer = "Universal • Doors locked",
+			Icon = "door-open",
+			IconSize = UDim2.fromOffset(26, 26),
 			NotifySide = "Right",
 			ShowCustomCursor = false,
 			AutoShow = true,
@@ -1875,16 +1877,18 @@ return function(Window)
 	SaveManager:SetFolder("Abysall/" .. Abysall.SavePath)
 	SaveManager:BuildConfigSection(SettingsTab)
 	ThemeManager:ApplyToTab(SettingsTab)
-	-- Re-register custom themes so they show in the picker
+	-- Force original Default theme (no seasonal override)
 	pcall(function()
-		if ThemeManager.BuiltInThemes then
-			-- already set on Abysall.Interface.ThemeManager earlier
+		if ThemeManager.ApplyTheme then
+			ThemeManager:ApplyTheme("Default")
 		end
-		local month = tonumber(os.date("%m"))
-		if month == 10 and ThemeManager.ApplyTheme then
-			pcall(function() ThemeManager:ApplyTheme("Halloween") end)
-		elseif month == 12 and ThemeManager.ApplyTheme then
-			pcall(function() ThemeManager:ApplyTheme("Christmas") end)
+		-- Force blue accent (not red)
+		if Library and Library.Scheme then
+			Library.Scheme.AccentColor = Color3.fromRGB(59, 130, 246)
+			pcall(function() Library:UpdateColorsUsingRegistry() end)
+		end
+		if Library and Library.Options and Library.Options.AccentColor then
+			pcall(function() Library.Options.AccentColor:SetValueRGB(Color3.fromRGB(59, 130, 246)) end)
 		end
 	end)
 	SaveManager:LoadAutoloadConfig()
@@ -1896,7 +1900,11 @@ local function __MsFent_Load_InfoTab()
 return function(Window)
     local LatestChangelog = {
        "unknown date",
-        "<font color='rgb(100, 0, 100)'>* Meow OwO </font>",
+        "<font color='rgb(100, 0, 100)'>* Meow OwO Love you cuties</font>",
+        "10/4/2026",
+        "<font color='rgb(150, 50, 67)'>attemted fix for fire alarm esp</font>",
+        "<font color='rgb(0, 255, 0)'>Fully fixed revive recalibration </font>",
+        "<font color='rgb(0, 255, 0)'>+ infinite crucifix(can not work) </font>",
         "2/10/2025",
         "<font color='rgb(255, 255, 255)'>* Project msfent is expanding!</font>",
         "<font color='rgb(255, 255, 255)'>* implemented my nds gui into this now... and its all in one project! </font>",
@@ -2065,7 +2073,7 @@ do
     }
     -- Themes from VibeInc Interface
     Abysall.Interface.ThemeManager.BuiltInThemes = {
-        ["Default"]        = { 1,  { FontColor = "ffffff", MainColor = "1c1c1c", AccentColor = "0055ff", BackgroundColor = "141414", OutlineColor = "323232" } },
+        ["Default"]        = { 1,  { FontColor = "ffffff", MainColor = "1a1d24", AccentColor = "3b82f6", BackgroundColor = "0f1218", OutlineColor = "2a3344" } },
         ["BBot"]           = { 2,  { FontColor = "ffffff", MainColor = "1e1e1e", AccentColor = "7e48a3", BackgroundColor = "232323", OutlineColor = "141414" } },
         ["Fatality"]       = { 3,  { FontColor = "ffffff", MainColor = "1e1842", AccentColor = "c50754", BackgroundColor = "191335", OutlineColor = "3c355d" } },
         ["Jester"]         = { 4,  { FontColor = "ffffff", MainColor = "242424", AccentColor = "db4467", BackgroundColor = "1c1c1c", OutlineColor = "373737" } },
@@ -2084,16 +2092,7 @@ do
         ["Rose Pine"]      = { 17, { FontColor = "e0def4", MainColor = "26233a", AccentColor = "eb6f92", BackgroundColor = "191724", OutlineColor = "403d52" } },
         ["Oceanic"]        = { 18, { FontColor = "c0c5ce", MainColor = "1b2b34", AccentColor = "6699cc", BackgroundColor = "16232a", OutlineColor = "343d46" } },
         ["Material"]       = { 19, { FontColor = "eeffff", MainColor = "212121", AccentColor = "82aaff", BackgroundColor = "151515", OutlineColor = "424242" } },
-        ["Halloween"]      = { 20, { FontColor = "ffe6a7", MainColor = "2b1a12", AccentColor = "ff6a00", BackgroundColor = "140c08", OutlineColor = "5a3a1e" } },
-        ["Christmas"]      = { 21, { FontColor = "ffffff", MainColor = "1a2e24", AccentColor = "e63946", BackgroundColor = "0f1a14", OutlineColor = "2d4a3a" } },
-        ["Spooky"]         = { 22, { FontColor = "e8d5b7", MainColor = "1a1220", AccentColor = "9b59b6", BackgroundColor = "0d0a12", OutlineColor = "3d2a4d" } },
     }
-    -- force ThemeManager to see custom list (Obsidian reads BuiltInThemes)
-    pcall(function()
-        if Abysall.Interface and Abysall.Interface.ThemeManager then
-            Abysall.Interface.ThemeManager.BuiltInThemes = Abysall.Interface.ThemeManager.BuiltInThemes
-        end
-    end)
 end
 
 pcall(function()
@@ -2864,7 +2863,7 @@ Functions.Notify = function(Settings)
 			end
 		end
 		Globals.DoorsNotify({
-			Title = "Ms fent Hub | Doors",
+			Title = "💉 Ms fent Hub | Doors 💉",
 			Description = Settings.Title,
 			Reason = Settings.Body,
 			Style = IsEntity and "WARNING" or "NOTIFICATION",
@@ -3382,7 +3381,10 @@ end
 
 local Window = Library:CreateWindow({
 	Title = "Ms fent Hub | Doors",
-	Footer = "Ms fent Hub",
+	Footer = "💉 Ms fent Hub 💉",
+	-- Title-bar icon (Obsidian / same idea as Vynixu & mspaint)
+	Icon = "door-open",
+	IconSize = UDim2.fromOffset(26, 26),
 	NotifySide = "Right",
 	ShowCustomCursor = false,
 	AutoShow = true,
@@ -3955,11 +3957,70 @@ Groupboxes.Exploits_BypassRight:AddToggle("InfiniteItemsToggle", {
 })
 Groupboxes.Exploits_BypassRight:AddDropdown("InfiniteItemsList", {
 	Text = "Item List",
-	Values = { "Lockpicks", "Skeleton Key", "Shears", "Multitool" },
+	Values = { "Lockpicks", "Skeleton Key", "Shears", "Multitool", "Crucifix" },
 	Multi = true, AllowNull = true,
 	Disabled = not Functions.CheckCompatability({"fireproximityprompt"}),
 	DisabledTooltip = Globals.IncompatibleMessage
 })
+
+-- Infinite Crucifix (Abysall Continued): auto-drop/pick crucifix near entities
+Groupboxes.Exploits_BypassRight:AddToggle("InfCrucifix", {
+	Text = "Infinite Crucifix",
+	Default = false,
+	Risky = true,
+	Tooltip = "Auto drops & picks up the Crucifix when an entity is close enough (reuse without consuming).",
+})
+local InfCrucifixDropTable = {
+	RushMoving = 50, AmbushMoving = 50, Eyes = 40, Lookman = 40,
+	A60 = 55, A120 = 55, JeffTheKiller = 30, GiggleCeiling = 25,
+	Groundskeeper = 35, MonumentEntity = 40, Blitz = 50,
+}
+Toggles.InfCrucifix:OnChanged(function(Value)
+	if Connections.InfCrucifix then
+		pcall(function() Connections.InfCrucifix:Disconnect() end)
+		Connections.InfCrucifix = nil
+	end
+	if not Value then return end
+	local rayParams = RaycastParams.new()
+	rayParams.FilterType = Enum.RaycastFilterType.Exclude
+	Connections.InfCrucifix = Services.RunService.RenderStepped:Connect(function()
+		if not Toggles.InfCrucifix.Value then return end
+		local char = LocalPlayer.Character
+		if not char then return end
+		local coll = char:FindFirstChild("Collision") or char:FindFirstChild("CollisionPart") or char:FindFirstChild("HumanoidRootPart")
+		if not coll then return end
+		rayParams.FilterDescendantsInstances = { char }
+		for _, ent in ipairs(workspace:GetChildren()) do
+			local maxDist = InfCrucifixDropTable[ent.Name]
+			if not maxDist or not ent.PrimaryPart then continue end
+			pcall(function()
+				ent.PrimaryPart.CanCollide = true
+				ent.PrimaryPart.CanQuery = true
+			end)
+			local origin = coll.Position
+			local dir = ent.PrimaryPart.Position - origin
+			local hit = workspace:Raycast(origin, dir, rayParams)
+			if not hit or not hit.Instance:IsDescendantOf(ent) then continue end
+			if (coll.Position - ent.PrimaryPart.Position).Magnitude >= maxDist then continue end
+			local tool = char:FindFirstChild("Crucifix") or char:FindFirstChildOfClass("Tool")
+			if not tool or tool.Name ~= "Crucifix" then continue end
+			task.spawn(function()
+				pcall(function() RemotesFolder.DropItem:FireServer(tool) end)
+				task.wait(0.5)
+				local drops = workspace:FindFirstChild("Drops")
+				local dropped = drops and drops:FindFirstChild("Crucifix")
+				local prompt = dropped and dropped:FindFirstChildOfClass("ProximityPrompt")
+				if prompt and fireproximityprompt then
+					pcall(fireproximityprompt, prompt)
+				elseif prompt then
+					pcall(function() prompt:InputHoldBegin() end)
+				end
+			end)
+			task.wait(0.55)
+			break
+		end
+	end)
+end)
 
 Groupboxes.Exploits_BypassRight:AddDivider()
 Groupboxes.Exploits_BypassRight:AddToggle("PositionSpoof", {
@@ -3999,6 +4060,7 @@ Groupboxes.Exploits_Remove:AddDivider()
 Groupboxes.Exploits_Remove:AddToggle("NoScreechDamage", { Text = "No Screech Damage", Default = false, Tooltip = "Prevents 'Screech' from hurting you." })
 Groupboxes.Exploits_Remove:AddToggle("NoHaltDamage",    { Text = "No Halt Damage",    Default = false, Tooltip = "Prevents 'Halt' from hurting you." })
 Groupboxes.Exploits_Remove:AddToggle("NoA90Damage",     { Text = "No A-90 Damage",    Default = false, Tooltip = "Prevents 'A-90' from hurting you." })
+Groupboxes.Exploits_Remove:AddToggle("RemoveSurge", { Text = "Remove Surge", Default = false, Tooltip = "Prevents 'Surge' vignette / effect from showing." })
 Groupboxes.Exploits_Remove:AddToggle("NoSurgeDamage",   { Text = "No Surge Damage",   Default = false, Tooltip = "Prevents 'Surge' from hurting you." })
 
 Toggles.NoScreechDamage:OnChanged(function(Value)
@@ -4040,6 +4102,21 @@ Toggles.NoSurgeDamage:OnChanged(function(Value)
 			FakeEvents.Surge.Parent = nil
 		end
 	end
+end)
+
+Toggles.RemoveSurge:OnChanged(function(Value)
+	pcall(function()
+		if not Globals.SurgeFrame then
+			local ui = LocalPlayer:FindFirstChild("PlayerGui")
+			local main = ui and (ui:FindFirstChild("MainUI") or ui:FindFirstChild("MainFrame"))
+			if main then
+				Globals.SurgeFrame = main:FindFirstChild("SurgeVignette", true)
+			end
+		end
+		if Globals.SurgeFrame then
+			Globals.SurgeFrame.Name = Value and "SurgeVignette_Disabled" or "SurgeVignette"
+		end
+	end)
 end)
 
 local Modules = {}
@@ -4109,6 +4186,11 @@ end)
 Groupboxes.Visuals_LeftTab = Tabs.Visuals:AddLeftTabbox("Camera / Effects")
 Groupboxes.Visuals_Camera = Groupboxes.Visuals_LeftTab:AddTab("Camera")
 Groupboxes.Visuals_Camera:AddToggle("AmbientToggle", { Text = "Ambient", Default = false, Tooltip = "Changes the lighting color to the specified value." })
+Groupboxes.Visuals_Camera:AddToggle("FOVToggle", {
+	Text = "Custom FOV", Default = false,
+	Tooltip = "Only applies the Field of View slider when enabled.",
+})
+Toggles.FOVToggle:AddKeyPicker("FovToggle", { Text = "Custom FOV", Default = "O", Mode = "Toggle", SyncToggleState = true })
 Groupboxes.Visuals_Camera:AddSlider("FieldOfView", { Text = "Field of View", Min = 1, Max = 120, Default = 70, Rounding = 0 })
 Groupboxes.Visuals_Camera:AddDivider()
 Groupboxes.Visuals_Camera:AddToggle("RemoveCameraShake", {
@@ -4262,6 +4344,14 @@ Groupboxes.Visuals_Entities:AddDropdown("EntityList", {
 	Multi = true, AllowNull = true
 })
 Groupboxes.Visuals_Entities:AddToggle("NotifyEntities",    { Text = "Notify Entities",    Default = false, Tooltip = "Sends a notification when an entity spawns." })
+Groupboxes.Visuals_Entities:AddDivider()
+Groupboxes.Visuals_Entities:AddToggle("NotifyItemsToggle", { Text = "Notify Items", Default = false, Tooltip = "Sends a notification when an item spawns." })
+Groupboxes.Visuals_Entities:AddToggle("NotifyItemsShowDistance", { Text = "Show Item Distance", Default = false, Tooltip = "Shows distance in item spawn notifications." })
+Groupboxes.Visuals_Entities:AddDropdown("NotifyItemList", {
+	Text = "Item Notify List",
+	Values = { "Lockpick", "Key", "Skeleton Key", "Shears", "Crucifix", "Flashlight", "Candle", "Lighter", "Battery", "Bandage", "Vitamins", "Starlight Bottle", "Starlight Vial", "Starlight Jug", "Alarm Clock", "Straplight", "Laser Pointer", "Scanner", "Multitool", "Generator Fuse", "Electrical Key" },
+	Multi = true, AllowNull = true, Default = {},
+})
 Groupboxes.Visuals_Entities:AddDivider()
 Groupboxes.Visuals_Entities:AddToggle("NotifyLibraryCode", { Text = "Notify Library Code", Default = false, Tooltip = "Automatically solves the code for the library padlock." })
 Groupboxes.Visuals_Entities:AddToggle("NotifyOxygen",      { Text = "Notify Oxygen Level", Default = false, Tooltip = "Shows how much oxygen you have remaining." })
@@ -6056,6 +6146,74 @@ for ObjName, ToggleName in ObstructionNames do
 end
 
 Groupboxes.Floors_Farming = Tabs.Floors:AddLeftGroupbox("Farming")
+
+Groupboxes.Floors_Farming:AddButton({
+	Text = "Start Death Farm",
+	DoubleClick = true,
+	Tooltip = "Auto-farms deaths: die → statistics → next run (Hotel). Requires queue_on_teleport.",
+	Func = function()
+		if getgenv().MsFentDeathFarm then
+			Library:Notify("Death farm already running.")
+			return
+		end
+		getgenv().MsFentDeathFarm = true
+		local function caption(t)
+			pcall(function()
+				if firesignal and RemotesFolder:FindFirstChild("Caption") then
+					firesignal(RemotesFolder.Caption.OnClientEvent, "[Ms fent] " .. t)
+				end
+			end)
+			pcall(function() Functions.Notify({ Title = "Death Farm", Body = t }) end)
+		end
+		local qot = queue_on_teleport or queueonteleport
+		local reexec = [[
+			getgenv().MsFentDeathFarm = true
+			task.spawn(function()
+				task.wait(2)
+				pcall(function()
+					loadstring(game:HttpGet("https://raw.githubusercontent.com/bocaj111004/Abysall/refs/heads/main/Scripts/DeathFarm.luau"))()
+				end)
+			end)
+		]]
+		-- Prefer inlined loop without external if possible; queue Abysall deathfarm only as bootstrap for lobby hops
+		if game.PlaceId == 6516141723 then
+			caption("Lobby → creating Hotel run...")
+			if qot then pcall(qot, reexec) end
+			pcall(function()
+				RemotesFolder.CreateElevator:FireServer({
+					Mods = {}, Settings = {}, Destination = "Hotel",
+					FriendsOnly = false, MaxPlayers = "1",
+				})
+			end)
+			return
+		end
+		caption("Death farm active — dying for knobs...")
+		task.spawn(function()
+			while getgenv().MsFentDeathFarm do
+				pcall(function()
+					if LocalPlayer:GetAttribute("Alive") then
+						if replicatesignal and LocalPlayer:FindFirstChild("Kill") then
+							pcall(replicatesignal, LocalPlayer.Kill)
+						elseif LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+							LocalPlayer.Character:FindFirstChildOfClass("Humanoid").Health = 0
+						end
+					end
+				end)
+				task.wait(1.5)
+				pcall(function() RemotesFolder.Statistics:FireServer() end)
+				task.wait(2)
+			end
+		end)
+	end,
+})
+Groupboxes.Floors_Farming:AddButton({
+	Text = "Stop Death Farm",
+	Tooltip = "Stops the local death farm loop.",
+	Func = function()
+		getgenv().MsFentDeathFarm = false
+		Library:Notify("Death farm stopped.")
+	end,
+})
 Groupboxes.Floors_Farming:AddToggle("KnobFarm", {
     Text = "Knob Farm",
     Default = false,
@@ -6191,7 +6349,279 @@ Connections.TextBoxConnection2 = Services.UserInputService.TextBoxFocusReleased:
 	Globals.IsTyping = false
 end)
 
+-- Permanent feature enforcer: survives revive without relying on stale Humanoid refs
+Functions.RetoggleAllFeatures = function(reason)
+	if Globals.RetogglingFeatures then return end
+	Globals.RetogglingFeatures = true
+	task.spawn(function()
+		local ok, err = pcall(function()
+			-- 1) Refresh character + Main_Game library
+			local char = LocalPlayer.Character
+			if char then
+				Character = char
+				Humanoid = char:FindFirstChildOfClass("Humanoid") or char:FindFirstChild("Humanoid")
+				RootPart = char:FindFirstChild("HumanoidRootPart")
+				Collision = char:FindFirstChild("Collision")
+				CollisionPart = char:FindFirstChild("CollisionPart") or Collision
+			end
+			Camera = workspace.CurrentCamera
+			pcall(function()
+				local pg = LocalPlayer:FindFirstChild("PlayerGui")
+				if not pg then return end
+				local ui = pg:FindFirstChild("MainUI")
+				if not ui then return end
+				Globals.MainUI = ui
+				local initiator = ui:FindFirstChild("Initiator")
+				local mg = initiator and initiator:FindFirstChild("Main_Game")
+				if mg and Functions.CheckCompatability({"require"}) then
+					Main_Game = Abysall.Environment.require(mg)
+				end
+			end)
+
+			-- 2) Snapshot every toggle that is currently ON
+			--    Skip pure UI / one-shot / farm toggles that would softlock on re-fire
+			local skip = {
+				KeybindMenuOpen = true,
+				ShowCustomCursor = true,
+				KnobFarm = true,
+				TpNextDoor = true,
+				-- Infinite Revives stays on but we don't pulse it (would spam revive remote)
+			}
+			local wasOn = {}
+			for name, toggle in pairs(Toggles) do
+				if typeof(toggle) == "table" and toggle.Value == true and not skip[name] then
+					-- only real library toggles with SetValue
+					if toggle.SetValue or toggle.SetState then
+						table.insert(wasOn, name)
+					end
+				end
+			end
+
+			print("[Ms fent] RetoggleAll:", reason or "?", "count=", #wasOn)
+
+			-- 3) Turn OFF then ON so every OnChanged handler re-runs with new Character/Main_Game
+			for _, name in ipairs(wasOn) do
+				local toggle = Toggles[name]
+				if toggle then
+					pcall(function()
+						if toggle.SetValue then
+							toggle:SetValue(false)
+						elseif toggle.SetState then
+							toggle:SetState(false)
+						end
+					end)
+				end
+			end
+			task.wait(0.08)
+			for _, name in ipairs(wasOn) do
+				local toggle = Toggles[name]
+				if toggle then
+					pcall(function()
+						if toggle.SetValue then
+							toggle:SetValue(true)
+						elseif toggle.SetState then
+							toggle:SetState(true)
+						end
+					end)
+					task.wait(0.02) -- small stagger so handlers don't stack-race
+				end
+			end
+
+			-- 4) Direct enforcement after retoggle
+			task.wait(0.05)
+			Functions.RefreshActiveFeatures((reason or "retoggle") .. "-post")
+		end)
+		if not ok then
+			warn("[Ms fent] RetoggleAll error:", err)
+		end
+		Globals.RetogglingFeatures = false
+	end)
+end
+
+Functions.RefreshActiveFeatures = function(reason)
+	pcall(function()
+		local char = LocalPlayer.Character
+		if not char then return end
+
+		Character = char
+		Humanoid = char:FindFirstChildOfClass("Humanoid") or char:FindFirstChild("Humanoid")
+		RootPart = char:FindFirstChild("HumanoidRootPart")
+		Collision = char:FindFirstChild("Collision")
+		CollisionPart = char:FindFirstChild("CollisionPart") or Collision
+		Camera = workspace.CurrentCamera
+
+		pcall(function()
+			local pg = LocalPlayer:FindFirstChild("PlayerGui")
+			if pg and pg:FindFirstChild("MainUI") then
+				Globals.MainUI = pg.MainUI
+				if Functions.CheckCompatability({"require"}) and Globals.MainUI:FindFirstChild("Initiator") then
+					local init = Globals.MainUI.Initiator:FindFirstChild("Main_Game")
+					if init then
+						Main_Game = Abysall.Environment.require(init)
+					end
+				end
+			end
+		end)
+
+		if not Humanoid or not RootPart then return end
+
+		if Toggles.EnableCharacterJump and Toggles.EnableCharacterJump.Value then
+			char:SetAttribute("CanJump", true)
+		end
+		if Toggles.EnableCharacterSlide and Toggles.EnableCharacterSlide.Value then
+			char:SetAttribute("CanSlide", true)
+		end
+
+		if Toggles.SpeedBoostToggle and Toggles.SpeedBoostToggle.Value and Options.SpeedBoostSlider then
+			Humanoid.WalkSpeed = Functions.GetCurrentSpeed() + (tonumber(Options.SpeedBoostSlider.Value) or 0)
+		end
+
+		if Toggles.FOVToggle and Toggles.FOVToggle.Value and Options.FieldOfView then
+			local fov = tonumber(Options.FieldOfView.Value) or 70
+			if Main_Game then Main_Game.fovtarget = fov end
+			if Camera then Camera.FieldOfView = fov end
+		end
+
+		if Globals.FlyBody then
+			if Toggles.FlyToggle and Toggles.FlyToggle.Value then
+				Globals.FlyBody.Parent = RootPart
+				Globals.FlyBody.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+			else
+				Globals.FlyBody.Parent = nil
+			end
+		end
+
+		Globals.ThirdPersonParts = {}
+		pcall(function()
+			for _, obj in char:GetDescendants() do
+				if obj:IsA("Accessory") and obj:FindFirstChild("Handle") then
+					table.insert(Globals.ThirdPersonParts, obj.Handle)
+				end
+			end
+			local head = char:FindFirstChild("Head")
+			if head then table.insert(Globals.ThirdPersonParts, head) end
+		end)
+
+		if Main_Game and Toggles.RemoveCameraBobbing and Toggles.RemoveCameraBobbing.Value then
+			Main_Game.spring.Speed = 9e9
+		end
+		if Toggles.RemoveCameraFog and Toggles.RemoveCameraFog.Value then
+			Services.Lighting.FogEnd = 10000000
+		end
+
+		print("[Ms fent] RefreshActiveFeatures:", reason or "?")
+	end)
+end
+
+-- Always-on enforcer (does NOT get disconnected on CharacterAdded)
+if Connections.FeatureEnforcer then
+	pcall(function() Connections.FeatureEnforcer:Disconnect() end)
+end
+Connections.FeatureEnforcer = Services.RunService.Heartbeat:Connect(function()
+	local char = LocalPlayer.Character
+	if not char then return end
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hum or not hrp then return end
+
+	-- Keep globals in sync so MainHandler doesn't use dead instances
+	if Character ~= char then
+		Character = char
+		Humanoid = hum
+		RootPart = hrp
+		Collision = char:FindFirstChild("Collision")
+		CollisionPart = char:FindFirstChild("CollisionPart") or Collision
+	elseif Humanoid ~= hum then
+		Humanoid = hum
+		RootPart = hrp
+	end
+
+	if Toggles.SpeedBoostToggle and Toggles.SpeedBoostToggle.Value and Options.SpeedBoostSlider then
+		local target = Functions.GetCurrentSpeed() + (tonumber(Options.SpeedBoostSlider.Value) or 0)
+		if math.abs(hum.WalkSpeed - target) > 0.05 then
+			hum.WalkSpeed = target
+		end
+	end
+
+	if Toggles.FOVToggle and Toggles.FOVToggle.Value and Options.FieldOfView then
+		local fov = tonumber(Options.FieldOfView.Value) or 70
+		if Main_Game and Main_Game.fovtarget ~= fov then
+			Main_Game.fovtarget = fov
+		end
+		local cam = workspace.CurrentCamera
+		if cam and math.abs(cam.FieldOfView - fov) > 0.5 then
+			cam.FieldOfView = fov
+		end
+	end
+
+	if Toggles.EnableCharacterJump and Toggles.EnableCharacterJump.Value then
+		if char:GetAttribute("CanJump") ~= true then
+			char:SetAttribute("CanJump", true)
+		end
+	end
+	if Toggles.EnableCharacterSlide and Toggles.EnableCharacterSlide.Value then
+		if char:GetAttribute("CanSlide") ~= true then
+			char:SetAttribute("CanSlide", true)
+		end
+	end
+
+	if Toggles.FlyToggle and Toggles.FlyToggle.Value and Globals.FlyBody then
+		if Globals.FlyBody.Parent ~= hrp then
+			Globals.FlyBody.Parent = hrp
+		end
+	end
+end)
+
+-- Revive watcher: Alive, CharacterAdded, and health recovery
+do
+	local lastAlive = LocalPlayer:GetAttribute("Alive")
+	local function onReviveEvent(tag)
+		task.spawn(function()
+			-- wait for character/MainUI to exist after revive
+			task.wait(0.25)
+			local t0 = tick()
+			while tick() - t0 < 5 do
+				if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+					local pg = LocalPlayer:FindFirstChild("PlayerGui")
+					if pg and pg:FindFirstChild("MainUI") then break end
+				end
+				task.wait(0.1)
+			end
+			Functions.RetoggleAllFeatures(tag)
+			task.wait(0.8)
+			Functions.RefreshActiveFeatures(tag .. "-late")
+			task.wait(1.2)
+			Functions.RefreshActiveFeatures(tag .. "-later")
+		end)
+	end
+
+	LocalPlayer:GetAttributeChangedSignal("Alive"):Connect(function()
+		local now = LocalPlayer:GetAttribute("Alive")
+		if now == true and lastAlive == false then
+			onReviveEvent("Alive")
+		end
+		lastAlive = now
+	end)
+
+	LocalPlayer.CharacterAdded:Connect(function(newChar)
+		onReviveEvent("CharacterAdded")
+		task.spawn(function()
+			local hum = newChar:WaitForChild("Humanoid", 10)
+			if not hum then return end
+			hum.Died:Connect(function()
+				-- after death, watch for health return without CharacterAdded
+			end)
+			hum:GetPropertyChangedSignal("Health"):Connect(function()
+				if hum.Health > 0 and LocalPlayer:GetAttribute("Alive") == true then
+					Functions.RefreshActiveFeatures("HealthRecover")
+				end
+			end)
+		end)
+	end)
+end
+
 Functions.HandleCharacter = function(NewCharacter)
+
 	for _, Key in CharacterOldConnectionKeys do
 		if Connections[Key] then
 			Connections[Key]:Disconnect()
@@ -6274,10 +6704,14 @@ Functions.HandleCharacter = function(NewCharacter)
 			Main_Game.crouch(false)
 			Globals.AutoMinecartDucked = false
 		end
-		if Main_Game then
-			Main_Game.fovtarget = Options.FieldOfView.Value
-		else
-			Camera.FieldOfView = Options.FieldOfView.Value
+		if Toggles.FOVToggle and Toggles.FOVToggle.Value then
+			if Toggles.FOVToggle and Toggles.FOVToggle.Value then
+				if Main_Game then
+					Main_Game.fovtarget = Options.FieldOfView.Value
+				else
+					Camera.FieldOfView = Options.FieldOfView.Value
+				end
+			end
 		end
 		Globals.LastDuck = tick()
 	end)
@@ -6382,13 +6816,35 @@ Functions.HandleCharacter = function(NewCharacter)
 	end)
 
 	Connections.AutoReviveHandler = LocalPlayer:GetAttributeChangedSignal("Alive"):Connect(function()
-		if LocalPlayer:GetAttribute("Alive") == false and Toggles.AutoRevive.Value then
+		local alive = LocalPlayer:GetAttribute("Alive")
+		if alive == false and Toggles.AutoRevive.Value then
 			if Floor == "Fools" or Floor == "OldHotel" then
 				while LocalPlayer:GetAttribute("Alive") ~= true do
 					RemotesFolder.Revive:FireServer()
 					task.wait(0.5)
 				end
+			else
+				-- other floors: still try revive remote when Infinite Revives is on
+				task.spawn(function()
+					for _ = 1, 8 do
+						if LocalPlayer:GetAttribute("Alive") == true then break end
+						pcall(function() RemotesFolder.Revive:FireServer() end)
+						task.wait(0.4)
+					end
+				end)
 			end
+		elseif alive == true then
+			-- Revive detected (game button or Infinite Revives) → refresh features
+			task.defer(function()
+				task.wait(0.2)
+				if LocalPlayer.Character then
+					Functions.RefreshActiveFeatures("Revive/Alive=true")
+				end
+				task.wait(0.5)
+				if LocalPlayer.Character then
+					Functions.RefreshActiveFeatures("Revive-delayed")
+				end
+			end)
 		end
 	end)
 
@@ -6735,11 +7191,13 @@ Functions.HandleCharacter = function(NewCharacter)
 			Camera.CFrame = CamPosition
 		end
 
-		if Main_Game then
-			task.wait()
-			Main_Game.fovtarget = Options.FieldOfView.Value
-		else
-			Camera.FieldOfView = Options.FieldOfView.Value
+		if Toggles.FOVToggle and Toggles.FOVToggle.Value then
+			if Main_Game then
+				task.wait()
+				Main_Game.fovtarget = Options.FieldOfView.Value
+			else
+				Camera.FieldOfView = Options.FieldOfView.Value
+			end
 		end
 
 		if Toggles.RemoveClosetDelay.Value
@@ -6781,6 +7239,14 @@ Functions.HandleCharacter = function(NewCharacter)
 		Jam.Volume = 0
 		Globals.JamMuffle.Enabled = false
 	end
+
+	-- Re-apply toggles so speed / FOV / 3rd person / fly / noclip survive respawn
+	task.defer(function()
+		task.wait(0.15)
+		Functions.RefreshActiveFeatures("HandleCharacter")
+		task.wait(0.35)
+		Functions.RefreshActiveFeatures("HandleCharacter-delayed")
+	end)
 end
 
 Functions.HandleHidingTransparency = function(Model)
@@ -7220,6 +7686,23 @@ Functions.HandleObject = function(Object)
 		table.insert(Objects.Chests, Object)
 	elseif ItemNames[Name] and Object:FindFirstChild("ModulePrompt") then
 		if Toggles.ItemESPToggle.Value then Functions.AddESP({ Object = Object, Text = ItemNames[Name], Color = Options.ItemESPColor.Value }, Object:GetAttribute("ParentRoom") ~= nil) end
+		pcall(function()
+			if Toggles.NotifyItemsToggle and Toggles.NotifyItemsToggle.Value
+				and Options.NotifyItemList and Options.NotifyItemList.Value
+				and Options.NotifyItemList.Value[ItemNames[Name]]
+				and Object.Parent and Object.Parent.Name ~= "Drops" then
+				local body = ""
+				if Toggles.NotifyItemsShowDistance and Toggles.NotifyItemsShowDistance.Value then
+					local pos = Object.PrimaryPart and Object.PrimaryPart.Position
+						or (Object:IsA("Model") and Object:GetPivot().Position)
+						or nil
+					if pos then
+						body = "Distance: " .. tostring(math.round(LocalPlayer:DistanceFromCharacter(pos))) .. " studs"
+					end
+				end
+				Functions.Notify({ Title = "Item '" .. ItemNames[Name] .. "' has spawned.", Body = body ~= "" and body or "Item nearby." })
+			end
+		end)
 		if Name == "LotusHolder" or Name == "LotusPetalPickup" then
 			Object.Handle:GetPropertyChangedSignal("LocalTransparencyModifier"):Connect(function()
 				Abysall.ESPLibrary:RemoveESP(Object)
@@ -8178,11 +8661,16 @@ end
 
 LocalPlayer.CharacterAdded:Connect(function(NewCharacter)
 	if Connections.MainHandler then
-		Connections.MainHandler:Disconnect()
+		pcall(function() Connections.MainHandler:Disconnect() end)
 		Connections.MainHandler = nil
 	end
-	task.wait(0.5)
+	task.wait(0.35)
 	Functions.HandleCharacter(NewCharacter)
+	task.defer(function()
+		Functions.RefreshActiveFeatures("CharacterAdded-bottom")
+		task.wait(0.6)
+		Functions.RefreshActiveFeatures("CharacterAdded-bottom-late")
+	end)
 end)
 
 Library:OnUnload(function()
