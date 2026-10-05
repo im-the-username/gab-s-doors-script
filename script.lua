@@ -1,7 +1,7 @@
 --[[
     ╔══════════════════════════════════════╗
     ║         Ms fent Hub | Doors          ║
-    ║        Fully integrated meow         ║
+    ║          Fully integrated mrow       ║
     ╚══════════════════════════════════════╝
 ]]
 
@@ -733,50 +733,50 @@ RunTest("Drawing.Fonts", function()
 end, "Drawing_Fonts")
 
 RunTest("writefile", function()
-	Global.writefile("Abysall_Test_File", "example")
-	assert(Global.isfile("Abysall_Test_File") == true, "Failed to create a file")
-	assert(Global.readfile("Abysall_Test_File") == "example", "File does not contain expected data")
+	Global.writefile("MsFent_Test_File", "example")
+	assert(Global.isfile("MsFent_Test_File") == true, "Failed to create a file")
+	assert(Global.readfile("MsFent_Test_File") == "example", "File does not contain expected data")
 end)
 
 RunTest("isfile", function()
-	assert(Global.isfile("Abysall_Test_File") == true, "Did not return true for a valid file")
+	assert(Global.isfile("MsFent_Test_File") == true, "Did not return true for a valid file")
 end)
 
 RunTest("readfile", function()
-	assert(Global.readfile("Abysall_Test_File") == "example", "Did not return the expected data")
+	assert(Global.readfile("MsFent_Test_File") == "example", "Did not return the expected data")
 end)
 
 RunTest("appendfile", function()
-	Global.appendfile("Abysall_Test_File", "_appended")
-	assert(Global.readfile("Abysall_Test_File") == "example_appended", "Failed to append content to a file")
+	Global.appendfile("MsFent_Test_File", "_appended")
+	assert(Global.readfile("MsFent_Test_File") == "example_appended", "Failed to append content to a file")
 end)
 
 RunTest("loadfile", function()
-	Global.writefile("Abysall_Test_Load", [[return 25]])
-	assert(Global.loadfile("Abysall_Test_Load")() == 25, "Failed to load and execute a file")
+	Global.writefile("MsFent_Test_Load", [[return 25]])
+	assert(Global.loadfile("MsFent_Test_Load")() == 25, "Failed to load and execute a file")
 end)
 
 RunTest("delfile", function()
-	Global.delfile("Abysall_Test_File")
-	Global.delfile("Abysall_Test_Load")
-	assert(Global.isfile("Abysall_Test_File") == false, "Failed to delete a file")
+	Global.delfile("MsFent_Test_File")
+	Global.delfile("MsFent_Test_Load")
+	assert(Global.isfile("MsFent_Test_File") == false, "Failed to delete a file")
 end)
 
 RunTest("makefolder", function()
-	Global.makefolder("Abysall_Test_Folder")
-	assert(Global.isfolder("Abysall_Test_Folder") == true, "Failed to create a folder")
+	Global.makefolder("MsFent_Test_Folder")
+	assert(Global.isfolder("MsFent_Test_Folder") == true, "Failed to create a folder")
 end)
 
 RunTest("delfolder", function()
-	Global.delfolder("Abysall_Test_Folder")
-	assert(Global.isfolder("Abysall_Test_Folder") == false, "Failed to delete a folder")
+	Global.delfolder("MsFent_Test_Folder")
+	assert(Global.isfolder("MsFent_Test_Folder") == false, "Failed to delete a folder")
 end)
 
 RunTest("listfiles", function()
-	Global.makefolder("Abysall_ListFiles_Test")
-	Global.writefile("Abysall_ListFiles_Test/Test1", "test 1")
-	Global.writefile("Abysall_ListFiles_Test/Test2", "test 2")
-	local FilesList = Global.listfiles("Abysall_ListFiles_Test")
+	Global.makefolder("MsFent_ListFiles_Test")
+	Global.writefile("MsFent_ListFiles_Test/Test1", "test 1")
+	Global.writefile("MsFent_ListFiles_Test/Test2", "test 2")
+	local FilesList = Global.listfiles("MsFent_ListFiles_Test")
 	local Found1 = false
 	local Found2 = false
 	assert(#FilesList == 2, "Did not return the correct number of files")
@@ -788,7 +788,7 @@ RunTest("listfiles", function()
 			Found2 = true
 		end
 	end
-	Global.delfolder("Abysall_ListFiles_Test")
+	Global.delfolder("MsFent_ListFiles_Test")
 	assert(Found1 == true, "Did not return the first file")
 	assert(Found2 == true, "Did not return the second file")
 end)
@@ -796,8 +796,8 @@ end)
 RunTest("getcustomasset", function()
 	assert(Environment.writefile, "writefile is required to test")
 	local Content = game:HttpGet("https://raw.githubusercontent.com/quins-max/VibeIncDoors/refs/heads/main/Assets/Check.png")
-	Global.writefile("Abysall_Test_Image", Content)
-	local Asset = Global.getcustomasset("Abysall_Test_Image")
+	Global.writefile("MsFent_Test_Image", Content)
+	local Asset = Global.getcustomasset("MsFent_Test_Image")
 	local TestImage = Instance.new("ImageLabel", Services.CoreGui.RobloxGui)
 	TestImage.Image = Asset
 	local Tries = 0
@@ -807,7 +807,7 @@ RunTest("getcustomasset", function()
 	end
 	local IsLoaded = TestImage.IsLoaded
 	TestImage:Destroy()
-	Global.delfile("Abysall_Test_Image")
+	Global.delfile("MsFent_Test_Image")
 	assert(string.find(Asset, "rbxasset://"), "Should return an rbxasset id")
 	assert(IsLoaded == true, "Failed to load a PNG image")
 end)
@@ -1771,8 +1771,8 @@ end
 local function __MsFent_Load_SettingsTab()
 return function(Window)
 	local function CloneReference(Object)
-		if Abysall and Abysall.Environment.cloneref then
-			return Abysall.Environment.cloneref(Object)
+		if MsFent and MsFent.Environment.cloneref then
+			return MsFent.Environment.cloneref(Object)
 		else
 			return Object
 		end
@@ -1784,21 +1784,23 @@ return function(Window)
 		end
 	})
 
-	local Library = Abysall.Interface.Library
-	local SaveManager = Abysall.Interface.SaveManager
-	local ThemeManager = Abysall.Interface.ThemeManager
+	local Library = MsFent.Interface.Library
+	local SaveManager = MsFent.Interface.SaveManager
+	local ThemeManager = MsFent.Interface.ThemeManager
 	
 	local Toggles = Library.Toggles
 	local Options = Library.Options
 	
-	local SettingsTab = Window:AddTab("Settings", "settings")
+	local SettingsTab = Window:AddTab("Settings", "cog")
 	local MenuGroup = SettingsTab:AddLeftGroupbox("Menu")
 	
 	MenuGroup:AddToggle("KeybindMenuOpen", {
-		Default = Library.KeybindFrame.Visible,
+		Default = (Library.KeybindFrame and Library.KeybindFrame.Visible) or false,
 		Text = "Open Keybind Menu",
 		Callback = function(value)
-			Library.KeybindFrame.Visible = value
+			if Library.KeybindFrame then
+				Library.KeybindFrame.Visible = value
+			end
 		end,
 	})
 	MenuGroup:AddToggle("ShowCustomCursor", {
@@ -1815,18 +1817,18 @@ return function(Window)
 			"Obsidian",
 			"Linoria"
 		},
-		Default = (Abysall.UILibrary == "Linoria" and 2 or 1),
+		Default = (MsFent.UILibrary == "Linoria" and 2 or 1),
 		Callback = function(Value)
-			if Abysall.Environment.writefile and Abysall.Environment.readfile then
-				if not Abysall.Environment.isfile("Abysall/UserData.json") then
+			if MsFent.Environment.writefile and MsFent.Environment.readfile then
+				if not MsFent.Environment.isfile("MsFent/UserData.json") then
 					local Data = {
 						TotalExecutions = 0,
 						UILibrary = "Obsidian"
 					}
-					Abysall.Environment.writefile("Abysall/UserData.json", Services.HttpService:JSONEncode(Data))
+					MsFent.Environment.writefile("MsFent/UserData.json", Services.HttpService:JSONEncode(Data))
 				end
 
-				local UserData = Abysall.Environment.readfile("Abysall/UserData.json")
+				local UserData = MsFent.Environment.readfile("MsFent/UserData.json")
 				local Decoded = Services.HttpService:JSONDecode(UserData)
 				Decoded.UILibrary = Value
 
@@ -1834,10 +1836,10 @@ return function(Window)
 					Decoded.UILibrary = "Obsidian"
 				end
 
-				Abysall.TotalExecutions = Decoded.TotalExecutions
-				Abysall.UILibrary = Decoded.UILibrary
+				MsFent.TotalExecutions = Decoded.TotalExecutions
+				MsFent.UILibrary = Decoded.UILibrary
 
-				Abysall.Environment.writefile("Abysall/UserData.json", Services.HttpService:JSONEncode(Decoded))
+				MsFent.Environment.writefile("MsFent/UserData.json", Services.HttpService:JSONEncode(Decoded))
 			end
 		end
 	})
@@ -1873,8 +1875,8 @@ return function(Window)
 	SaveManager:SetLibrary(Library)
 	SaveManager:IgnoreThemeSettings()
 	SaveManager:SetIgnoreIndexes({"UILibrary"})
-	ThemeManager:SetFolder("Abysall")
-	SaveManager:SetFolder("Abysall/" .. Abysall.SavePath)
+	ThemeManager:SetFolder("Ms fent")
+	SaveManager:SetFolder("MsFent/" .. MsFent.SavePath)
 	SaveManager:BuildConfigSection(SettingsTab)
 	ThemeManager:ApplyToTab(SettingsTab)
 	-- Force original Default theme (no seasonal override)
@@ -1891,7 +1893,58 @@ return function(Window)
 			pcall(function() Library.Options.AccentColor:SetValueRGB(Color3.fromRGB(59, 130, 246)) end)
 		end
 	end)
-	SaveManager:LoadAutoloadConfig()
+	-- Default config "meow" (bundled) — appears in config list; set as autoload if none
+	pcall(function()
+		local HttpService = game:GetService("HttpService")
+		local folder = SaveManager.Folder
+		if SaveManager.SubFolder and SaveManager.SubFolder ~= "" then
+			folder = folder .. "/settings/" .. SaveManager.SubFolder
+		else
+			folder = folder .. "/settings"
+		end
+		-- Ensure folder tree
+		pcall(function() SaveManager:CheckFolderTree() end)
+		pcall(function() SaveManager:BuildFolderTree() end)
+
+		local meowPath = SaveManager.Folder .. "/settings/meow.json"
+		if SaveManager.SubFolder and SaveManager.SubFolder ~= "" then
+			meowPath = SaveManager.Folder .. "/settings/" .. SaveManager.SubFolder .. "/meow.json"
+		end
+
+		local DEFAULT_MEOW = [==[{"objects":[{"idx":"PromptClip","type":"Toggle","value":true},{"idx":"NotifyEntities","type":"Toggle","value":true},{"idx":"InstantPrompts","type":"Toggle","value":true},{"idx":"EntityESPToggle","type":"Toggle","value":true},{"idx":"RemoveInteractingSounds","type":"Toggle","value":true},{"idx":"RemoveCameraFog","type":"Toggle","value":true},{"idx":"NotifyHasteTime","type":"Toggle","value":true},{"idx":"RemoveAcceleration","type":"Toggle","value":true},{"idx":"AutoBreakerBox","type":"Toggle","value":true},{"idx":"ObjectiveESPToggle","type":"Toggle","value":true},{"idx":"TransparentHidingSpotsToggle","type":"Toggle","value":true},{"idx":"NotifyOxygen","type":"Toggle","value":true},{"idx":"ForgetMeNotSolver","type":"Toggle","value":true},{"idx":"DisableAnticheat","type":"Toggle","value":true},{"idx":"ShowCustomCursor","type":"Toggle","value":false},{"idx":"AutoLibraryGuessCode","type":"Toggle","value":true},{"idx":"KeybindMenuOpen","type":"Toggle","value":true},{"idx":"DisableVoidJumpscare","type":"Toggle","value":true},{"idx":"ShowSeekPathToggle","type":"Toggle","value":true},{"idx":"RemoveFigure","type":"Toggle","value":false},{"idx":"BypassVacuum","type":"Toggle","value":true},{"idx":"DoorReachToggle","type":"Toggle","value":true},{"idx":"RemoveA90","type":"Toggle","value":true},{"idx":"RemovePaintingsDoor","type":"Toggle","value":false},{"idx":"RemoveHalt","type":"Toggle","value":true},{"idx":"RemoveBasementGate","type":"Toggle","value":false},{"idx":"BypassDupe","type":"Toggle","value":true},{"idx":"RemoveScreech","type":"Toggle","value":true},{"idx":"SpectateEntityToggle","type":"Toggle","value":false},{"idx":"BypassKillbricks","type":"Toggle","value":true},{"idx":"BypassGloombatEggs","type":"Toggle","value":true},{"idx":"RemoveJamminMusic","type":"Toggle","value":true},{"idx":"AutoRevive","type":"Toggle","value":false},{"idx":"RemoveSkeletonDoor","type":"Toggle","value":false},{"idx":"InfiniteJumps","type":"Toggle","value":true},{"idx":"BypassSnare","type":"Toggle","value":true},{"idx":"RemoveSeekTrigger","type":"Toggle","value":false},{"idx":"BypassDronesStampede","type":"Toggle","value":true},{"idx":"RemoveCutscenes","type":"Toggle","value":false},{"idx":"DisableIdleKick","type":"Toggle","value":true},{"idx":"AutoSteerMinecart","type":"Toggle","value":true},{"idx":"AntiScribbles","type":"Toggle","value":true},{"idx":"AmbientToggle","type":"Toggle","value":true},{"idx":"BypassNoise","type":"Toggle","value":false},{"idx":"EnableDroppedItemsInterval","type":"Toggle","value":false},{"idx":"NoHaltDamage","type":"Toggle","value":true},{"idx":"ESPRainbow","type":"Toggle","value":false},{"idx":"BypassBanana","type":"Toggle","value":true},{"idx":"AntiNoise","type":"Toggle","value":false},{"idx":"BypassBash","type":"Toggle","value":true},{"idx":"BypassDrones","type":"Toggle","value":true},{"idx":"BypassAlma","type":"Toggle","value":true},{"idx":"BypassWater","type":"Toggle","value":true},{"idx":"SpeedBoostToggle","type":"Toggle","value":true},{"idx":"AntiRansom","type":"Toggle","value":true},{"idx":"InfiniteItemsToggle","type":"Toggle","value":true},{"idx":"ShowEyestalkPathToggle","type":"Toggle","value":false},{"idx":"FlyToggle","type":"Toggle","value":false},{"idx":"RemoveCameraShake","type":"Toggle","value":true},{"idx":"ThirdPersonToggle","type":"Toggle","value":false},{"idx":"DisableGlitchJumpscare","type":"Toggle","value":true},{"idx":"BypassLookman","type":"Toggle","value":true},{"idx":"AntiClosetTrash","type":"Toggle","value":true},{"idx":"HonchoCorrectBoxESP","type":"Toggle","value":true},{"idx":"ViewmodelOffsetToggle","type":"Toggle","value":false},{"idx":"AutoHeartbeatMinigame","type":"Toggle","value":true},{"idx":"PlayerESPToggle","type":"Toggle","value":true},{"idx":"RemoveFootstepSounds","type":"Toggle","value":true},{"idx":"AutoInteractToggle","type":"Toggle","value":false},{"idx":"ESPTracersToggle","type":"Toggle","value":false},{"idx":"ESPShowDistance","type":"Toggle","value":true},{"idx":"LadderESPToggle","type":"Toggle","value":true},{"idx":"CurrencyESPToggle","type":"Toggle","value":true},{"idx":"HidingSpotESPToggle","type":"Toggle","value":true},{"idx":"ChestESPToggle","type":"Toggle","value":true},{"idx":"ItemESPToggle","type":"Toggle","value":true},{"idx":"DoorESPToggle","type":"Toggle","value":true},{"idx":"BypassSeekObstructions","type":"Toggle","value":true},{"idx":"NotifyKeepNotifications","type":"Toggle","value":false},{"idx":"RemoveClosetDelay","type":"Toggle","value":false},{"idx":"NotifyPlaySound","type":"Toggle","value":true},{"idx":"DisableTimothyJumpscare","type":"Toggle","value":true},{"idx":"NotifyLibraryCode","type":"Toggle","value":true},{"idx":"BypassEyes","type":"Toggle","value":true},{"idx":"DisableFiredampEffect","type":"Toggle","value":true},{"idx":"DisableHideVignette","type":"Toggle","value":true},{"idx":"KnobFarm","type":"Toggle","value":false},{"idx":"EntityChatToggle","type":"Toggle","value":false},{"idx":"DisableEntityJumpscares","type":"Toggle","value":true},{"idx":"NoSurgeDamage","type":"Toggle","value":true},{"idx":"ESPArrowsToggle","type":"Toggle","value":false},{"idx":"VelocityManipulationToggle","type":"Toggle","value":false},{"idx":"AutoClosetToggle","type":"Toggle","value":false},{"idx":"TimeShower","type":"Toggle","value":true},{"idx":"BypassGiggle","type":"Toggle","value":true},{"idx":"NoA90Damage","type":"Toggle","value":true},{"idx":"AutoUnlockPadlockToggle","type":"Toggle","value":true},{"idx":"RemoveCameraBobbing","type":"Toggle","value":true},{"idx":"FigureGodmode","type":"Toggle","value":false},{"idx":"ThirdPersonWallCheck","type":"Toggle","value":false},{"idx":"EnableCharacterSlide","type":"Toggle","value":false},{"idx":"NoclipToggle","type":"Toggle","value":false},{"idx":"NoScreechDamage","type":"Toggle","value":true},{"idx":"PositionSpoof","type":"Toggle","value":false},{"idx":"BypassSeekingWall","type":"Toggle","value":true},{"idx":"AutoSolveAnchors","type":"Toggle","value":true},{"idx":"TpNextDoor","type":"Toggle","value":false},{"idx":"RemoveDread","type":"Toggle","value":true},{"idx":"EnableCharacterJump","type":"Toggle","value":true},{"idx":"CrouchSpoof","type":"Toggle","value":false},{"idx":"GlueToGround","type":"Toggle","value":false},{"idx":"BypassJeff","type":"Toggle","value":true},{"idx":"ChestESPColor","type":"ColorPicker","transparency":0,"value":"ffff00"},{"idx":"AutoSteerMinecartTurnDistance","type":"Slider","value":"30"},{"idx":"EntityChatMessage","type":"Input","text":"spawned!"},{"idx":"ObjectiveESPColor","type":"ColorPicker","transparency":0,"value":"00ff00"},{"idx":"FlySpeed","type":"Slider","value":"46"},{"idx":"AutoClosetKeybind","type":"KeyPicker","key":"Q","mode":"Toggle","modifiers":[]},{"idx":"ThirdPersonOffsetZ","type":"Slider","value":"5"},{"idx":"DroppedItemsInterval","type":"Slider","value":"1"},{"idx":"ThirdPersonOffsetX","type":"Slider","value":"1.5"},{"idx":"FlyKeybind","type":"KeyPicker","key":"F","mode":"Toggle","modifiers":[]},{"idx":"ESPArrowsRadius","type":"Slider","value":"250"},{"idx":"AutoInteractIgnoreList","type":"Dropdown","multi":true,"value":{"Jeff Items":true,"Glitch Fragments":true,"Dropped Items":true}},{"idx":"ESPTextFont","type":"Dropdown","multi":false,"value":"Highway"},{"idx":"ESPFadeTime","type":"Slider","value":"0.25"},{"idx":"ViewmodelOffsetX","type":"Slider","value":"0"},{"idx":"NotifySoundVolume","type":"Slider","value":"3"},{"idx":"CurrencyESPColor","type":"ColorPicker","transparency":0,"value":"ffff00"},{"idx":"TransparentHidingSpotsSlider","type":"Slider","value":"0.5"},{"idx":"NotifyStyle","type":"Dropdown","multi":false,"value":"Ms fent"},{"idx":"ThirdPersonKeybind","type":"KeyPicker","key":"T","mode":"Toggle","modifiers":[]},{"idx":"ViewmodelOffsetY","type":"Slider","value":"0"},{"idx":"VelocityManipulationKeybind","type":"KeyPicker","key":"V","mode":"Hold","modifiers":[]},{"idx":"DPIDropdown","type":"Dropdown","multi":false,"value":"100%"},{"idx":"AmbientColor","type":"ColorPicker","transparency":0,"value":"ffffff"},{"idx":"EntityESPColor","type":"ColorPicker","transparency":0,"value":"ff0000"},{"idx":"AutoClosetEntityList","type":"Dropdown","multi":true,"value":[]},{"idx":"MenuKeybind","type":"KeyPicker","key":"RightShift","mode":"Toggle","modifiers":[]},{"idx":"AutoSteerMinecartDuckDistance","type":"Slider","value":"30"},{"idx":"ShowSeekPathColor","type":"ColorPicker","transparency":0,"value":"00ff00"},{"idx":"InfiniteItemsList","type":"Dropdown","multi":true,"value":{"Shears":true,"Multitool":true,"Skeleton Key":true,"Lockpicks":true,"Crucifix":false}},{"idx":"ESPRenderLimit","type":"Slider","value":"240"},{"idx":"ESPFillTransparency","type":"Slider","value":"0.75"},{"idx":"SpeedBoostSlider","type":"Slider","value":"45"},{"idx":"ThirdPersonOffsetY","type":"Slider","value":"1"},{"idx":"FieldOfView","type":"Slider","value":"120"},{"idx":"EntityList","type":"Dropdown","multi":true,"value":{"AR0xMBUSH":true,"Teller":true,"Balls":true,"Monument":true,"Scribbles":true,"Lookman":true,"Sally":true,"Blitz":true,"A-120":true,"Ambush":true,"Groundskeeper":true,"Noise":true,"Halt":true,"Rush":true,"Eyes":true,"DronesStampede":true,"A-60":true,"RNIUSHCG==":true,"Gloombat Swarm":true,"Creak":true,"Bash":true,"Jeff the Killer":true}},{"idx":"ViewmodelOffsetZ","type":"Slider","value":"0"},{"idx":"ESPTracerThickness","type":"Slider","value":"0.75"},{"idx":"ESPTextSize","type":"Slider","value":"20"},{"idx":"EntityESPOptions","type":"Dropdown","multi":true,"value":{"Gloombat Eggs":true,"Mandrake Hole":true,"AR0xMBUSH":true,"Giggle":true,"Teller":true,"Balls":true,"Monument":true,"Scribbles":true,"DronesStampede":true,"Sally":true,"Blitz":true,"RNIUSHCG==":true,"A-60":true,"Grumble":true,"Bramble":true,"Snare":true,"Jeff the Killer":true,"Groundskeeper":true,"Ambush":true,"Rush":true,"Eyes":true,"Dupe":true,"A-120":true,"Creak":true,"Noise":true,"Lookman":true,"Bash":true,"Figure":true}},{"idx":"HidingSpotESPColor","type":"ColorPicker","transparency":0,"value":"ffaa00"},{"idx":"ESPTextTransparency","type":"Slider","value":"0"},{"idx":"ESPOutlineTransparency","type":"Slider","value":"0"},{"idx":"VelocityManipulationMode","type":"Dropdown","multi":false,"value":"Velocity"},{"idx":"NoclipKeybind","type":"KeyPicker","key":"N","mode":"Toggle","modifiers":[]},{"idx":"PromptReachSlider","type":"Slider","value":"1"},{"idx":"ShowEyestalkPathColor","type":"ColorPicker","transparency":0,"value":"00ff00"},{"idx":"SpecateEntityMode","type":"Dropdown","multi":false,"value":"Player to Entity"},{"idx":"DoorESPColor","type":"ColorPicker","transparency":0,"value":"00c8ff"},{"idx":"PositionSpoof","type":"KeyPicker","key":"B","mode":"Toggle","modifiers":[]},{"idx":"AutoInteractKeybind","type":"KeyPicker","key":"R","mode":"Hold","modifiers":[]},{"idx":"ItemESPColor","type":"ColorPicker","transparency":0,"value":"aa00ff"},{"idx":"PlayerESPColor","type":"ColorPicker","transparency":0,"value":"ffffff"},{"idx":"ESPTracersOrigin","type":"Dropdown","multi":false,"value":"Bottom"},{"idx":"AutoUnlockPadlockSlider","type":"Slider","value":"10"},{"idx":"LadderESPColor","type":"ColorPicker","transparency":0,"value":"ffffff"},{"idx":"ESPTextOutlineTransparency","type":"Slider","value":"0"}]}]==]
+
+		-- Always keep a factory "meow" config available in the list (write if missing)
+		local writeMeow = true
+		pcall(function()
+			if isfile and isfile(meowPath) then writeMeow = false end
+		end)
+		if writeMeow and writefile then
+			writefile(meowPath, DEFAULT_MEOW)
+		end
+
+		-- If no autoload set, or autoload file missing, default to meow
+		local autoName = "none"
+		pcall(function()
+			autoName = tostring(SaveManager:GetAutoloadConfig() or "none")
+		end)
+		if autoName == "" or autoName == "none" then
+			pcall(function() SaveManager:SaveAutoloadConfig("meow") end)
+		end
+
+		-- Refresh dropdown so "meow" shows in Settings → Config
+		pcall(function()
+			if Library.Options and Library.Options.SaveManager_ConfigList then
+				Library.Options.SaveManager_ConfigList:SetValues(SaveManager:RefreshConfigList())
+			end
+			if SaveManager.AutoloadConfigLabel then
+				SaveManager.AutoloadConfigLabel:SetText("Current autoload config: " .. tostring(SaveManager:GetAutoloadConfig()))
+			end
+		end)
+	end)
+
+	-- Autoload runs later (after all toggles exist)
+	-- SaveManager:LoadAutoloadConfig()
+
 end
 
 end
@@ -1900,11 +1953,7 @@ local function __MsFent_Load_InfoTab()
 return function(Window)
     local LatestChangelog = {
        "unknown date",
-        "<font color='rgb(100, 0, 100)'>* Meow OwO Love you cuties!</font>",
-        "10/4/2026",
-        "<font color='rgb(150, 50, 67)'>attemted fix for fire alarm esp :3</font>",
-        "<font color='rgb(0, 255, 0)'>Fully fixed revive recalibration :3</font>",
-        "<font color='rgb(0, 255, 0)'>+ infinite crucifix(can not work) :3</font>",
+        "<font color='rgb(100, 0, 100)'>* Meow OwO </font>",
         "2/10/2025",
         "<font color='rgb(255, 255, 255)'>* Project msfent is expanding!</font>",
         "<font color='rgb(255, 255, 255)'>* implemented my nds gui into this now... and its all in one project! </font>",
@@ -1929,8 +1978,8 @@ return function(Window)
     }
 
     local function CloneReference(Object)
-        if Abysall and Abysall.Environment and Abysall.Environment.cloneref then
-            return Abysall.Environment.cloneref(Object)
+        if MsFent and MsFent.Environment and MsFent.Environment.cloneref then
+            return MsFent.Environment.cloneref(Object)
         else
             return Object
         end
@@ -1942,7 +1991,7 @@ return function(Window)
         end
     })
 
-    local Library = Abysall.Interface.Library
+    local Library = MsFent.Interface.Library
     local LocalPlayer = Services.Players.LocalPlayer
     local InfoTab = Window:AddTab("Info", "user")
 
@@ -1950,7 +1999,7 @@ return function(Window)
     local Content = Services.Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
     User:AddImage("UserIcon", { Image = Content })
     User:AddLabel("ID: " .. LocalPlayer.Name, true)
-    User:AddLabel("Total Executions: " .. (Abysall.TotalExecutions and Abysall.TotalExecutions or "N/A"), true)
+    User:AddLabel("Total Executions: " .. (MsFent.TotalExecutions and MsFent.TotalExecutions or "N/A"), true)
 
     local Credits = InfoTab:AddRightGroupbox("Credits")
     Credits:AddLabel("<font color='rgb(255, 100, 180)'>Gab — Ms fent Hub</font>", true)
@@ -1964,15 +2013,15 @@ return function(Window)
 
     local Name, Version = "Unknown", "N/A"
     pcall(function()
-        Name, Version = Abysall.Environment.identifyexecutor()
+        Name, Version = MsFent.Environment.identifyexecutor()
     end)
     local Executor = InfoTab:AddRightGroupbox("Executor Info")
     Executor:AddLabel("Name: " .. tostring(Name), true)
     Executor:AddLabel("Version: " .. tostring(Version or "N/A"), true)
-    if Abysall.Environment and Abysall.Environment.Results then
+    if MsFent.Environment and MsFent.Environment.Results then
         Executor:AddDivider()
         Executor:AddLabel("Test Result: ", true)
-        for Index, Result in pairs(Abysall.Environment.Results) do
+        for Index, Result in pairs(MsFent.Environment.Results) do
             Result = tostring(Result):gsub("<", "("):gsub(">", ")")
             Executor:AddLabel(Result, true)
         end
@@ -1983,8 +2032,8 @@ end
 -- ===== INTEGRATED: Analytics =====
 local function __MsFent_Load_Analytics()
 local function CloneReference(Object)
-    if Abysall.Environment.cloneref then
-        return Abysall.Environment.cloneref(Object)
+    if MsFent.Environment.cloneref then
+        return MsFent.Environment.cloneref(Object)
     else
         return Object
     end
@@ -1996,19 +2045,19 @@ local Services = setmetatable({}, {
     end
 })
 
-if Abysall.Environment.identifyexecutor and Abysall.Environment.request then
+if MsFent.Environment.identifyexecutor and MsFent.Environment.request then
     local Player = Services.Players.LocalPlayer
     local Data = {
         Account = Player.Name,
-        Executor = Abysall.Environment.identifyexecutor(),
-        Executions = tonumber(Abysall.TotalExecutions),
+        Executor = MsFent.Environment.identifyexecutor(),
+        Executions = tonumber(MsFent.TotalExecutions),
         GameName = Services.MarketplaceService:GetProductInfo(game.PlaceId).Name,
         PlaceId = tostring(game.PlaceId)
     }
 
     task.spawn(function()
         pcall(function()
-            Abysall.Environment.request({
+            MsFent.Environment.request({
                 Url = "http://alpha-site.xyz:10577/send",
                 Method = "POST",
                 Headers = {
@@ -2022,16 +2071,17 @@ end
 
 end
 
--- Setup Abysall with integrated components
-getgenv().Abysall = {
+-- Setup Ms fent with integrated components
+getgenv().MsFent = getgenv().MsFent or {}
+getgenv().MsFent = {
     Legit = true,
     Environment = __MsFent_Load_Environment(),
     ESPLibrary = __MsFent_Load_ESP(),
 }
 
 local function CloneReference(Object)
-    if Abysall and Abysall.Environment and Abysall.Environment.cloneref then
-        return Abysall.Environment.cloneref(Object)
+    if MsFent and MsFent.Environment and MsFent.Environment.cloneref then
+        return MsFent.Environment.cloneref(Object)
     end
     return Object
 end
@@ -2043,28 +2093,28 @@ local Services = setmetatable({}, {
 })
 
 pcall(function()
-    if Abysall.Environment.writefile and Abysall.Environment.readfile then
-        if not Abysall.Environment.isfile("msfent/UserData.json") then
-            Abysall.Environment.writefile("msfent/UserData.json", Services.HttpService:JSONEncode({
+    if MsFent.Environment.writefile and MsFent.Environment.readfile then
+        if not MsFent.Environment.isfile("msfent/UserData.json") then
+            MsFent.Environment.writefile("msfent/UserData.json", Services.HttpService:JSONEncode({
                 TotalExecutions = 0,
                 UILibrary = "Obsidian"
             }))
         end
-        local UserData = Abysall.Environment.readfile("msfent/UserData.json")
+        local UserData = MsFent.Environment.readfile("msfent/UserData.json")
         local Decoded = Services.HttpService:JSONDecode(UserData)
         Decoded.TotalExecutions = (Decoded.TotalExecutions or 0) + 1
         Decoded.UILibrary = Decoded.UILibrary or "Obsidian"
-        Abysall.TotalExecutions = Decoded.TotalExecutions
-        Abysall.UILibrary = Decoded.UILibrary
-        Abysall.Environment.writefile("msfent/UserData.json", Services.HttpService:JSONEncode(Decoded))
+        MsFent.TotalExecutions = Decoded.TotalExecutions
+        MsFent.UILibrary = Decoded.UILibrary
+        MsFent.Environment.writefile("msfent/UserData.json", Services.HttpService:JSONEncode(Decoded))
     end
 end)
 
 -- UI Library still from Obsidian (third-party, too large to inline)
 do
-    local LibName = (Abysall.UILibrary == "Linoria" and "LinoriaLib" or "Obsidian")
+    local LibName = (MsFent.UILibrary == "Linoria" and "LinoriaLib" or "Obsidian")
     local LibBase = "https://raw.githubusercontent.com/mstudio45/" .. LibName .. "/refs/heads/main/"
-    Abysall.Interface = {
+    MsFent.Interface = {
         Library = loadstring(game:HttpGet(LibBase .. "Library.lua"))(),
         SaveManager = loadstring(game:HttpGet(LibBase .. "addons/SaveManager.lua"))(),
         ThemeManager = loadstring(game:HttpGet(LibBase .. "addons/ThemeManager.lua"))(),
@@ -2072,7 +2122,7 @@ do
         ApplySettingsTab = __MsFent_Load_SettingsTab(),
     }
     -- Themes from VibeInc Interface
-    Abysall.Interface.ThemeManager.BuiltInThemes = {
+    MsFent.Interface.ThemeManager.BuiltInThemes = {
         ["Default"]        = { 1,  { FontColor = "ffffff", MainColor = "1a1d24", AccentColor = "3b82f6", BackgroundColor = "0f1218", OutlineColor = "2a3344" } },
         ["BBot"]           = { 2,  { FontColor = "ffffff", MainColor = "1e1e1e", AccentColor = "7e48a3", BackgroundColor = "232323", OutlineColor = "141414" } },
         ["Fatality"]       = { 3,  { FontColor = "ffffff", MainColor = "1e1842", AccentColor = "c50754", BackgroundColor = "191335", OutlineColor = "3c355d" } },
@@ -2096,24 +2146,24 @@ do
 end
 
 pcall(function()
-    Abysall.Analytics = __MsFent_Load_Analytics()
+    MsFent.Analytics = __MsFent_Load_Analytics()
 end)
 
 -- ========== Ms fent Hub | Doors Main ==========
 local LoadStart = tick()
-Abysall.SavePath = "msfent/Doors"
+MsFent.SavePath = "msfent/Doors"
 
 
-local Library = Abysall.Interface.Library
-local SaveManager = Abysall.Interface.SaveManager
-local ThemeManager = Abysall.Interface.ThemeManager
+local Library = MsFent.Interface.Library
+local SaveManager = MsFent.Interface.SaveManager
+local ThemeManager = MsFent.Interface.ThemeManager
 
 local Toggles = Library.Toggles
 local Options = Library.Options
 
 local function CloneReference(Object)
-	if Abysall and Abysall.Environment.cloneref then
-		return Abysall.Environment.cloneref(Object)
+	if MsFent and MsFent.Environment.cloneref then
+		return MsFent.Environment.cloneref(Object)
 	end
 	return Object
 end
@@ -2126,6 +2176,18 @@ local Services = setmetatable({}, {
 
 local Globals = {}
 local Connections = {}
+
+local AutoLibraryConnection, AutoLibraryRoomConnection
+local AutoBreakerRoomConnection, AutoBreakerRoomRoomConnection
+local AutoHotelConnection, AutoHotelLibraryConnection, AutoHotelLibraryRoomConnection, AutoHotelSeekConnection
+local AutoHotelEntityPause = false
+local AutoHotelProcessedRooms = {}
+local AutoHotelRoomProcessTime = 0.35
+local OrbitDroppedItemsConnection
+local OrbitDroppedItemsAngle = 0
+local OrbitDroppedItemsLastTeleport = 0
+local OrbitDroppedItemsPauseUntil = 0
+
 local ESPConnections = {}
 local Groupboxes = {}
 local FakePrompts = {}
@@ -2151,14 +2213,15 @@ local Objects = {
 	SeekNodes = {},
 	SeekDuckBoards = {},
 	SeekBridges = {},
-	PathLights = {}
+	PathLights = {},
+	FireAlarms = {},
 }
 
 Globals.IncompatibleMessage = "Your executor doesn't support this feature."
 
 Functions.CheckCompatability = function(Array)
 	for _, Name in Array do
-		if not Abysall.Environment[Name] then
+		if not MsFent.Environment[Name] then
 			return false
 		end
 	end
@@ -2167,7 +2230,15 @@ end
 
 local Entities = {
 
-	-- Stairwell / Archives entities (from Abysall Continued, inlined)
+	-- Stairwell / Archives entities (from Ms fent, inlined)
+	["TV_Stand"] = {
+		Alias = "Noise_TV",
+		NotifyMessage = { Title = "Noise tv spawned.", Body = "Dont get near it" }
+	},
+	["Portrait"] = {
+		Alias = "Portrait",
+		NotifyMessage = { Title = "Portrait has spawned.", Body = "Use him to duplicate items." }
+	},
 	["StemsEntity"] = {
 		Alias = "Balls",
 		NotifyMessage = { Title = "Balls", Body = "Balls." }
@@ -2329,6 +2400,18 @@ local EntityIcons = {
 }
 
 local ItemNames = {
+	["DinkyLamp"]         = "Lamp",
+	["BottleCrate"]       = "18+ Bottles",
+	["GweenSodaPack"]     = "Gween Soda Pack",
+	["BrokenMonitor"]     = "Broken Monitor",
+	["JerryCan"]          = "Jerry Can",
+	["SallyToyObtain"]    = "Sally Toy",
+	["Leftovers"]         = "Lunch Box",
+	["HoneyPot"]          = "Honey Pot",
+	["FihFlakes"]         = "Fih Food",
+	["SecretCD"]          = "CD Disc",
+	["Pizza"]             = "Pizza",
+	["PaperPlanePickup"]  = "Paper Plane",
 	["Lighter"]           = "Lighter",
 	["Flashlight"]        = "Flashlight",
 	["Lockpick"]          = "Lockpicks",
@@ -2618,7 +2701,7 @@ end
 
 local function GetHiddenContainer()
 	if Functions.CheckCompatability({"gethui"}) then
-		return Abysall.Environment.gethui()
+		return MsFent.Environment.gethui()
 	end
 	return Services.CoreGui
 end
@@ -2629,7 +2712,7 @@ local NotificationLibrary = {
 }
 
 local Container = Instance.new("ScreenGui")
-Container.Name = Abysall.ESPLibrary:GenerateRandomString()
+Container.Name = MsFent.ESPLibrary:GenerateRandomString()
 Container.Parent = GetHiddenContainer()
 Container.DisplayOrder = 32767
 Container.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -2846,7 +2929,7 @@ Functions.Notify = function(Settings)
 		Settings.Body = "..."
 	end
 
-	if not Options.NotifyStyle or Options.NotifyStyle.Value == "Abysall" then
+	if not Options.NotifyStyle or Options.NotifyStyle.Value == "Ms fent" then
 		local Sound = Instance.new("Sound", HiddenContainer)
 		Sound.SoundId = "rbxassetid://8784885431"
 		Sound.Volume = (Toggles.NotifyPlaySound and Toggles.NotifyPlaySound.Value and Options.NotifySoundVolume.Value) or (Toggles.NotifyPlaySound and 0 or 3)
@@ -3030,10 +3113,10 @@ for _, Object in Services.Lighting:GetChildren() do
 end
 
 Globals.SeekNodesFolder = Instance.new("Folder", Services.Workspace)
-Globals.SeekNodesFolder.Name = Abysall.ESPLibrary:GenerateRandomString()
+Globals.SeekNodesFolder.Name = MsFent.ESPLibrary:GenerateRandomString()
 
 Globals.RoomsNodesFolder = Instance.new("Folder", Services.Workspace)
-Globals.RoomsNodesFolder.Name = Abysall.ESPLibrary:GenerateRandomString()
+Globals.RoomsNodesFolder.Name = MsFent.ESPLibrary:GenerateRandomString()
 
 Functions.SendChat = function(Message)
 	local Folder = Services.ReplicatedStorage:FindFirstChild("DefaultChatSystemEvents") or Instance.new("Folder")
@@ -3266,21 +3349,21 @@ Functions.AddESP = function(ESPOptions, RoomBased)
 		local ObjectRoom = tonumber(Object:GetAttribute("ParentRoom"))
 
 		if ObjectRoom == CurrentRoom or (table.find(Objects.Doors, Object) and ObjectRoom == CurrentRoom + 1) then
-			Abysall.ESPLibrary:AddESP(ESPOptions)
+			MsFent.ESPLibrary:AddESP(ESPOptions)
 		end
 
 		local RoomConnection = LocalPlayer:GetAttributeChangedSignal("CurrentRoom"):Connect(function()
-			if Abysall.ESPLibrary.ColorTable[Object] then
-				ESPOptions.Color = Abysall.ESPLibrary.ColorTable[Object]
+			if MsFent.ESPLibrary.ColorTable[Object] then
+				ESPOptions.Color = MsFent.ESPLibrary.ColorTable[Object]
 			end
 
 			local NewCurrentRoom = tonumber(LocalPlayer:GetAttribute("CurrentRoom"))
 			local ObjRoom = tonumber(Object:GetAttribute("ParentRoom"))
 
 			if ObjRoom == NewCurrentRoom or (table.find(Objects.Doors, Object) and ObjRoom == NewCurrentRoom + 1) then
-				Abysall.ESPLibrary:AddESP(ESPOptions)
+				MsFent.ESPLibrary:AddESP(ESPOptions)
 			else
-				Abysall.ESPLibrary:RemoveESP(Object)
+				MsFent.ESPLibrary:RemoveESP(Object)
 			end
 		end)
 
@@ -3289,14 +3372,14 @@ Functions.AddESP = function(ESPOptions, RoomBased)
 
 		Object.Destroying:Once(function()
 			RoomConnection:Disconnect()
-			if Abysall then
-				Abysall.ESPLibrary:RemoveESP(Object)
+			if MsFent then
+				MsFent.ESPLibrary:RemoveESP(Object)
 			end
 			local Pos = table.find(Connections, RoomConnection)
 			if Pos then table.remove(Connections, Pos) end
 		end)
 	else
-		Abysall.ESPLibrary:AddESP(ESPOptions)
+		MsFent.ESPLibrary:AddESP(ESPOptions)
 	end
 end
 
@@ -3308,7 +3391,7 @@ Functions.RemoveESP = function(Object)
 		local Pos = table.find(Connections, Conn)
 		if Pos then table.remove(Connections, Pos) end
 	end
-	Abysall.ESPLibrary:RemoveESP(Object)
+	MsFent.ESPLibrary:RemoveESP(Object)
 end
 
 Functions.BlacklistESP = function(Object)
@@ -3394,7 +3477,7 @@ local Window = Library:CreateWindow({
 	CornerRadius = 2,
 })
 
-Abysall.Interface.ApplyInfoTab(Window)
+MsFent.Interface.ApplyInfoTab(Window)
 
 local Tabs = {
 	General  = Window:AddTab("General", "house"),
@@ -3402,6 +3485,40 @@ local Tabs = {
 	Visuals  = Window:AddTab("Visuals", "eye"),
 	Floors   = Window:AddTab("Floors", "earth"),
 }
+
+-- Settings ASAP so it always appears even if later code errors
+do
+	local ok, err = pcall(function()
+		MsFent.Interface.ApplySettingsTab(Window)
+	end)
+	if ok then
+		print("[Ms fent] Settings tab created")
+	else
+		warn("[Ms fent] Settings tab create failed:", err)
+		-- Minimal fallback so the tab always exists
+		pcall(function()
+			local st = Window:AddTab("Settings", "settings")
+			local g = st:AddLeftGroupbox("Menu")
+			g:AddLabel("Full Settings failed to load.")
+			g:AddLabel("Error printed in F9.")
+			g:AddButton({
+				Text = "Copy Error",
+				Func = function()
+					pcall(function()
+						(setclipboard or toclipboard)(tostring(err))
+					end)
+				end,
+			})
+			g:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {
+				Default = "RightShift", NoUI = true, Text = "Menu keybind",
+			})
+			pcall(function()
+				Library.ToggleKeybind = Options.MenuKeybind
+			end)
+		end)
+	end
+end
+
 
 -- NDS tab (grayed out while in Doors)
 pcall(function()
@@ -3565,7 +3682,7 @@ Groupboxes.General_Self:AddToggle("DisableIdleKick", {
 })
 Toggles.DisableIdleKick:OnChanged(function(Value)
 	if Functions.CheckCompatability({"getconnections"}) then
-		for _, Conn in Abysall.Environment.getconnections(LocalPlayer.Idled) do
+		for _, Conn in MsFent.Environment.getconnections(LocalPlayer.Idled) do
 			if Value then Conn:Disable() else Conn:Enable() end
 		end
 	end
@@ -3638,6 +3755,29 @@ Groupboxes.Self_Automation:AddToggle("AutoLibraryGuessCode", {
 	Tooltip = "Attempts to guess the library code, but collecting some books is also necessary."
 })
 Groupboxes.Self_Automation:AddDivider()
+
+Groupboxes.Self_Automation:AddToggle("AutoLibrary", {
+	Text = "Auto Library", Default = false,
+	Tooltip = "Automatically gets books and paper.",
+})
+Groupboxes.Self_Automation:AddToggle("SkipSeekHotel", {
+	Text = "Skip Seek (Hotel)", Default = false,
+	Tooltip = "Skips Seek sections in the Hotel.",
+})
+Groupboxes.Self_Automation:AddToggle("AutoBreakerRoom", {
+	Text = "Auto Breaker Room", Default = false,
+	Tooltip = "Completes Hotel room 100 breaker.",
+})
+Groupboxes.Self_Automation:AddDivider()
+Groupboxes.Self_Automation:AddToggle("AutoHotel", {
+	Text = "Auto Hotel", Default = false, Risky = true,
+	Tooltip = "Automatically progresses the Hotel floor.",
+})
+Groupboxes.Self_Automation:AddToggle("AutoHotelIgnoreEntities", {
+	Text = "Auto Hotel: Ignore Entities", Default = false,
+	Tooltip = "Skip entity waits during Auto Hotel.",
+})
+
 Groupboxes.Self_Automation:AddToggle("AutoInteractToggle", {
 	Text = "Auto Interact", Default = false, Tooltip = "Automatically triggers nearby prompts."
 })
@@ -3697,7 +3837,7 @@ Groupboxes.Self_Misc:AddButton({
 	Func = function()
 		Globals.SelfKilled = true
 		if Functions.CheckCompatability({"replicatesignal"}) then
-			Abysall.Environment.replicatesignal(LocalPlayer.Kill)
+			MsFent.Environment.replicatesignal(LocalPlayer.Kill)
 		else
 			if RemotesFolder:FindFirstChild("Underwater") then
 				RemotesFolder.Underwater:FireServer(true)
@@ -3709,7 +3849,7 @@ Groupboxes.Self_Misc:AddButton({
 })
 
 
--- ===== DEBUG (Abysall Continued, inlined) =====
+-- ===== DEBUG (Ms fent, inlined) =====
 Groupboxes.Debug = Tabs.General:AddRightGroupbox("Debug")
 Groupboxes.Debug:AddButton({
 	Text = "Void",
@@ -3807,6 +3947,21 @@ Groupboxes.Exploits_Bypass:AddToggle("BypassLookman",        { Text = "Bypass Lo
 Groupboxes.Exploits_Bypass:AddToggle("BypassGloombatEggs",   { Text = "Bypass Gloombat Eggs",    Default = false, Tooltip = "Prevents taking damage from stepping on 'Gloombat' eggs." })
 Groupboxes.Exploits_Bypass:AddToggle("BypassSeekObstructions", { Text = "Bypass Seek Obstructions", Default = false, Tooltip = "Prevents obstacles in the 'Seek' chase from harming you." })
 Groupboxes.Exploits_Bypass:AddToggle("BypassVacuum",         { Text = "Bypass Vacuum",           Default = false, Tooltip = "Prevents you from falling into 'Vacuum' fake doors." })
+Groupboxes.Exploits_Bypass:AddDivider()
+Groupboxes.Exploits_Bypass:AddToggle("OrbitDroppedItems", {
+	Text = "Orbit Dropped Items", Default = false,
+	Tooltip = "Orbits nearby dropped items around you.",
+})
+Groupboxes.Exploits_Bypass:AddSlider("OrbitDroppedItemsDistance", {
+	Text = "Orbit Distance", Min = 2, Max = 30, Default = 8, Rounding = 1, Compact = true,
+})
+Groupboxes.Exploits_Bypass:AddSlider("OrbitDroppedItemsHeight", {
+	Text = "Orbit Height", Min = -5, Max = 15, Default = 2, Rounding = 1, Compact = true,
+})
+Groupboxes.Exploits_Bypass:AddSlider("OrbitDroppedItemsSpeed", {
+	Text = "Orbit Speed", Min = 0.5, Max = 10, Default = 3, Rounding = 1, Compact = true,
+})
+
 Groupboxes.Exploits_Bypass:AddToggle("BypassKillbricks",     { Text = "Bypass Killbricks",       Default = false, Tooltip = "Prevents 'Lava' from hurting you." })
 Groupboxes.Exploits_Bypass:AddToggle("BypassSeekingWall",    { Text = "Bypass Seeking Wall",     Default = false, Tooltip = "Prevents 'ScaryWall' from hurting you." })
 Groupboxes.Exploits_Bypass:AddToggle("BypassSnare",          { Text = "Bypass Snare",            Default = false, Tooltip = "Prevents 'Snare' from trapping you." })
@@ -3963,7 +4118,7 @@ Groupboxes.Exploits_BypassRight:AddDropdown("InfiniteItemsList", {
 	DisabledTooltip = Globals.IncompatibleMessage
 })
 
--- Infinite Crucifix (Abysall Continued): auto-drop/pick crucifix near entities
+-- Infinite Crucifix (Ms fent): auto-drop/pick crucifix near entities
 Groupboxes.Exploits_BypassRight:AddToggle("InfCrucifix", {
 	Text = "Infinite Crucifix",
 	Default = false,
@@ -4052,7 +4207,7 @@ Toggles.CrouchSpoof:OnChanged(function(Value)
 end)
 
 Groupboxes.Exploits_Remove = Tabs.Exploits:AddRightGroupbox("Remove")
-Groupboxes.Exploits_Remove:AddToggle("RemoveScreech", { Text = "Remove Screech",  Default = false, Tooltip = "Destroys Screech on your camera and disables the Screech module (Abysall Continued)." })
+Groupboxes.Exploits_Remove:AddToggle("RemoveScreech", { Text = "Remove Screech",  Default = false, Tooltip = "Destroys Screech on your camera and disables the Screech module (Ms fent)." })
 Groupboxes.Exploits_Remove:AddToggle("RemoveHalt",    { Text = "Remove Halt",     Default = false, Tooltip = "Prevents 'Halt' from spawning." })
 Groupboxes.Exploits_Remove:AddToggle("RemoveA90",     { Text = "Remove A-90",     Default = false, Tooltip = "Prevents 'A-90' from spawning." })
 Groupboxes.Exploits_Remove:AddToggle("RemoveDread",   { Text = "Remove Dread",    Default = false, Tooltip = "Prevents 'Dread' from spawning." })
@@ -4122,29 +4277,27 @@ end)
 local Modules = {}
 
 Toggles.RemoveScreech:OnChanged(function(Value)
-	pcall(function()
-		if Modules.Screech then
-			Modules.Screech.Name = Value and "Screech_Disabled" or "Screech"
-		end
-		if Modules.GlitchScreech then
-			Modules.GlitchScreech.Name = Value and "GlitchScreech_Disabled" or "GlitchScreech"
-		end
-	end)
 	if Value then
 		task.spawn(function()
 			while Toggles.RemoveScreech.Value do
-				local Camera = workspace:FindFirstChild("Camera") or workspace.CurrentCamera
+				local Camera = workspace:FindFirstChild("Camera")
 				if Camera then
 					local Screech = Camera:FindFirstChild("Screech")
 					if Screech then
-						pcall(function() Screech:Destroy() end)
+						Screech:Destroy()
 					end
 				end
 				task.wait()
 			end
 		end)
 	end
+	pcall(function()
+		if Modules and Modules.Screech then
+			Modules.Screech.Name = Value and "Screech_Disabled" or "Screech"
+		end
+	end)
 end)
+
 Toggles.RemoveHalt:OnChanged(function(Value)
 	if Modules.Shade then
 		Modules.Shade.Name = Value and "Shade_Disabled" or "Shade"
@@ -4334,9 +4487,9 @@ Toggles.DisableEntityJumpscares:OnChanged(function(Value)
 	end
 end)
 
-Groupboxes.Visuals_RightTab     = Tabs.Visuals:AddRightTabbox("Entities / Settings")
-Groupboxes.Visuals_Entities     = Groupboxes.Visuals_RightTab:AddTab("Entities")
-Groupboxes.Visuals_EntitySettings = Groupboxes.Visuals_RightTab:AddTab("Settings")
+Groupboxes.Visuals_RightTab = Tabs.Visuals:AddRightTabbox("Entities / ESP")
+Groupboxes.Visuals_Entities = Groupboxes.Visuals_RightTab:AddTab("Entities")
+Groupboxes.Visuals_EntitySettings = Groupboxes.Visuals_RightTab:AddTab("Notify")
 
 Groupboxes.Visuals_Entities:AddDropdown("EntityList", {
 	Text = "Entity List",
@@ -4349,7 +4502,7 @@ Groupboxes.Visuals_Entities:AddToggle("NotifyItemsToggle", { Text = "Notify Item
 Groupboxes.Visuals_Entities:AddToggle("NotifyItemsShowDistance", { Text = "Show Item Distance", Default = false, Tooltip = "Shows distance in item spawn notifications." })
 Groupboxes.Visuals_Entities:AddDropdown("NotifyItemList", {
 	Text = "Item Notify List",
-	Values = { "Lockpick", "Key", "Skeleton Key", "Shears", "Crucifix", "Flashlight", "Candle", "Lighter", "Battery", "Bandage", "Vitamins", "Starlight Bottle", "Starlight Vial", "Starlight Jug", "Alarm Clock", "Straplight", "Laser Pointer", "Scanner", "Multitool", "Generator Fuse", "Electrical Key" },
+	Values = { "Lockpicks", "Skeleton Key", "Shears", "Crucifix", "Flashlight", "Candle", "Lighter", "Battery", "Bandage", "Vitamins", "Starlight Bottle", "Starlight Vial", "Starlight Barrel", "Alarm Clock", "Straplight", "Laser Pointer", "Tablet", "Multitool", "Lamp", "18+ Bottles", "Gween Soda Pack", "Broken Monitor", "Jerry Can", "Sally Toy", "Lunch Box", "Honey Pot", "Fih Food", "CD Disc", "Pizza", "Paper Plane", "Gummy Flashlight", "Spotlight", "Glowstick", "Mini Shield Potion", "Big Shield Potion", "Bandage Pack", "Battery Pack", "Moonlight Candle", "Holy Hand Grenade", "Smoothie", "Cheese", "Bread", "Moonlight Smoothie", "Gween Soda", "Glitch Fragment", "Bomb", "Knockbomb", "Nanner", "Big Bomb", "Hiding Box", "Golden Gun", "Stop Sign", "Tip Jar", "Lantern", "Iron Key", "Lotus Petal", "Compass" },
 	Multi = true, AllowNull = true, Default = {},
 })
 Groupboxes.Visuals_Entities:AddDivider()
@@ -4372,7 +4525,7 @@ end)
 Groupboxes.Visuals_EntitySettings:AddToggle("EntityChatToggle", { Text = "Notify Chat", Default = false, Tooltip = "Sends a message in the chat when an entity spawns." })
 Groupboxes.Visuals_EntitySettings:AddInput("EntityChatMessage", { Text = "Message", Default = "spawned!", Numeric = false, Placeholder = "Message" })
 Groupboxes.Visuals_EntitySettings:AddDivider()
-Groupboxes.Visuals_EntitySettings:AddDropdown("NotifyStyle", { Text = "Notify Style", Values = { "Abysall", "Doors", "STX", "Library" }, Default = 1 })
+Groupboxes.Visuals_EntitySettings:AddDropdown("NotifyStyle", { Text = "Notify Style", Values = { "Ms fent", "Doors", "STX", "Library" }, Default = 1 })
 Groupboxes.Visuals_EntitySettings:AddSlider("NotifySoundVolume", { Text = "Sound Volume", Min = 0, Max = 10, Default = 3, Rounding = 1 })
 Groupboxes.Visuals_EntitySettings:AddToggle("NotifyPlaySound", { Text = "Play Sound", Default = true, Tooltip = "Makes notifications play an alert sound." })
 Groupboxes.Visuals_EntitySettings:AddToggle("NotifyKeepNotifications", { Text = "Keep Notifications", Default = false, Tooltip = "Certain notifications will stay on screen until they are no longer needed." })
@@ -4380,9 +4533,9 @@ Groupboxes.Visuals_EntitySettings:AddButton({ Text = "Test Notification", Double
 	Functions.Notify({Title = "This is a test."})
 end})
 
-Groupboxes.Visuals_ESP          = Tabs.Visuals:AddRightTabbox("ESP/Settings")
-Groupboxes.Visuals_ESP_Toggles  = Groupboxes.Visuals_ESP:AddTab("ESP")
-Groupboxes.Visuals_ESP_Settings = Groupboxes.Visuals_ESP:AddTab("Settings")
+Groupboxes.Visuals_ESP = Groupboxes.Visuals_RightTab
+Groupboxes.Visuals_ESP_Toggles = Groupboxes.Visuals_RightTab:AddTab("ESP")
+Groupboxes.Visuals_ESP_Settings = Groupboxes.Visuals_RightTab:AddTab("ESP Settings")
 
 local function MakeESPToggle(ToggleKey, ColorKey, Text, Tooltip, ObjectsTable, LabelFunc, RoomBased)
 	Groupboxes.Visuals_ESP_Toggles:AddToggle(ToggleKey, { Text = Text, Default = false, Tooltip = Tooltip })
@@ -4401,7 +4554,7 @@ local function MakeESPToggle(ToggleKey, ColorKey, Text, Tooltip, ObjectsTable, L
 	end)
 	Options[ColorKey]:OnChanged(function(Value)
 		for _, Object in ObjectsTable do
-			Abysall.ESPLibrary:UpdateObjectColor(Object, Value)
+			MsFent.ESPLibrary:UpdateObjectColor(Object, Value)
 		end
 	end)
 end
@@ -4457,7 +4610,7 @@ Toggles.ObjectiveESPToggle:OnChanged(function(Value)
 end)
 Options.ObjectiveESPColor:OnChanged(function(Value)
 	for _, Object in Objects.Objectives do
-		Abysall.ESPLibrary:UpdateObjectColor(Object, Value)
+		MsFent.ESPLibrary:UpdateObjectColor(Object, Value)
 	end
 end)
 
@@ -4486,6 +4639,26 @@ Toggles.CurrencyESPToggle:AddColorPicker("CurrencyESPColor",   { Text = "Currenc
 Toggles.LadderESPToggle:AddColorPicker("LadderESPColor",       { Text = "Ladders",      Default = Color3.fromRGB(255, 255, 255), Transparency = 0 })
 Toggles.EntityESPToggle:AddColorPicker("EntityESPColor",       { Text = "Entities",     Default = Color3.fromRGB(255, 0, 0),     Transparency = 0 })
 
+Groupboxes.Visuals_ESP_Toggles:AddToggle("ShowEntityPath", {
+	Text = "Show Entity Path", Default = false,
+	Tooltip = "Draws path nodes for rush-like entities.",
+})
+Groupboxes.Visuals_ESP_Toggles:AddToggle("MiscESPToggle", {
+	Text = "Misc Objects", Default = false,
+	Tooltip = "Highlights miscellaneous interactables.",
+})
+Toggles.MiscESPToggle:AddColorPicker("MiscESPColor", { Text = "Misc", Default = Color3.fromRGB(200, 200, 255) })
+Groupboxes.Visuals_ESP_Settings:AddSlider("ShowEntityPathLineThickness", {
+	Text = "Path Line Thickness", Min = 0.5, Max = 5, Default = 1.5, Rounding = 1, Compact = true,
+})
+Groupboxes.Visuals_ESP_Settings:AddSlider("ShowEntityPathLineTransparency", {
+	Text = "Path Line Transparency", Min = 0, Max = 1, Default = 0.3, Rounding = 2, Compact = true,
+})
+Groupboxes.Visuals_ESP_Settings:AddSlider("ShowEntityPathNodeTransparency", {
+	Text = "Path Node Transparency", Min = 0, Max = 1, Default = 0.4, Rounding = 2, Compact = true,
+})
+
+
 local HidingSpotLabels = {
 	Wardrobe = "Closet", ["Backdoor_Wardrobe"] = "Closet", Toolshed = "Closet",
 	RetroWardrobe = "Closet", ["Wardrobe-FOOLS26"] = "Closet",
@@ -4501,7 +4674,7 @@ local EntityESPLabels = {
 	Snare = "Snare", GrumbleRig = "Grumble",
 	BashMoving = "Bash", Bash = "Bash", BashRig = "Bash", Scribbles = "Scribbles", TellerRig = "Teller", Teller = "Teller",
 	DronesStampede = "DronesStampede", Drones = "DronesStampede", Creak = "Creak", CreakRig = "Creak",
-	NoiseModel = "Noise", Noise = "Noise", StemsEntity = "Balls", Stem = "Balls", Stems = "Balls", Meld = "Meld", Cobbler = "Cobbler",
+	NoiseModel = "Noise", Noise = "Noise", TV_Stand = "Noise_TV", Portrait = "Portrait", StemsEntity = "Balls", Stem = "Balls", Stems = "Balls", Meld = "Meld", Cobbler = "Cobbler",
 	Drakobloxxer = "Drakobloxxer", Hole = "Mandrake Hole", Groundskeeper = "Groundskeeper",
 	LiveEntityBramble = "Bramble", Figure = "Figure", FigureRig = "Figure", FigureRagdoll = "Figure"
 }
@@ -4513,7 +4686,7 @@ Toggles.DoorESPToggle:OnChanged(function(Value)
 	end
 end)
 Options.DoorESPColor:OnChanged(function(Value)
-	for _, Object in Objects.Doors do Abysall.ESPLibrary:UpdateObjectColor(Object, Value) end
+	for _, Object in Objects.Doors do MsFent.ESPLibrary:UpdateObjectColor(Object, Value) end
 end)
 
 Toggles.HidingSpotESPToggle:OnChanged(function(Value)
@@ -4524,7 +4697,7 @@ Toggles.HidingSpotESPToggle:OnChanged(function(Value)
 	end
 end)
 Options.HidingSpotESPColor:OnChanged(function(Value)
-	for _, Object in Objects.HidingSpots do Abysall.ESPLibrary:UpdateObjectColor(Object, Value) end
+	for _, Object in Objects.HidingSpots do MsFent.ESPLibrary:UpdateObjectColor(Object, Value) end
 end)
 
 Toggles.PlayerESPToggle:OnChanged(function(Value)
@@ -4542,7 +4715,7 @@ end)
 Options.PlayerESPColor:OnChanged(function(Value)
 	for _, Player in Services.Players:GetPlayers() do
 		if Player.Character and Player ~= LocalPlayer then
-			Abysall.ESPLibrary:UpdateObjectColor(Player.Character, Value)
+			MsFent.ESPLibrary:UpdateObjectColor(Player.Character, Value)
 		end
 	end
 end)
@@ -4566,7 +4739,7 @@ Toggles.ChestESPToggle:OnChanged(function(Value)
 end)
 
 Options.ChestESPColor:OnChanged(function(Value)
-	for _, Object in Objects.Chests do Abysall.ESPLibrary:UpdateObjectColor(Object, Value) end
+	for _, Object in Objects.Chests do MsFent.ESPLibrary:UpdateObjectColor(Object, Value) end
 end)
 
 Toggles.ItemESPToggle:OnChanged(function(Value)
@@ -4582,7 +4755,7 @@ Toggles.ItemESPToggle:OnChanged(function(Value)
 	end
 end)
 Options.ItemESPColor:OnChanged(function(Value)
-	for _, Object in Objects.Items do Abysall.ESPLibrary:UpdateObjectColor(Object, Value) end
+	for _, Object in Objects.Items do MsFent.ESPLibrary:UpdateObjectColor(Object, Value) end
 end)
 
 Toggles.CurrencyESPToggle:OnChanged(function(Value)
@@ -4601,7 +4774,7 @@ Toggles.CurrencyESPToggle:OnChanged(function(Value)
 	end
 end)
 Options.CurrencyESPColor:OnChanged(function(Value)
-	for _, Object in Objects.Currency do Abysall.ESPLibrary:UpdateObjectColor(Object, Value) end
+	for _, Object in Objects.Currency do MsFent.ESPLibrary:UpdateObjectColor(Object, Value) end
 end)
 
 local NodeEntities = { Rush = true, Bash = true, Scribbles = true, DronesStampede = true, Ambush = true, Eyes = true, Blitz = true, Lookman = true, ["A-60"] = true, ["A-120"] = true, Sally = true, ["Jeff The Killer"] = true, Monument = true, ["AR0xMBUSH"] = true, ["RNIUSHCG=="] = true, Creak = true, Noise = true, Balls = true }
@@ -4654,7 +4827,7 @@ if Options.EntityESPOptions then
 	end)
 end
 Options.EntityESPColor:OnChanged(function(Value)
-	for _, Object in Objects.Entities do Abysall.ESPLibrary:UpdateObjectColor(Object, Value) end
+	for _, Object in Objects.Entities do MsFent.ESPLibrary:UpdateObjectColor(Object, Value) end
 end)
 
 Toggles.LadderESPToggle:OnChanged(function(Value)
@@ -4664,7 +4837,7 @@ Toggles.LadderESPToggle:OnChanged(function(Value)
 	end
 end)
 Options.LadderESPColor:OnChanged(function(Value)
-	for _, Object in Objects.Ladders do Abysall.ESPLibrary:UpdateObjectColor(Object, Value) end
+	for _, Object in Objects.Ladders do MsFent.ESPLibrary:UpdateObjectColor(Object, Value) end
 end)
 
 Groupboxes.Visuals_ESP_Settings:AddToggle("ESPRainbow",     { Text = "Rainbow Effect", Default = false, Tooltip = "Makes the esp objects change colour like a rainbow." })
@@ -4690,38 +4863,38 @@ Groupboxes.Visuals_ESP_Settings:AddDivider()
 Groupboxes.Visuals_ESP_Settings:AddSlider("ESPArrowsRadius",     { Text = "Arrow Radius", Min = 100, Max = 500, Default = 250, Rounding = 0, Compact = true })
 Groupboxes.Visuals_ESP_Settings:AddToggle("ESPArrowsToggle",     { Text = "Enable Arrows", Default = false, Tooltip = "Shows arrow that point to off-screen objects." })
 
-Abysall.ESPLibrary:SetRainbow(false)
-Abysall.ESPLibrary:SetShowDistance(true)
-Abysall.ESPLibrary:SetFillTransparency(0.75)
-Abysall.ESPLibrary:SetOutlineTransparency(0)
-Abysall.ESPLibrary:SetTextTransparency(0)
-Abysall.ESPLibrary:SetTextOutlineTransparency(0)
-Abysall.ESPLibrary:SetRenderLimit(240)
-Abysall.ESPLibrary:SetFadeTime(0.25)
-Abysall.ESPLibrary:SetTextSize(20)
-Abysall.ESPLibrary:SetFont(Enum.Font.Highway)
-Abysall.ESPLibrary:SetTracers(false)
-Abysall.ESPLibrary:SetTracerSize(0.75)
-Abysall.ESPLibrary:SetTracerOrigin("Bottom")
-Abysall.ESPLibrary:SetArrows(false)
-Abysall.ESPLibrary:SetArrowRadius(250)
-Abysall.ESPLibrary:SetDistanceSizeRatio(0.8)
+MsFent.ESPLibrary:SetRainbow(false)
+MsFent.ESPLibrary:SetShowDistance(true)
+MsFent.ESPLibrary:SetFillTransparency(0.75)
+MsFent.ESPLibrary:SetOutlineTransparency(0)
+MsFent.ESPLibrary:SetTextTransparency(0)
+MsFent.ESPLibrary:SetTextOutlineTransparency(0)
+MsFent.ESPLibrary:SetRenderLimit(240)
+MsFent.ESPLibrary:SetFadeTime(0.25)
+MsFent.ESPLibrary:SetTextSize(20)
+MsFent.ESPLibrary:SetFont(Enum.Font.Highway)
+MsFent.ESPLibrary:SetTracers(false)
+MsFent.ESPLibrary:SetTracerSize(0.75)
+MsFent.ESPLibrary:SetTracerOrigin("Bottom")
+MsFent.ESPLibrary:SetArrows(false)
+MsFent.ESPLibrary:SetArrowRadius(250)
+MsFent.ESPLibrary:SetDistanceSizeRatio(0.8)
 
-Toggles.ESPRainbow:OnChanged(function(V)        Abysall.ESPLibrary:SetRainbow(V) end)
-Toggles.ESPShowDistance:OnChanged(function(V)   Abysall.ESPLibrary:SetShowDistance(V) end)
-Options.ESPFillTransparency:OnChanged(function(V)        Abysall.ESPLibrary:SetFillTransparency(V) end)
-Options.ESPOutlineTransparency:OnChanged(function(V)     Abysall.ESPLibrary:SetOutlineTransparency(V) end)
-Options.ESPTextTransparency:OnChanged(function(V)        Abysall.ESPLibrary:SetTextTransparency(V) end)
-Options.ESPTextOutlineTransparency:OnChanged(function(V) Abysall.ESPLibrary:SetTextOutlineTransparency(V) end)
-Options.ESPFadeTime:OnChanged(function(V)        Abysall.ESPLibrary:SetFadeTime(V) end)
-Options.ESPRenderLimit:OnChanged(function(V)     Abysall.ESPLibrary:SetRenderLimit(V) end)
-Options.ESPTextSize:OnChanged(function(V)        Abysall.ESPLibrary:SetTextSize(V) end)
-Options.ESPTextFont:OnChanged(function(V)        Abysall.ESPLibrary:SetFont(Enum.Font[V]) end)
-Toggles.ESPTracersToggle:OnChanged(function(V)   Abysall.ESPLibrary:SetTracers(V) end)
-Options.ESPTracersOrigin:OnChanged(function(V)   Abysall.ESPLibrary:SetTracerOrigin(V) end)
-Options.ESPTracerThickness:OnChanged(function(V) Abysall.ESPLibrary:SetTracerSize(V) end)
-Toggles.ESPArrowsToggle:OnChanged(function(V)    Abysall.ESPLibrary:SetArrows(V) end)
-Options.ESPArrowsRadius:OnChanged(function(V)    Abysall.ESPLibrary:SetArrowRadius(V) end)
+Toggles.ESPRainbow:OnChanged(function(V)        MsFent.ESPLibrary:SetRainbow(V) end)
+Toggles.ESPShowDistance:OnChanged(function(V)   MsFent.ESPLibrary:SetShowDistance(V) end)
+Options.ESPFillTransparency:OnChanged(function(V)        MsFent.ESPLibrary:SetFillTransparency(V) end)
+Options.ESPOutlineTransparency:OnChanged(function(V)     MsFent.ESPLibrary:SetOutlineTransparency(V) end)
+Options.ESPTextTransparency:OnChanged(function(V)        MsFent.ESPLibrary:SetTextTransparency(V) end)
+Options.ESPTextOutlineTransparency:OnChanged(function(V) MsFent.ESPLibrary:SetTextOutlineTransparency(V) end)
+Options.ESPFadeTime:OnChanged(function(V)        MsFent.ESPLibrary:SetFadeTime(V) end)
+Options.ESPRenderLimit:OnChanged(function(V)     MsFent.ESPLibrary:SetRenderLimit(V) end)
+Options.ESPTextSize:OnChanged(function(V)        MsFent.ESPLibrary:SetTextSize(V) end)
+Options.ESPTextFont:OnChanged(function(V)        MsFent.ESPLibrary:SetFont(Enum.Font[V]) end)
+Toggles.ESPTracersToggle:OnChanged(function(V)   MsFent.ESPLibrary:SetTracers(V) end)
+Options.ESPTracersOrigin:OnChanged(function(V)   MsFent.ESPLibrary:SetTracerOrigin(V) end)
+Options.ESPTracerThickness:OnChanged(function(V) MsFent.ESPLibrary:SetTracerSize(V) end)
+Toggles.ESPArrowsToggle:OnChanged(function(V)    MsFent.ESPLibrary:SetArrows(V) end)
+Options.ESPArrowsRadius:OnChanged(function(V)    MsFent.ESPLibrary:SetArrowRadius(V) end)
 
 Tabs.Floors:UpdateWarningBox({
 	Visible = true,
@@ -4730,6 +4903,13 @@ Tabs.Floors:UpdateWarningBox({
 })
 
 Groupboxes.Floors_Automation = Tabs.Floors:AddRightGroupbox("Automation")
+
+Groupboxes.Floors_Automation:AddToggle("SkipSeekMines", {
+	Text = "Skip Seek (Mines)", Default = false,
+	Tooltip = "Skips Seek sections in the Mines.",
+	Risky = true,
+})
+
 Groupboxes.Floors_Automation:AddToggle("AutoSteerMinecart", {
 	Text = "Auto Steer Minecart", Default = false, Tooltip = "Automatically completes the minecart chase.",
 	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
@@ -4789,23 +4969,107 @@ Groupboxes.Floors_Archives:AddButton({
 	end,
 })
 
--- ===== STAIRWELL (Abysall Continued, inlined) =====
+-- ===== STAIRWELL (Ms fent, inlined) =====
 Groupboxes.Floors_Stairwell = Tabs.Floors:AddLeftGroupbox("Stairwell")
 local droppedItemsIntervalRunning = false
 
+local function MsFent_GetDropsFolders()
+	local folders = {}
+	local seen = {}
+	local function add(f)
+		if f and not seen[f] then
+			seen[f] = true
+			table.insert(folders, f)
+		end
+	end
+	add(workspace:FindFirstChild("Drops"))
+	add(workspace:FindFirstChild("DroppedItems"))
+	add(workspace:FindFirstChild("Items"))
+	local cr = workspace:FindFirstChild("CurrentRooms")
+	if cr then
+		for _, room in ipairs(cr:GetChildren()) do
+			add(room:FindFirstChild("Drops"))
+			add(room:FindFirstChild("DroppedItems"))
+		end
+	end
+	-- fallback: any Folder named Drops under workspace
+	for _, d in ipairs(workspace:GetDescendants()) do
+		if d:IsA("Folder") and (d.Name == "Drops" or d.Name == "DroppedItems") then
+			add(d)
+		end
+	end
+	return folders
+end
+
+local function MsFent_ClaimDrop(item)
+	pcall(function()
+		local parts = {}
+		if item:IsA("BasePart") then
+			table.insert(parts, item)
+		elseif item:IsA("Model") then
+			for _, d in ipairs(item:GetDescendants()) do
+				if d:IsA("BasePart") then
+					table.insert(parts, d)
+				end
+			end
+		end
+		for _, part in ipairs(parts) do
+			pcall(function()
+				part.Anchored = false
+				part.CanCollide = false
+				if part.SetNetworkOwner then
+					part:SetNetworkOwner(LocalPlayer)
+				end
+			end)
+		end
+	end)
+end
+
+local function MsFent_MoveDrop(item, cf)
+	MsFent_ClaimDrop(item)
+	pcall(function()
+		if item:IsA("Model") then
+			item:PivotTo(cf)
+			-- also shove primary / all parts in case PivotTo is ignored
+			local pp = item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart", true)
+			if pp then
+				pp.CFrame = cf
+				pp.AssemblyLinearVelocity = Vector3.zero
+				pp.AssemblyAngularVelocity = Vector3.zero
+			end
+		elseif item:IsA("BasePart") then
+			item.CFrame = cf
+			item.AssemblyLinearVelocity = Vector3.zero
+			item.AssemblyAngularVelocity = Vector3.zero
+		end
+	end)
+end
+
 local function BringDroppedItems()
-	local workspaceDropsFolder = workspace:FindFirstChild("Drops")
-	local char = Character or LocalPlayer.Character
-	local root = RootPart or (char and char:FindFirstChild("HumanoidRootPart"))
-	if root and workspaceDropsFolder then
-		for _, itemToBring in ipairs(workspaceDropsFolder:GetChildren()) do
-			if itemToBring:IsA("Model") then
-				pcall(function() itemToBring:PivotTo(root.CFrame) end)
-			elseif itemToBring:IsA("BasePart") then
-				pcall(function() itemToBring.CFrame = root.CFrame end)
+	local char = LocalPlayer.Character or Character
+	local root = char and (char:FindFirstChild("HumanoidRootPart") or RootPart)
+	if not root then
+		pcall(function()
+			Functions.Notify({ Title = "Bring Items", Body = "No character / root part." })
+		end)
+		return
+	end
+	local target = root.CFrame * CFrame.new(0, 1.5, -2)
+	local count = 0
+	for _, folder in ipairs(MsFent_GetDropsFolders()) do
+		for _, item in ipairs(folder:GetChildren()) do
+			if item:IsA("Model") or item:IsA("BasePart") then
+				MsFent_MoveDrop(item, target)
+				count += 1
 			end
 		end
 	end
+	pcall(function()
+		Functions.Notify({
+			Title = "Bring Dropped Items",
+			Body = count > 0 and ("Moved " .. count .. " drop(s).") or "No drops found (check Stairwell Drops folder).",
+		})
+	end)
 end
 
 Groupboxes.Floors_Stairwell:AddButton({
@@ -4847,19 +5111,511 @@ Groupboxes.Floors_Stairwell:AddToggle("BypassNoise", {
 	Text = "Noise TV Breaker", Default = false,
 	Tooltip = "Breaks Noise TV while you are holding/pushing it."
 })
+Groupboxes.Floors_Stairwell:AddDivider()
+Groupboxes.Floors_Stairwell:AddToggle("DroppedItemValue", {
+	Text = "Item Number", Default = false,
+	Tooltip = "Shows the number of dropped items.",
+})
+Groupboxes.Floors_Stairwell:AddToggle("KillAllWithCart", {
+	Text = "Kill All (Requires ≥1 Cart)", Default = false,
+	Tooltip = "Uses carts to damage others (Stairwell).",
+})
+Groupboxes.Floors_Stairwell:AddToggle("FlingCreak", {
+	Text = "Bug Out Creak (≥5 Cart)", Default = false,
+	Tooltip = "Do not touch the carts yourself.",
+})
+Groupboxes.Floors_Stairwell:AddToggle("CreakAggressionMeter", {
+	Text = "Creak Aggression Meter", Default = false,
+	Tooltip = "Shows Creak aggression state.",
+})
+Groupboxes.Floors_Stairwell:AddToggle("MeldRemover", {
+	Text = "Meld Remover", Default = false,
+	Tooltip = "Removes Meld-related objects.",
+})
+Groupboxes.Floors_Stairwell:AddToggle("StairwellLandingSpam", {
+	Text = "TP to trash & drop trash", Default = false,
+	Tooltip = "TP to landing trash prompts and drop (combine with Orbit / Bring).",
+})
+Groupboxes.Floors_Stairwell:AddToggle("DeleteStairwellCrusherExceptBasicWall", {
+	Text = "Delete Crusher (Keep Wall)", Default = false,
+})
+Groupboxes.Floors_Stairwell:AddToggle("DisableStairwellCrusherCollision", {
+	Text = "Disable Crusher Collision", Default = false,
+})
 
-local AntiNoiseConn = nil
+Groupboxes.Floors_Stairwell:AddDivider()
+Groupboxes.Floors_Stairwell:AddToggle("FireAlarmESPToggle", {
+	Text = "Fire Alarm ESP",
+	Default = false,
+	Tooltip = "Highlights Stairwell fire alarms (green by default).",
+})
+Toggles.FireAlarmESPToggle:AddColorPicker("FireAlarmESPColor", {
+	Text = "Fire Alarm ESP",
+	Default = Color3.fromRGB(0, 255, 80),
+	Transparency = 0,
+})
+Toggles.FireAlarmESPToggle:OnChanged(function(Value)
+	local col = (Options.FireAlarmESPColor and Options.FireAlarmESPColor.Value) or Color3.fromRGB(0, 255, 80)
+	for _, Object in Objects.FireAlarms do
+		if Value then
+			Functions.AddESP({ Object = Object, Text = "Fire Alarm", Color = col }, true)
+		else
+			Functions.RemoveESP(Object)
+		end
+	end
+	-- late scan in case alarms spawned before toggle existed
+	if Value then
+		task.spawn(function()
+			for _, Inst in ipairs(workspace:GetDescendants()) do
+				local n = tostring(Inst.Name)
+				local low = string.lower(n)
+				local match = n == "StairwellFireAlarm" or n == "FireAlarm" or n == "Fire_Alarm"
+					or n == "FireAlarmSwitch" or n == "AlarmSwitch" or n == "FireEscapeAlarm"
+					or n == "PullStation" or n == "FirePull"
+					or (low:find("fire", 1, true) and low:find("alarm", 1, true))
+				if match and (Inst:IsA("Model") or Inst:IsA("BasePart")) then
+					if not table.find(Objects.FireAlarms, Inst) then
+						table.insert(Objects.FireAlarms, Inst)
+					end
+					Functions.AddESP({ Object = Inst, Text = "Fire Alarm", Color = col }, true)
+				end
+			end
+		end)
+	end
+end)
+Options.FireAlarmESPColor:OnChanged(function(Value)
+	for _, Object in Objects.FireAlarms do
+		pcall(function() MsFent.ESPLibrary:UpdateObjectColor(Object, Value) end)
+	end
+end)
+
+-- ============================================================
+-- STAIRWELL HANDLERS (synced from Abysall Continued)
+-- ============================================================
+
+local StairwellAntiNoiseConns = {}
+local BypassNoiseChildConn = nil
+local StairwellLandingToken = 0
+
+-- Creak aggression meter (Drawing API)
+local CreakAggressionMetersTable = {}
+local CreakAggressionCamera = workspace.CurrentCamera
+local CreakAggressionChildAddedConnection = nil
+
+local function CleanupCreakAggressionMeter(CreakModel)
+	local CreakMeterData = CreakAggressionMetersTable[CreakModel]
+	if not CreakMeterData then return end
+	CreakAggressionMetersTable[CreakModel] = nil
+	if CreakMeterData.RenderConnection then pcall(function() CreakMeterData.RenderConnection:Disconnect() end) end
+	if CreakMeterData.DestroyConnection then pcall(function() CreakMeterData.DestroyConnection:Disconnect() end) end
+	for _, CreakDrawingObject in ipairs(CreakMeterData.Drawings) do
+		pcall(function() CreakDrawingObject:Remove() end)
+	end
+end
+
+local function GetCreakAggressionValue(CreakModel)
+	local CreakAnimator = CreakModel:FindFirstChildOfClass("Animator")
+		or (CreakModel:FindFirstChild("AnimationController") and CreakModel.AnimationController:FindFirstChildOfClass("Animator"))
+		or CreakModel:FindFirstChildOfClass("AnimationController")
+	if not CreakAnimator then return nil end
+	for _, CreakAnimationTrack in ipairs(CreakAnimator:GetPlayingAnimationTracks()) do
+		if CreakAnimationTrack.Name == "CreakGraph" or (CreakAnimationTrack.Animation and CreakAnimationTrack.Animation.Name == "CreakGraph") then
+			local CreakSuccess, CreakAggressionValue = pcall(CreakAnimationTrack.GetParameter, CreakAnimationTrack, "Aggression")
+			if CreakSuccess and typeof(CreakAggressionValue) == "number" then
+				return math.clamp(CreakAggressionValue, 0, 1)
+			end
+		end
+	end
+	return nil
+end
+
+local function CreateCreakAggressionDrawings()
+	local CreakDrawingList = {}
+	local function CreateCreakDrawing(CreakDrawingType)
+		local CreakNewDrawing = Drawing.new(CreakDrawingType)
+		table.insert(CreakDrawingList, CreakNewDrawing)
+		return CreakNewDrawing
+	end
+	local CreakTitleText = CreateCreakDrawing("Text")
+	CreakTitleText.Text = "Aggression --%"
+	CreakTitleText.Size = 16
+	CreakTitleText.Font = Drawing.Fonts.Plex
+	CreakTitleText.Color = Color3.fromRGB(255, 255, 255)
+	CreakTitleText.Center = true
+	CreakTitleText.Outline = true
+	CreakTitleText.Visible = false
+	local CreakBarBackground = CreateCreakDrawing("Square")
+	CreakBarBackground.Size = Vector2.new(112, 6)
+	CreakBarBackground.Filled = true
+	CreakBarBackground.Color = Color3.fromRGB(58, 58, 64)
+	CreakBarBackground.Transparency = 0.15
+	CreakBarBackground.Visible = false
+	local CreakBarFill = CreateCreakDrawing("Square")
+	CreakBarFill.Size = Vector2.new(0, 6)
+	CreakBarFill.Filled = true
+	CreakBarFill.Visible = false
+	return {
+		Drawings = CreakDrawingList,
+		TitleText = CreakTitleText,
+		BarBackground = CreakBarBackground,
+		BarFill = CreakBarFill,
+	}
+end
+
+local function AddCreakAggressionMeter(CreakModel)
+	if not Toggles.CreakAggressionMeter.Value or CreakModel.Name ~= "Creak" or CreakAggressionMetersTable[CreakModel] then
+		return
+	end
+	local CreakHeadPart = CreakModel:FindFirstChild("Head")
+	if not CreakHeadPart or not CreakHeadPart:IsA("BasePart") then return end
+	local CreakMeterData = CreateCreakAggressionDrawings()
+	CreakAggressionMetersTable[CreakModel] = CreakMeterData
+	CreakMeterData.RenderConnection = Services.RunService.RenderStepped:Connect(function()
+		if not Toggles.CreakAggressionMeter.Value or not CreakModel.Parent or not CreakHeadPart.Parent then
+			CleanupCreakAggressionMeter(CreakModel)
+			return
+		end
+		if not CreakAggressionCamera or not CreakAggressionCamera.Parent then
+			CreakAggressionCamera = workspace.CurrentCamera
+			if not CreakAggressionCamera then return end
+		end
+		local CreakScreenPosition, CreakIsOnScreen = CreakAggressionCamera:WorldToViewportPoint(CreakHeadPart.Position + Vector3.new(0, 1.85, 0))
+		if not (CreakIsOnScreen and CreakScreenPosition.Z > 0) then
+			CreakMeterData.TitleText.Visible = false
+			CreakMeterData.BarBackground.Visible = false
+			CreakMeterData.BarFill.Visible = false
+			return
+		end
+		CreakMeterData.TitleText.Position = Vector2.new(CreakScreenPosition.X, CreakScreenPosition.Y - 28)
+		CreakMeterData.BarBackground.Position = Vector2.new(CreakScreenPosition.X - 56, CreakScreenPosition.Y - 6)
+		CreakMeterData.BarFill.Position = CreakMeterData.BarBackground.Position
+		local CreakAggressionValue = GetCreakAggressionValue(CreakModel)
+		if not CreakAggressionValue then
+			CreakMeterData.TitleText.Text = "Aggression --%"
+			CreakMeterData.TitleText.Color = Color3.fromRGB(200, 200, 200)
+			CreakMeterData.BarFill.Size = Vector2.new(0, 6)
+			CreakMeterData.TitleText.Visible = true
+			CreakMeterData.BarBackground.Visible = true
+			CreakMeterData.BarFill.Visible = false
+			return
+		end
+		CreakMeterData.TitleText.Text = "Aggression " .. math.floor(CreakAggressionValue * 100 + 0.5) .. "%"
+		CreakMeterData.TitleText.Color = Color3.fromRGB(255, 255, 255)
+		CreakMeterData.BarFill.Size = Vector2.new(112 * CreakAggressionValue, 6)
+		CreakMeterData.BarFill.Color = Color3.fromRGB(70, 220, 100):Lerp(Color3.fromRGB(255, 55, 55), CreakAggressionValue)
+		CreakMeterData.TitleText.Visible = true
+		CreakMeterData.BarBackground.Visible = true
+		CreakMeterData.BarFill.Visible = true
+	end)
+	CreakMeterData.DestroyConnection = CreakModel.Destroying:Connect(function()
+		CleanupCreakAggressionMeter(CreakModel)
+	end)
+end
+
+local function StartCreakAggressionListener()
+	if CreakAggressionChildAddedConnection then return end
+	local CreakLiveEntitiesFolder = workspace:FindFirstChild("LiveEntities")
+	if not CreakLiveEntitiesFolder then return end
+	CreakAggressionChildAddedConnection = CreakLiveEntitiesFolder.ChildAdded:Connect(function(CreakNewChild)
+		if CreakNewChild.Name == "Creak" then
+			AddCreakAggressionMeter(CreakNewChild)
+		end
+	end)
+end
+
+local function StopCreakAggressionListener()
+	if CreakAggressionChildAddedConnection then
+		CreakAggressionChildAddedConnection:Disconnect()
+		CreakAggressionChildAddedConnection = nil
+	end
+end
+
+Toggles.CreakAggressionMeter:OnChanged(function(CreakToggleEnabled)
+	if CreakToggleEnabled then
+		for _, CreakEntityModel in ipairs(Objects.Entities or {}) do
+			pcall(AddCreakAggressionMeter, CreakEntityModel)
+		end
+		local CreakLiveEntitiesFolder = workspace:FindFirstChild("LiveEntities")
+		local CreakExistingModel = CreakLiveEntitiesFolder and CreakLiveEntitiesFolder:FindFirstChild("Creak")
+		if CreakExistingModel then
+			AddCreakAggressionMeter(CreakExistingModel)
+		end
+		StartCreakAggressionListener()
+	else
+		StopCreakAggressionListener()
+		for CreakEntityModel in pairs(CreakAggressionMetersTable) do
+			CleanupCreakAggressionMeter(CreakEntityModel)
+		end
+	end
+end)
+
+Toggles.KillAllWithCart:OnChanged(function(KillAllWithCartState)
+	if not KillAllWithCartState then return end
+	local KillAllWithCartIndex = 1
+	task.spawn(function()
+		while Toggles.KillAllWithCart.Value do
+			local KillAllWithCartCarts = {}
+			local misc = workspace:FindFirstChild("Misc")
+			if misc then
+				for _, KillAllWithCartModel in ipairs(misc:GetChildren()) do
+					if KillAllWithCartModel.Name == "ShoppingCart" and KillAllWithCartModel:IsA("Model") then
+						KillAllWithCartCarts[#KillAllWithCartCarts + 1] = KillAllWithCartModel
+					end
+				end
+			end
+			local KillAllWithCartAlivePlayers = {}
+			for _, KillAllWithCartPlayer in ipairs(Services.Players:GetPlayers()) do
+				if KillAllWithCartPlayer ~= LocalPlayer and KillAllWithCartPlayer.Character then
+					local KillAllWithCartHumanoid = KillAllWithCartPlayer.Character:FindFirstChildOfClass("Humanoid")
+					if KillAllWithCartHumanoid and KillAllWithCartHumanoid.Health > 0 then
+						KillAllWithCartAlivePlayers[#KillAllWithCartAlivePlayers + 1] = KillAllWithCartPlayer
+					end
+				end
+			end
+			if #KillAllWithCartCarts > 0 and #KillAllWithCartAlivePlayers > 0 then
+				if KillAllWithCartIndex > #KillAllWithCartAlivePlayers then
+					KillAllWithCartIndex = 1
+				end
+				local KillAllWithCartTarget = KillAllWithCartAlivePlayers[KillAllWithCartIndex]
+				local KillAllWithCartTargetCFrame = KillAllWithCartTarget.Character:GetPivot()
+				for KillAllWithCartCartIndex = 1, #KillAllWithCartCarts do
+					pcall(function()
+						KillAllWithCartCarts[KillAllWithCartCartIndex]:PivotTo(KillAllWithCartTargetCFrame)
+					end)
+				end
+				KillAllWithCartIndex = KillAllWithCartIndex + 1
+			end
+			task.wait(0.10)
+		end
+	end)
+end)
+
+Toggles.FlingCreak:OnChanged(function(FlingCreakState)
+	if not FlingCreakState then return end
+	task.spawn(function()
+		while Toggles.FlingCreak.Value do
+			local live = workspace:FindFirstChild("LiveEntities")
+			local creak = live and live:FindFirstChild("Creak")
+			if creak then
+				local targetCFrame = creak:GetPivot()
+				local misc = workspace:FindFirstChild("Misc")
+				if misc then
+					for _, model in ipairs(misc:GetChildren()) do
+						if model.Name == "ShoppingCart" and model:IsA("Model") then
+							pcall(function() model:PivotTo(targetCFrame) end)
+						end
+					end
+				end
+			end
+			task.wait(0.10)
+		end
+	end)
+end)
+
+Toggles.DisableStairwellCrusherCollision:OnChanged(function(DisableStairwellCrusherCollisionState)
+	if not DisableStairwellCrusherCollisionState then return end
+	task.spawn(function()
+		while Toggles.DisableStairwellCrusherCollision.Value do
+			local rooms = workspace:FindFirstChild("CurrentRooms")
+			if rooms then
+				for _, DisableStairwellCrusherRoom in ipairs(rooms:GetChildren()) do
+					local DisableStairwellCrusherAssets = DisableStairwellCrusherRoom:FindFirstChild("Assets")
+					if DisableStairwellCrusherAssets then
+						for _, DisableStairwellCrusherContainer in ipairs(DisableStairwellCrusherAssets:GetChildren()) do
+							if DisableStairwellCrusherContainer.Name == "StairwellCrusherContainer1" then
+								for _, DisableStairwellCrusherDescendant in ipairs(DisableStairwellCrusherContainer:GetDescendants()) do
+									if DisableStairwellCrusherDescendant:IsA("BasePart") and DisableStairwellCrusherDescendant.CanCollide then
+										local DisableStairwellCrusherUnderBasicWall = false
+										local DisableStairwellCrusherParent = DisableStairwellCrusherDescendant.Parent
+										while DisableStairwellCrusherParent and DisableStairwellCrusherParent ~= DisableStairwellCrusherContainer do
+											if DisableStairwellCrusherParent.Name == "BasicWall" then
+												DisableStairwellCrusherUnderBasicWall = true
+												break
+											end
+											DisableStairwellCrusherParent = DisableStairwellCrusherParent.Parent
+										end
+										if not DisableStairwellCrusherUnderBasicWall then
+											DisableStairwellCrusherDescendant.CanCollide = false
+										end
+									end
+								end
+							end
+							local DisableStairwellCrusher = DisableStairwellCrusherContainer:FindFirstChild("StairwellCrusher")
+							if DisableStairwellCrusher then
+								local OuterTrigger = DisableStairwellCrusher:FindFirstChild("OuterTrigger")
+								local CoreTrigger = DisableStairwellCrusher:FindFirstChild("CoreTrigger")
+								if OuterTrigger then OuterTrigger:Destroy() end
+								if CoreTrigger then CoreTrigger:Destroy() end
+							end
+						end
+					end
+				end
+			end
+			task.wait(0.5)
+		end
+	end)
+end)
+
+Toggles.DeleteStairwellCrusherExceptBasicWall:OnChanged(function(DeleteStairwellCrusherExceptBasicWallState)
+	if not DeleteStairwellCrusherExceptBasicWallState then return end
+	task.spawn(function()
+		while Toggles.DeleteStairwellCrusherExceptBasicWall.Value do
+			local rooms = workspace:FindFirstChild("CurrentRooms")
+			if rooms then
+				for _, DeleteStairwellCrusherRoom in ipairs(rooms:GetChildren()) do
+					local DeleteStairwellCrusherAssets = DeleteStairwellCrusherRoom:FindFirstChild("Assets")
+					if DeleteStairwellCrusherAssets then
+						for _, DeleteStairwellCrusherContainer in ipairs(DeleteStairwellCrusherAssets:GetChildren()) do
+							if DeleteStairwellCrusherContainer.Name == "StairwellCrusherContainer1" then
+								local DeleteStairwellCrusherToDestroy = {}
+								for _, DeleteStairwellCrusherDescendant in ipairs(DeleteStairwellCrusherContainer:GetDescendants()) do
+									local DeleteStairwellCrusherUnderBasicWall = false
+									local DeleteStairwellCrusherParent = DeleteStairwellCrusherDescendant.Parent
+									while DeleteStairwellCrusherParent and DeleteStairwellCrusherParent ~= DeleteStairwellCrusherContainer do
+										if DeleteStairwellCrusherParent.Name == "BasicWall" then
+											DeleteStairwellCrusherUnderBasicWall = true
+											break
+										end
+										DeleteStairwellCrusherParent = DeleteStairwellCrusherParent.Parent
+									end
+									if not DeleteStairwellCrusherUnderBasicWall and DeleteStairwellCrusherDescendant.Name ~= "BasicWall" then
+										DeleteStairwellCrusherToDestroy[#DeleteStairwellCrusherToDestroy + 1] = DeleteStairwellCrusherDescendant
+									end
+								end
+								for _, DeleteStairwellCrusherInstance in ipairs(DeleteStairwellCrusherToDestroy) do
+									if DeleteStairwellCrusherInstance and DeleteStairwellCrusherInstance.Parent then
+										pcall(function() DeleteStairwellCrusherInstance:Destroy() end)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+			task.wait(0.5)
+		end
+	end)
+end)
+
+Toggles.MeldRemover:OnChanged(function(State)
+	if not State then return end
+	task.spawn(function()
+		while Toggles.MeldRemover.Value do
+			local rooms = workspace:FindFirstChild("CurrentRooms")
+			if rooms then
+				for _, room in pairs(rooms:GetChildren()) do
+					for _, folderName in ipairs({ "Assets", "Parts" }) do
+						local folder = room:FindFirstChild(folderName)
+						if folder then
+							for _, child in ipairs(folder:GetChildren()) do
+								if child.Name == "MeldWall" or child.Name == "Boleahghth29tdgfhy2thuy2htuu259uhh3u" then
+									pcall(function() child:Destroy() end)
+								end
+							end
+						end
+					end
+					for _, name in ipairs({ "MeldData", "MeldPads", "Meldview", "Meld" }) do
+						local obj = room:FindFirstChild(name)
+						if obj and obj:IsA("Folder") then
+							pcall(function() obj:Destroy() end)
+						end
+					end
+				end
+			end
+			task.wait(0.5)
+		end
+	end)
+end)
+
+Toggles.StairwellLandingSpam:OnChanged(function(Value)
+	StairwellLandingToken += 1
+	if not Value then return end
+	local CurrentToken = StairwellLandingToken
+	task.spawn(function()
+		while Toggles.StairwellLandingSpam.Value and CurrentToken == StairwellLandingToken do
+			local rooms = workspace:FindFirstChild("CurrentRooms")
+			if not rooms then
+				Services.RunService.Heartbeat:Wait()
+			else
+				local StairwellModels = {}
+				for _, Room in ipairs(rooms:GetChildren()) do
+					local StairwellLandingLogic = Room:FindFirstChild("StairwellLandingLogic")
+					if StairwellLandingLogic then
+						for _, Model in ipairs(StairwellLandingLogic:GetChildren()) do
+							if Model:IsA("Model") then
+								local Prompts = {}
+								for _, Object in ipairs(Model:GetDescendants()) do
+									if Object:IsA("ProximityPrompt") then
+										Prompts[#Prompts + 1] = Object
+									end
+								end
+								if #Prompts > 0 then
+									StairwellModels[#StairwellModels + 1] = { Model = Model, Prompts = Prompts }
+								end
+							end
+						end
+					end
+				end
+				table.sort(StairwellModels, function(First, Second)
+					local FirstRoom = First.Model.Parent and First.Model.Parent.Parent
+					local SecondRoom = Second.Model.Parent and Second.Model.Parent.Parent
+					return (tonumber(FirstRoom and FirstRoom.Name) or math.huge) < (tonumber(SecondRoom and SecondRoom.Name) or math.huge)
+				end)
+				for _, Data in ipairs(StairwellModels) do
+					if not Toggles.StairwellLandingSpam.Value or CurrentToken ~= StairwellLandingToken then break end
+					local Model = Data.Model
+					while Model.Parent and Model:IsDescendantOf(workspace)
+						and Toggles.StairwellLandingSpam.Value and CurrentToken == StairwellLandingToken do
+						local Character = LocalPlayer.Character
+						local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+						if HumanoidRootPart then
+							HumanoidRootPart.CFrame = Model:GetPivot() + Vector3.new(0, 5, 0)
+							for Index = 1, #Data.Prompts do
+								local Prompt = Data.Prompts[Index]
+								if Prompt.Parent and Prompt.Enabled then
+									pcall(function()
+										if fireproximityprompt then
+											fireproximityprompt(Prompt)
+										elseif MsFent.Environment and MsFent.Environment.fireproximityprompt then
+											MsFent.Environment.fireproximityprompt(Prompt)
+										end
+									end)
+								end
+							end
+							pcall(function()
+								if keypress and keyrelease then
+									keypress(0x58)
+									task.wait(0.03)
+									keyrelease(0x58)
+								elseif MsFent.Environment and MsFent.Environment.keypress and MsFent.Environment.keyrelease then
+									MsFent.Environment.keypress(0x58)
+									task.wait(0.03)
+									MsFent.Environment.keyrelease(0x58)
+								end
+							end)
+						end
+						Services.RunService.Heartbeat:Wait()
+					end
+				end
+			end
+			Services.RunService.Heartbeat:Wait()
+		end
+	end)
+end)
+
+-- Anti Noise (silent move — Abysall Continued)
 Toggles.AntiNoise:OnChanged(function(value)
-	if AntiNoiseConn then
-		AntiNoiseConn:Disconnect()
-		AntiNoiseConn = nil
+	for i = #StairwellAntiNoiseConns, 1, -1 do
+		local conn = StairwellAntiNoiseConns[i]
+		if conn and conn.Disconnect then pcall(function() conn:Disconnect() end) end
+		table.remove(StairwellAntiNoiseConns, i)
 	end
 	if not value then return end
 	local Controls
 	pcall(function()
 		Controls = require(LocalPlayer.PlayerScripts:WaitForChild("PlayerModule")):GetControls()
 	end)
-	AntiNoiseConn = Services.RunService.PreSimulation:Connect(function(dt)
+	local antiNoiseConn = Services.RunService.PreSimulation:Connect(function(dt)
 		if not Toggles.AntiNoise.Value then return end
 		if not LocalPlayer:GetAttribute("Alive") then return end
 		local character = LocalPlayer.Character
@@ -4875,10 +5631,8 @@ Toggles.AntiNoise:OnChanged(function(value)
 			or state == Enum.HumanoidStateType.Climbing
 			or state == Enum.HumanoidStateType.Swimming
 		then return end
-
 		humanoid.AutoRotate = false
 		humanoid:Move(Vector3.zero, false)
-
 		local inputVector = Vector3.zero
 		if Controls then
 			pcall(function() inputVector = Controls:GetMoveVector() end)
@@ -4888,7 +5642,6 @@ Toggles.AntiNoise:OnChanged(function(value)
 			rootPart.AssemblyLinearVelocity = Vector3.zero
 			return
 		end
-
 		local cameraCFrame = camera.CFrame
 		local cameraForward = Vector3.new(cameraCFrame.LookVector.X, 0, cameraCFrame.LookVector.Z)
 		local cameraRight = Vector3.new(cameraCFrame.RightVector.X, 0, cameraCFrame.RightVector.Z)
@@ -4899,52 +5652,173 @@ Toggles.AntiNoise:OnChanged(function(value)
 		if worldDirection.Magnitude <= 0 then return end
 		worldDirection = worldDirection.Unit
 		local finalSpeed = humanoid.WalkSpeed * math.clamp(inputMagnitude, 0, 1)
-		local clampedDt = math.clamp(dt, 0, 1/30)
+		local clampedDt = math.clamp(dt, 0, 1 / 30)
 		rootPart.AssemblyLinearVelocity = Vector3.zero
 		rootPart.CFrame = rootPart.CFrame + (worldDirection * finalSpeed * clampedDt)
 		rootPart.CFrame = CFrame.new(rootPart.Position, rootPart.Position + worldDirection)
 	end)
+	StairwellAntiNoiseConns[#StairwellAntiNoiseConns + 1] = antiNoiseConn
 end)
 
-local BypassNoiseChildConn = nil
+-- Noise TV Breaker (Abysall Continued)
 Toggles.BypassNoise:OnChanged(function(value)
 	if BypassNoiseChildConn then
-		BypassNoiseChildConn:Disconnect()
+		pcall(function() BypassNoiseChildConn:Disconnect() end)
 		BypassNoiseChildConn = nil
 	end
 	if not value then return end
-	local myId = LocalPlayer.UserId
 	local function checkBypassNoiseTvStand(targetTvStand)
 		if not targetTvStand:IsA("Model") then return end
 		if targetTvStand.Name ~= "TV_Stand" then return end
-		if targetTvStand:GetAttribute("LastPusherId") ~= myId then return end
-		local cf = targetTvStand:GetPivot()
-		if cf.Position.Y > -119 then
-			targetTvStand:PivotTo(CFrame.new(cf.Position.X, -120, cf.Position.Z))
-			pcall(function() Functions.Notify({ Title = "Unequip the tv." }) end)
+		local tvStandCurrentCFrame = targetTvStand:GetPivot()
+		if tvStandCurrentCFrame.Position.Y > -119 then
+			targetTvStand:PivotTo(CFrame.new(
+				tvStandCurrentCFrame.Position.X,
+				-120,
+				tvStandCurrentCFrame.Position.Z
+			))
 		end
 	end
-	local function checkAll()
-		local misc = workspace:FindFirstChild("Misc")
-		if not misc then return end
-		for _, child in ipairs(misc:GetChildren()) do
-			checkBypassNoiseTvStand(child)
-		end
+	local bypassNoiseMiscFolder = workspace:FindFirstChild("Misc")
+	if not bypassNoiseMiscFolder then return end
+	BypassNoiseChildConn = bypassNoiseMiscFolder.ChildAdded:Connect(function(bypassNoiseNewChild)
+		checkBypassNoiseTvStand(bypassNoiseNewChild)
+	end)
+	for _, bypassNoiseMiscChild in ipairs(bypassNoiseMiscFolder:GetChildren()) do
+		checkBypassNoiseTvStand(bypassNoiseMiscChild)
 	end
-	local misc = workspace:FindFirstChild("Misc")
-	if misc then
-		BypassNoiseChildConn = misc.ChildAdded:Connect(function(child)
-			task.wait(0.1)
-			checkBypassNoiseTvStand(child)
-		end)
+end)
+
+-- Item Number counter (Abysall Continued)
+Toggles.DroppedItemValue:OnChanged(function(DroppedItemValue)
+	local DroppedItemValueScreenGui = game:GetService("CoreGui"):FindFirstChild("DropsCoinCounter")
+	if not DroppedItemValue then
+		if DroppedItemValueScreenGui then DroppedItemValueScreenGui:Destroy() end
+		return
 	end
+	local DroppedItemValueWorkspaceDrops = workspace:FindFirstChild("Drops") or workspace:WaitForChild("Drops", 5)
+	if not DroppedItemValueWorkspaceDrops then
+		pcall(function() Functions.Notify({ Title = "Item Number", Body = "workspace.Drops not found yet." }) end)
+		return
+	end
+	if DroppedItemValueScreenGui then DroppedItemValueScreenGui:Destroy() end
+	DroppedItemValueScreenGui = Instance.new("ScreenGui")
+	DroppedItemValueScreenGui.Name = "DropsCoinCounter"
+	DroppedItemValueScreenGui.ResetOnSpawn = false
+	pcall(function() DroppedItemValueScreenGui.Parent = game:GetService("CoreGui") end)
+	if not DroppedItemValueScreenGui.Parent then
+		DroppedItemValueScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+	end
+	local DroppedItemValueCoinText = Instance.new("TextLabel")
+	DroppedItemValueCoinText.Name = "CoinText"
+	DroppedItemValueCoinText.AnchorPoint = Vector2.new(0.5, 0)
+	DroppedItemValueCoinText.Position = UDim2.new(0.5, 0, 0.02, 0)
+	DroppedItemValueCoinText.Size = UDim2.new(0, 250, 0, 40)
+	DroppedItemValueCoinText.BackgroundTransparency = 1
+	DroppedItemValueCoinText.Text = "Items: 0"
+	DroppedItemValueCoinText.TextSize = 24
+	DroppedItemValueCoinText.Font = Enum.Font.GothamBold
+	DroppedItemValueCoinText.TextColor3 = Color3.fromRGB(255, 255, 255)
+	DroppedItemValueCoinText.TextStrokeTransparency = 0.5
+	DroppedItemValueCoinText.Parent = DroppedItemValueScreenGui
+	local DroppedItemValueCountedDrops = {}
 	task.spawn(function()
-		while Toggles.BypassNoise.Value do
-			checkAll()
+		while Toggles.DroppedItemValue.Value do
+			for _, DroppedItemValueDrop in ipairs(DroppedItemValueWorkspaceDrops:GetChildren()) do
+				if DroppedItemValueDrop:IsA("Model") and not DroppedItemValueCountedDrops[DroppedItemValueDrop] then
+					DroppedItemValueDrop:SetAttribute("CoinsChecked", true)
+					DroppedItemValueCountedDrops[DroppedItemValueDrop] = true
+				end
+			end
+			for DroppedItemValueDrop in pairs(DroppedItemValueCountedDrops) do
+				if not DroppedItemValueDrop.Parent or DroppedItemValueDrop.Parent ~= DroppedItemValueWorkspaceDrops then
+					DroppedItemValueCountedDrops[DroppedItemValueDrop] = nil
+				end
+			end
+			local DroppedItemValueTotalItems = 0
+			for DroppedItemValueDrop in pairs(DroppedItemValueCountedDrops) do
+				if DroppedItemValueDrop.Parent == DroppedItemValueWorkspaceDrops then
+					DroppedItemValueTotalItems += 1
+				end
+			end
+			DroppedItemValueCoinText.Text = "Items: " .. DroppedItemValueTotalItems
 			task.wait(1)
+		end
+		if DroppedItemValueScreenGui and DroppedItemValueScreenGui.Parent then
+			DroppedItemValueScreenGui:Destroy()
 		end
 	end)
 end)
+
+-- TP Shopping Carts + Grinder (Abysall Continued extras on Stairwell tab)
+Groupboxes.Floors_Stairwell:AddDivider()
+Groupboxes.Floors_Stairwell:AddButton({
+	Text = "TP Shopping Carts To Me",
+	DoubleClick = false,
+	Tooltip = "Teleports all ShoppingCart models in workspace.Misc to you.",
+	Func = function()
+		local char = LocalPlayer.Character
+		if not char then return end
+		local target = char:GetPivot()
+		local misc = workspace:FindFirstChild("Misc")
+		if not misc then
+			Functions.Notify({ Title = "Carts", Body = "workspace.Misc not found." })
+			return
+		end
+		local n = 0
+		for _, model in ipairs(misc:GetChildren()) do
+			if model.Name == "ShoppingCart" and model:IsA("Model") then
+				pcall(function() model:PivotTo(target) end)
+				n += 1
+			end
+		end
+		Functions.Notify({ Title = "Carts", Body = "Moved " .. n .. " cart(s)." })
+	end,
+})
+Groupboxes.Floors_Stairwell:AddButton({
+	Text = "TP Drops to Nearest Grinder",
+	DoubleClick = false,
+	Tooltip = "Teleports every dropped item to the nearest Stairwell scrapper grinder.",
+	Func = function()
+		local dropsFolder = workspace:FindFirstChild("Drops")
+		local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+		local rooms = workspace:FindFirstChild("CurrentRooms")
+		if not dropsFolder or not root or not rooms then
+			Functions.Notify({ Title = "Grinder", Body = "Need Drops + character + CurrentRooms." })
+			return
+		end
+		local nearest, nearestDist = nil, math.huge
+		for _, room in ipairs(rooms:GetChildren()) do
+			local scrapper = room:FindFirstChild("StairwellScrapper", true)
+			if scrapper then
+				for _, obj in ipairs(scrapper:GetDescendants()) do
+					if obj.Name == "Grinder1" and (obj:IsA("Model") or obj:IsA("BasePart")) then
+						local pos = obj:GetPivot().Position
+						local d = (root.Position - pos).Magnitude
+						if d < nearestDist then
+							nearestDist = d
+							nearest = obj
+						end
+					end
+				end
+			end
+		end
+		if not nearest then
+			Functions.Notify({ Title = "Grinder", Body = "No Grinder1 found." })
+			return
+		end
+		local cf = nearest:GetPivot()
+		local n = 0
+		for _, item in ipairs(dropsFolder:GetChildren()) do
+			if item:IsA("Model") or item:IsA("BasePart") then
+				MsFent_MoveDrop(item, cf)
+				n += 1
+			end
+		end
+		Functions.Notify({ Title = "Grinder", Body = "Moved " .. n .. " drop(s)." })
+	end,
+})
+
 -- ===== END STAIRWELL =====
 
 
@@ -5191,7 +6065,7 @@ Connections.RoomsHandler = CurrentRooms.ChildAdded:Connect(function(Room)
 end)
 
 -- ============================================================
--- ARCHIVES LOGIC (adapted from Abysall Continued)
+-- ARCHIVES LOGIC (adapted from Ms fent)
 -- ============================================================
 do
 	local DroneWalkedIntoParents = {}
@@ -6028,7 +6902,7 @@ Groupboxes.Floors_Completion:AddButton({
                 Object = nil
             }
             for _, Object in pairs(Objects.Objectives) do
-                if Object.Name == "WaterPump" and Object:GetAttribute("Abysall_Completed") ~= true then
+                if Object.Name == "WaterPump" and Object:GetAttribute("MsFent_Completed") ~= true then
                     if Object.PrimaryPart and Object.PrimaryPart.Position.Y > Highest.Height then
                         Highest.Object = Object
                         Highest.Height = Object.PrimaryPart.Position.Y
@@ -6052,7 +6926,7 @@ Groupboxes.Floors_Completion:AddButton({
                     Functions.ForceFirePrompt(Prompt)
                 end
 
-                if Pump:GetAttribute("Abysall_Completed") then
+                if Pump:GetAttribute("MsFent_Completed") then
                     break
                 end
             end
@@ -6171,11 +7045,11 @@ Groupboxes.Floors_Farming:AddButton({
 			task.spawn(function()
 				task.wait(2)
 				pcall(function()
-					loadstring(game:HttpGet("https://raw.githubusercontent.com/bocaj111004/Abysall/refs/heads/main/Scripts/DeathFarm.luau"))()
+					-- Death farm logic is local; no external load
 				end)
 			end)
 		]]
-		-- Prefer inlined loop without external if possible; queue Abysall deathfarm only as bootstrap for lobby hops
+		-- Prefer inlined loop without external if possible; lobby hop bootstrap
 		if game.PlaceId == 6516141723 then
 			caption("Lobby → creating Hotel run...")
 			if qot then pcall(qot, reexec) end
@@ -6256,7 +7130,7 @@ Connections.KnobFarm = Services.RunService.Heartbeat:Connect(function()
 		if not Globals.KnobFarmActive then
 			Globals.KnobFarmActive = true
 			if Functions.CheckCompatability({"replicatesignal"}) then
-				Abysall.Environment.replicatesignal(LocalPlayer.Kill)
+				MsFent.Environment.replicatesignal(LocalPlayer.Kill)
 			else
 				RemotesFolder.Underwater:FireServer(true)
 			end
@@ -6275,10 +7149,10 @@ end)
 local MainHook
 local OtherHook
 if Functions.CheckCompatability({"hookmetamethod", "newcclosure", "getnamecallmethod"}) then
-	MainHook = Abysall.Environment.hookmetamethod(game, "__namecall", Abysall.Environment.newcclosure(function(Self, ...)
+	MainHook = MsFent.Environment.hookmetamethod(game, "__namecall", MsFent.Environment.newcclosure(function(Self, ...)
 		local Args = { ... }
-		if Abysall and Abysall.Environment then
-			local Method = Abysall.Environment.getnamecallmethod()
+		if MsFent and MsFent.Environment then
+			local Method = MsFent.Environment.getnamecallmethod()
 
 			if Self.Name == "Crouch" and Method == "FireServer" then
 				if Toggles.CrouchSpoof.Value or Toggles.PositionSpoof.Value then
@@ -6305,7 +7179,7 @@ if Functions.CheckCompatability({"hookmetamethod", "newcclosure", "getnamecallme
 		return MainHook(Self, table.unpack(Args))
 	end))
 
-    OtherHook = Abysall.Environment.hookmetamethod(game, "__index", Abysall.Environment.newcclosure(function(Self, Property)
+    OtherHook = MsFent.Environment.hookmetamethod(game, "__index", MsFent.Environment.newcclosure(function(Self, Property)
         local Real = OtherHook(Self, Property)
 
         if Property == "MoveDirection" and Self == Humanoid and Globals.RoomsAutoWalkActive and Toggles.RoomsAutoWalkSpoofFootsteps.Value and Floor == "Rooms" and not Character:GetAttribute("Hiding") then
@@ -6374,7 +7248,7 @@ Functions.RetoggleAllFeatures = function(reason)
 				local initiator = ui:FindFirstChild("Initiator")
 				local mg = initiator and initiator:FindFirstChild("Main_Game")
 				if mg and Functions.CheckCompatability({"require"}) then
-					Main_Game = Abysall.Environment.require(mg)
+					Main_Game = MsFent.Environment.require(mg)
 				end
 			end)
 
@@ -6457,7 +7331,7 @@ Functions.RefreshActiveFeatures = function(reason)
 				if Functions.CheckCompatability({"require"}) and Globals.MainUI:FindFirstChild("Initiator") then
 					local init = Globals.MainUI.Initiator:FindFirstChild("Main_Game")
 					if init then
-						Main_Game = Abysall.Environment.require(init)
+						Main_Game = MsFent.Environment.require(init)
 					end
 				end
 			end
@@ -6669,7 +7543,7 @@ Functions.HandleCharacter = function(NewCharacter)
 	if Toggles.EnableCharacterSlide.Value then Character:SetAttribute("CanSlide", true) end
 
 	if Functions.CheckCompatability({"require"}) then
-		Main_Game = Abysall.Environment.require(Globals.MainUI.Initiator.Main_Game)
+		Main_Game = MsFent.Environment.require(Globals.MainUI.Initiator.Main_Game)
 	end
 
 	if Main_Game and Toggles.RemoveCameraBobbing.Value then
@@ -7358,7 +8232,7 @@ Functions.HandleObject = function(Object)
 	elseif Name == "WaterPump" then
 		if Toggles.ObjectiveESPToggle.Value then Functions.AddESP({ Object = Object:WaitForChild("Wheel"), Text = "Water Pump", Color = Options.ObjectiveESPColor.Value }, true) end
 		Object:WaitForChild("Wheel").Sound.Played:Once(function()
-			Object:SetAttribute("Abysall_Completed", true)
+			Object:SetAttribute("MsFent_Completed", true)
 
 			Functions.RemoveESP(Object.Wheel)
 			Functions.BlacklistESP(Object.Wheel)
@@ -7566,7 +8440,7 @@ Functions.HandleObject = function(Object)
 			if Child.Name == "PlayerBarrier" and Child.Size.Y == 2.75 and (Child.Rotation.X == 0 or Child.Rotation.X == 180) then
 				local NewBridge = Child:Clone()
 				NewBridge.CFrame = NewBridge.CFrame * CFrame.new(0, 0, -5)
-				NewBridge.Name = Abysall.ESPLibrary:GenerateRandomString()
+				NewBridge.Name = MsFent.ESPLibrary:GenerateRandomString()
 				NewBridge.Size = Vector3.new(NewBridge.Size.X, NewBridge.Size.Y, 11)
 				NewBridge.Parent = Object
 				NewBridge.CanCollide = Toggles.BypassSeekObstructions.Value
@@ -7705,8 +8579,8 @@ Functions.HandleObject = function(Object)
 		end)
 		if Name == "LotusHolder" or Name == "LotusPetalPickup" then
 			Object.Handle:GetPropertyChangedSignal("LocalTransparencyModifier"):Connect(function()
-				Abysall.ESPLibrary:RemoveESP(Object)
-				Abysall.ESPLibrary:BlacklistESP(Object)
+				MsFent.ESPLibrary:RemoveESP(Object)
+				MsFent.ESPLibrary:BlacklistESP(Object)
 			end)
 		end
 		table.insert(Objects.Items, Object)
@@ -7741,9 +8615,9 @@ Functions.HandleObject = function(Object)
 				while Object:IsDescendantOf(game) do
 					for _, Part in Object:GetChildren() do
 						if Part:IsA("BasePart") then
-							Abysall.Environment.firetouchinterest(RootPart, Part, 0)
+							MsFent.Environment.firetouchinterest(RootPart, Part, 0)
 							task.wait()
-							Abysall.Environment.firetouchinterest(RootPart, Part, 1)
+							MsFent.Environment.firetouchinterest(RootPart, Part, 1)
 						end
 					end
 					task.wait()
@@ -7855,7 +8729,7 @@ Functions.HandleObject = function(Object)
 				for _, Part in Object:GetDescendants() do
 					if Part:IsA("BasePart") then
 						task.spawn(function()
-							if Abysall.Environment.isnetworkowner(Part) then
+							if MsFent.Environment.isnetworkowner(Part) then
 								Part.Position = Vector3.new(-49999, -49999, -49999)
 							end
 						end)
@@ -7867,7 +8741,7 @@ Functions.HandleObject = function(Object)
 					if Part:IsA("BasePart") then
 						Part.CanCollide = false
 						task.spawn(function()
-							while Abysall.Environment.isnetworkowner(Part) do
+							while MsFent.Environment.isnetworkowner(Part) do
 								Part.Position = Vector3.new(math.random(-29999,29999), math.random(-29999,29999), math.random(-29999,29999))
 								task.wait()
 							end
@@ -7990,6 +8864,15 @@ Functions.HandleObject = function(Object)
 				Connections.PadlockConnection = nil
 			end
 		end)
+	elseif Name == "StairwellFireAlarm" or Name == "FireAlarm" or Name == "Fire_Alarm"
+		or Name == "FireAlarmSwitch" or Name == "AlarmSwitch" or Name == "FireEscapeAlarm"
+		or Name == "PullStation" or Name == "FirePull"
+		or (string.find(string.lower(Name), "fire", 1, true) and string.find(string.lower(Name), "alarm", 1, true)) then
+		table.insert(Objects.FireAlarms, Object)
+		if Toggles.FireAlarmESPToggle and Toggles.FireAlarmESPToggle.Value then
+			local col = (Options.FireAlarmESPColor and Options.FireAlarmESPColor.Value) or Color3.fromRGB(0, 255, 80)
+			Functions.AddESP({ Object = Object, Text = "Fire Alarm", Color = col }, true)
+		end
 	end
 end
 
@@ -8128,8 +9011,8 @@ end)
 local PromptsToFire = {}
 local PromptCooldown = {}
 
-Functions.FirePrompt      = Abysall.Environment.fireproximityprompt
-Functions.ForceFirePrompt = Abysall.Environment.fireproximityprompt
+Functions.FirePrompt      = MsFent.Environment.fireproximityprompt
+Functions.ForceFirePrompt = MsFent.Environment.fireproximityprompt
 
 if not Functions.FirePrompt then
 	Functions.FirePrompt = function(Prompt)
@@ -8611,13 +9494,24 @@ Connections.EntityDescendantHandler = Services.Workspace.DescendantAdded:Connect
 end)
 
 -- Scan anything already in workspace (late execute / existing floor entities)
-task.spawn(function()
+local function ScanEntitiesForESP()
 	for _, Inst in ipairs(Services.Workspace:GetDescendants()) do
-		if Inst:IsA("Model") and Entities[Inst.Name] and not Inst:GetAttribute("MsFent_EntityHandled") then
-			RegisterEntityModel(Inst)
+		if Inst:IsA("Model") and Entities[Inst.Name] then
+			if not Inst:GetAttribute("MsFent_EntityHandled") then
+				pcall(RegisterEntityModel, Inst)
+			elseif Toggles.EntityESPToggle and Toggles.EntityESPToggle.Value then
+				local ed = Entities[Inst.Name]
+				local alias = ed and ed.Alias or Inst.Name
+				local target = Inst.PrimaryPart or Inst:FindFirstChildWhichIsA("BasePart", true) or Inst
+				pcall(function()
+					Functions.AddESP({ Object = target, Text = alias, Color = Options.EntityESPColor.Value }, true)
+				end)
+			end
 		end
 	end
-end)
+end
+Globals.ScanEntitiesForESP = ScanEntitiesForESP
+task.spawn(ScanEntitiesForESP)
 
 
 local LastClean = tick()
@@ -8672,6 +9566,1300 @@ LocalPlayer.CharacterAdded:Connect(function(NewCharacter)
 		Functions.RefreshActiveFeatures("CharacterAdded-bottom-late")
 	end)
 end)
+
+-- ===== Update 1.0 automation =====
+Toggles.SkipSeekHotel:OnChanged(function(Value)
+	if not Value then return end
+	if Floor ~= "Hotel" then return end
+
+	task.spawn(function()
+		print("started")
+
+		local currentRooms
+
+		repeat
+			if not Toggles.SkipSeekHotel.Value or Floor ~= "Hotel" then
+				return
+			end
+			currentRooms = workspace:FindFirstChild("CurrentRooms")
+			task.wait()
+		until currentRooms
+
+		print("got currentrooms")
+
+		local lastTriggerRoom = nil
+
+		while Toggles.SkipSeekHotel.Value and Floor == "Hotel" do
+			local triggerRoom = nil
+
+			print("waiting for trigger")
+
+			repeat
+				if not Toggles.SkipSeekHotel.Value or Floor ~= "Hotel" then
+					return
+				end
+
+				currentRooms = workspace:FindFirstChild("CurrentRooms")
+				local currentRoomNum = tonumber(LocalPlayer:GetAttribute("CurrentRoom"))
+
+				if currentRoomNum and currentRoomNum ~= lastTriggerRoom then
+					local room = currentRooms and currentRooms:FindFirstChild(tostring(currentRoomNum))
+					if room then
+						local trigger = room:WaitForChild("TriggerEventCollision", 0.5)
+						if trigger then
+							triggerRoom = currentRoomNum
+							print("found trigger in", triggerRoom)
+						end
+					end
+				end
+
+				task.wait()
+			until triggerRoom
+
+			lastTriggerRoom = triggerRoom
+
+			local roomNum = triggerRoom
+
+			while Toggles.SkipSeekHotel.Value and Floor == "Hotel" do
+				roomNum += 1
+				print("looking for room", roomNum)
+
+				local room
+				repeat
+					if not Toggles.SkipSeekHotel.Value or Floor ~= "Hotel" then
+						return
+					end
+					currentRooms = workspace:FindFirstChild("CurrentRooms")
+					room = currentRooms and currentRooms:FindFirstChild(tostring(roomNum))
+					task.wait()
+				until room
+
+				print("found room", roomNum)
+
+				local hasSeekArm = false
+				local assets = room:FindFirstChild("Assets")
+				if assets then
+					for _, child in ipairs(assets:GetChildren()) do
+						if child.Name == "Seek_Arm" then
+							hasSeekArm = true
+							print("found seek arm")
+							break
+						end
+					end
+				end
+
+				local door
+				repeat
+					if not Toggles.SkipSeekHotel.Value or Floor ~= "Hotel" then
+						return
+					end
+					door = room:FindFirstChild("Door", true)
+					task.wait()
+				until door
+
+				print("found door, teleporting")
+
+				repeat
+					if not Toggles.SkipSeekHotel.Value or Floor ~= "Hotel" then
+						return
+					end
+					if Character then
+						Character:PivotTo(door:GetPivot())
+					end
+					task.wait()
+				until door:GetAttribute("Opened") == true
+
+				print("door opened")
+
+				if hasSeekArm then
+					if not Character then
+						return
+					end
+
+					print("voiding")
+
+					local voidCFrame = Character:GetPivot() + Vector3.new(0, -2500, 0)
+
+					task.wait(0.25)
+
+					for _ = 1, 20 do
+						Character:PivotTo(voidCFrame)
+						task.wait()
+					end
+
+					task.wait(0.3)
+
+					for _ = 1, 15 do
+						Character:PivotTo(voidCFrame)
+						task.wait()
+					end
+
+					task.wait(0.2)
+
+					for _ = 1, 10 do
+						Character:PivotTo(voidCFrame)
+						task.wait()
+					end
+
+					print("done voiding")
+					break
+				end
+			end
+		end
+	end)
+end)
+
+Toggles.AutoLibrary:OnChanged(function(AutoLibraryEnabled)
+	if AutoLibraryConnection then
+		task.cancel(AutoLibraryConnection)
+		AutoLibraryConnection = nil
+	end
+
+	if AutoLibraryRoomConnection then
+		AutoLibraryRoomConnection:Disconnect()
+		AutoLibraryRoomConnection = nil
+	end
+
+	if not AutoLibraryEnabled then
+		return
+	end
+
+	AutoLibraryConnection = task.spawn(function()
+		local AutoLibraryPlayers = game:GetService("Players")
+		local AutoLibraryLocalPlayer = AutoLibraryPlayers.LocalPlayer
+		local AutoLibraryCharacter = AutoLibraryLocalPlayer.Character or AutoLibraryLocalPlayer.CharacterAdded:Wait()
+		local AutoLibraryHumanoidRootPart = AutoLibraryCharacter:WaitForChild("HumanoidRootPart")
+
+		local AutoLibraryCurrentRooms = workspace:WaitForChild("CurrentRooms")
+		local AutoLibraryRoom50 = AutoLibraryCurrentRooms:WaitForChild("50")
+		local AutoLibraryLiveHintBooks = {}
+		local AutoLibraryHintPaperObtained = false
+
+		local function AutoLibraryIsInRoom50(AutoLibraryObject)
+			return AutoLibraryObject
+				and AutoLibraryObject:IsDescendantOf(AutoLibraryRoom50)
+				and AutoLibraryObject:IsDescendantOf(AutoLibraryCurrentRooms)
+				and AutoLibraryObject:IsDescendantOf(workspace)
+		end
+
+		local function AutoLibraryIsActuallyInRoom50()
+			return tonumber(AutoLibraryLocalPlayer:GetAttribute("CurrentRoom")) == 50
+		end
+
+		while AutoLibraryEnabled and not AutoLibraryIsActuallyInRoom50() do
+			task.wait(0.05)
+		end
+
+		if not AutoLibraryEnabled then
+			return
+		end
+
+		local function AutoLibraryHasHintPaper()
+			AutoLibraryCharacter = AutoLibraryLocalPlayer.Character
+
+			if not AutoLibraryCharacter then
+				return false
+			end
+
+			local AutoLibraryBackpackPaper = AutoLibraryLocalPlayer.Backpack:FindFirstChild("LibraryHintPaper", true)
+			local AutoLibraryCharacterPaper = AutoLibraryCharacter:FindFirstChild("LibraryHintPaper", true)
+
+			return AutoLibraryBackpackPaper ~= nil or AutoLibraryCharacterPaper ~= nil
+		end
+
+		local function AutoLibraryGetObjectCFrame(AutoLibraryObject)
+			if not AutoLibraryIsActuallyInRoom50() then
+				return nil
+			end
+
+			if not AutoLibraryIsInRoom50(AutoLibraryObject) then
+				return nil
+			end
+
+			if AutoLibraryObject:IsA("Model") then
+				return AutoLibraryObject:GetPivot()
+			elseif AutoLibraryObject:IsA("BasePart") then
+				return AutoLibraryObject.CFrame
+			end
+
+			local AutoLibraryObjectPart = AutoLibraryObject:FindFirstChildWhichIsA("BasePart", true)
+
+			if AutoLibraryObjectPart then
+				return AutoLibraryObjectPart.CFrame
+			end
+
+			return nil
+		end
+
+		local function AutoLibraryFindBooks(AutoLibraryObject)
+			if not AutoLibraryIsActuallyInRoom50() then
+				return
+			end
+
+			if not AutoLibraryIsInRoom50(AutoLibraryObject) then
+				return
+			end
+
+			if AutoLibraryObject.Name == "LiveHintBook" then
+				if not table.find(AutoLibraryLiveHintBooks, AutoLibraryObject) then
+					table.insert(AutoLibraryLiveHintBooks, AutoLibraryObject)
+				end
+			end
+
+			for _, AutoLibraryDescendant in ipairs(AutoLibraryObject:GetDescendants()) do
+				if AutoLibraryDescendant.Name == "LiveHintBook"
+					and AutoLibraryIsInRoom50(AutoLibraryDescendant) then
+
+					if not table.find(AutoLibraryLiveHintBooks, AutoLibraryDescendant) then
+						table.insert(AutoLibraryLiveHintBooks, AutoLibraryDescendant)
+					end
+				end
+			end
+		end
+
+		for _, AutoLibraryDescendant in ipairs(AutoLibraryRoom50:GetDescendants()) do
+			if not AutoLibraryEnabled or not AutoLibraryIsActuallyInRoom50() then
+				return
+			end
+
+			if AutoLibraryDescendant.Name == "LiveHintBook"
+				and AutoLibraryIsInRoom50(AutoLibraryDescendant) then
+
+				if not table.find(AutoLibraryLiveHintBooks, AutoLibraryDescendant) then
+					table.insert(AutoLibraryLiveHintBooks, AutoLibraryDescendant)
+				end
+			end
+		end
+
+		AutoLibraryRoomConnection = AutoLibraryRoom50.DescendantAdded:Connect(function(AutoLibraryAddedObject)
+			if not AutoLibraryEnabled then
+				return
+			end
+
+			if not AutoLibraryIsActuallyInRoom50() then
+				return
+			end
+
+			if not AutoLibraryIsInRoom50(AutoLibraryAddedObject) then
+				return
+			end
+
+			AutoLibraryFindBooks(AutoLibraryAddedObject)
+		end)
+
+		while AutoLibraryEnabled
+			and AutoLibraryIsActuallyInRoom50()
+			and #AutoLibraryLiveHintBooks < 3 do
+
+			for _, AutoLibraryDescendant in ipairs(AutoLibraryRoom50:GetDescendants()) do
+				if not AutoLibraryEnabled or not AutoLibraryIsActuallyInRoom50() then
+					return
+				end
+
+				if AutoLibraryDescendant.Name == "LiveHintBook"
+					and AutoLibraryIsInRoom50(AutoLibraryDescendant)
+					and not table.find(AutoLibraryLiveHintBooks, AutoLibraryDescendant) then
+
+					table.insert(AutoLibraryLiveHintBooks, AutoLibraryDescendant)
+				end
+			end
+
+			if #AutoLibraryLiveHintBooks >= 3 then
+				break
+			end
+
+			task.wait(0.05)
+		end
+
+		while AutoLibraryEnabled
+			and AutoLibraryIsActuallyInRoom50()
+			and not AutoLibraryHintPaperObtained do
+
+			if AutoLibraryHasHintPaper() then
+				AutoLibraryHintPaperObtained = true
+				break
+			end
+
+			for AutoLibraryIndex = #AutoLibraryLiveHintBooks, 1, -1 do
+				if not AutoLibraryIsActuallyInRoom50() then
+					return
+				end
+
+				local AutoLibraryLiveHintBook = AutoLibraryLiveHintBooks[AutoLibraryIndex]
+
+				if not AutoLibraryIsInRoom50(AutoLibraryLiveHintBook) then
+					table.remove(AutoLibraryLiveHintBooks, AutoLibraryIndex)
+					continue
+				end
+
+				while AutoLibraryEnabled
+					and AutoLibraryIsActuallyInRoom50()
+					and not AutoLibraryHintPaperObtained
+					and AutoLibraryLiveHintBook.Parent
+					and AutoLibraryIsInRoom50(AutoLibraryLiveHintBook) do
+
+					if AutoLibraryHasHintPaper() then
+						AutoLibraryHintPaperObtained = true
+						break
+					end
+
+					AutoLibraryCharacter = AutoLibraryLocalPlayer.Character or AutoLibraryLocalPlayer.CharacterAdded:Wait()
+					AutoLibraryHumanoidRootPart = AutoLibraryCharacter:FindFirstChild("HumanoidRootPart")
+
+					if not AutoLibraryHumanoidRootPart then
+						task.wait()
+						continue
+					end
+
+					local AutoLibraryBookCFrame = AutoLibraryGetObjectCFrame(AutoLibraryLiveHintBook)
+
+					if AutoLibraryBookCFrame
+						and AutoLibraryIsActuallyInRoom50()
+						and AutoLibraryIsInRoom50(AutoLibraryLiveHintBook) then
+
+						AutoLibraryHumanoidRootPart.CFrame = AutoLibraryBookCFrame
+					end
+
+					for _, AutoLibraryPromptDescendant in ipairs(AutoLibraryLiveHintBook:GetDescendants()) do
+						if AutoLibraryPromptDescendant:IsA("ProximityPrompt")
+							and AutoLibraryIsInRoom50(AutoLibraryPromptDescendant)
+							and AutoLibraryIsActuallyInRoom50() then
+
+							fireproximityprompt(AutoLibraryPromptDescendant)
+						end
+					end
+
+					task.wait(0.05)
+				end
+
+				if AutoLibraryHintPaperObtained then
+					break
+				end
+			end
+
+			if AutoLibraryHasHintPaper() then
+				AutoLibraryHintPaperObtained = true
+				break
+			end
+
+			local AutoLibraryHintPaper = AutoLibraryRoom50:FindFirstChild("LibraryHintPaper", true)
+
+			if AutoLibraryHintPaper
+				and AutoLibraryIsInRoom50(AutoLibraryHintPaper)
+				and AutoLibraryIsActuallyInRoom50() then
+
+				while AutoLibraryEnabled
+					and AutoLibraryIsActuallyInRoom50()
+					and not AutoLibraryHintPaperObtained
+					and AutoLibraryHintPaper.Parent
+					and AutoLibraryIsInRoom50(AutoLibraryHintPaper) do
+
+					if AutoLibraryHasHintPaper() then
+						AutoLibraryHintPaperObtained = true
+						break
+					end
+
+					AutoLibraryCharacter = AutoLibraryLocalPlayer.Character or AutoLibraryLocalPlayer.CharacterAdded:Wait()
+					AutoLibraryHumanoidRootPart = AutoLibraryCharacter:FindFirstChild("HumanoidRootPart")
+
+					if not AutoLibraryHumanoidRootPart then
+						task.wait()
+						continue
+					end
+
+					local AutoLibraryPaperCFrame = AutoLibraryGetObjectCFrame(AutoLibraryHintPaper)
+
+					if AutoLibraryPaperCFrame
+						and AutoLibraryIsActuallyInRoom50()
+						and AutoLibraryIsInRoom50(AutoLibraryHintPaper) then
+
+						AutoLibraryHumanoidRootPart.CFrame = AutoLibraryPaperCFrame * CFrame.new(0, 5, 0)
+					end
+
+					for _, AutoLibraryPromptDescendant in ipairs(AutoLibraryHintPaper:GetDescendants()) do
+						if AutoLibraryPromptDescendant:IsA("ProximityPrompt")
+							and AutoLibraryIsInRoom50(AutoLibraryPromptDescendant)
+							and AutoLibraryIsActuallyInRoom50() then
+
+							fireproximityprompt(AutoLibraryPromptDescendant)
+						end
+					end
+
+					task.wait(0.05)
+				end
+			end
+
+			task.wait(0.05)
+		end
+	end)
+end)
+
+
+Toggles.AutoBreakerRoom:OnChanged(function(AutoBreakerRoomEnabled)
+	if AutoBreakerRoomConnection then
+		task.cancel(AutoBreakerRoomConnection)
+		AutoBreakerRoomConnection = nil
+	end
+
+	if AutoBreakerRoomRoomConnection then
+		AutoBreakerRoomRoomConnection:Disconnect()
+		AutoBreakerRoomRoomConnection = nil
+	end
+
+	if not AutoBreakerRoomEnabled then
+		return
+	end
+
+	local AutoBreakerRoomGateFireTime = 5
+	local AutoBreakerRoomWaitAfterLever = 5
+	local AutoBreakerRoomBreakerSecondTime = 10
+	local AutoBreakerRoomWaitBeforeWeb = 4
+	local AutoBreakerRoomWebDuration = 20
+
+	AutoBreakerRoomConnection = task.spawn(function()
+		local AutoBreakerRoomPlayers = game:GetService("Players")
+		local AutoBreakerRoomCurrentRooms = workspace:WaitForChild("CurrentRooms")
+		local AutoBreakerRoom100 = AutoBreakerRoomCurrentRooms:WaitForChild("100")
+
+		local function AutoBreakerRoomIsActuallyInRoom100()
+			return tonumber(AutoBreakerRoomPlayers.LocalPlayer:GetAttribute("CurrentRoom")) == 100
+		end
+
+		local function AutoBreakerRoomIsInRoom100(AutoBreakerRoomObject)
+			return AutoBreakerRoomObject
+				and AutoBreakerRoomObject.Parent
+				and AutoBreakerRoomObject:IsDescendantOf(AutoBreakerRoom100)
+				and AutoBreakerRoomObject:IsDescendantOf(AutoBreakerRoomCurrentRooms)
+		end
+
+		local function AutoBreakerRoomGetObjectCFrame(AutoBreakerRoomObject)
+			if not AutoBreakerRoomIsActuallyInRoom100() or not AutoBreakerRoomIsInRoom100(AutoBreakerRoomObject) then
+				return nil
+			end
+
+			if AutoBreakerRoomObject:IsA("Model") then
+				return AutoBreakerRoomObject:GetPivot()
+			elseif AutoBreakerRoomObject:IsA("BasePart") then
+				return AutoBreakerRoomObject.CFrame
+			end
+
+			local AutoBreakerRoomPart = AutoBreakerRoomObject:FindFirstChildWhichIsA("BasePart", true)
+			return AutoBreakerRoomPart and AutoBreakerRoomPart.CFrame
+		end
+
+		local function AutoBreakerRoomGetHRP()
+			local AutoBreakerRoomCharacter = AutoBreakerRoomPlayers.LocalPlayer.Character
+			return AutoBreakerRoomCharacter and AutoBreakerRoomCharacter:FindFirstChild("HumanoidRootPart")
+		end
+
+		local function AutoBreakerRoomActivate(AutoBreakerRoomObject)
+			if not AutoBreakerRoomObject then
+				return
+			end
+
+			if AutoBreakerRoomObject:IsA("ProximityPrompt") then
+				fireproximityprompt(AutoBreakerRoomObject)
+				return
+			end
+
+			for _, AutoBreakerRoomDescendant in ipairs(AutoBreakerRoomObject:GetDescendants()) do
+				if AutoBreakerRoomDescendant:IsA("ProximityPrompt") then
+					fireproximityprompt(AutoBreakerRoomDescendant)
+				end
+			end
+		end
+
+		local function AutoBreakerRoomConstantTPAndActivate(AutoBreakerRoomTarget, AutoBreakerRoomDuration, AutoBreakerRoomInterval, AutoBreakerRoomOffset)
+			AutoBreakerRoomInterval = AutoBreakerRoomInterval or 0.04
+			AutoBreakerRoomOffset = AutoBreakerRoomOffset or CFrame.new()
+			local AutoBreakerRoomEndTime = os.clock() + (AutoBreakerRoomDuration or 3)
+
+			while AutoBreakerRoomEnabled
+				and AutoBreakerRoomIsActuallyInRoom100()
+				and AutoBreakerRoomIsInRoom100(AutoBreakerRoomTarget)
+				and os.clock() < AutoBreakerRoomEndTime do
+
+				local AutoBreakerRoomHRP = AutoBreakerRoomGetHRP()
+				local AutoBreakerRoomCF = AutoBreakerRoomGetObjectCFrame(AutoBreakerRoomTarget)
+
+				if AutoBreakerRoomHRP and AutoBreakerRoomCF then
+					AutoBreakerRoomHRP.CFrame = AutoBreakerRoomCF * AutoBreakerRoomOffset
+				end
+
+				AutoBreakerRoomActivate(AutoBreakerRoomTarget)
+				task.wait(AutoBreakerRoomInterval)
+			end
+		end
+
+		while AutoBreakerRoomEnabled do
+			while AutoBreakerRoomEnabled and not AutoBreakerRoomIsActuallyInRoom100() do
+				task.wait(0.1)
+			end
+
+			if not AutoBreakerRoomEnabled then
+				return
+			end
+
+			local AutoBreakerRoomPoles = {}
+
+			while AutoBreakerRoomEnabled and AutoBreakerRoomIsActuallyInRoom100() do
+				AutoBreakerRoomPoles = {}
+
+				for _, AutoBreakerRoomDescendant in ipairs(AutoBreakerRoom100:GetDescendants()) do
+					if AutoBreakerRoomDescendant.Name == "LiveBreakerPolePickup" and AutoBreakerRoomIsInRoom100(AutoBreakerRoomDescendant) then
+						if not table.find(AutoBreakerRoomPoles, AutoBreakerRoomDescendant) then
+							table.insert(AutoBreakerRoomPoles, AutoBreakerRoomDescendant)
+						end
+					end
+				end
+
+				if #AutoBreakerRoomPoles == 0 then
+					break
+				end
+
+				for _, AutoBreakerRoomPole in ipairs(AutoBreakerRoomPoles) do
+					if not AutoBreakerRoomEnabled or not AutoBreakerRoomIsActuallyInRoom100() then
+						break
+					end
+
+					if AutoBreakerRoomIsInRoom100(AutoBreakerRoomPole) then
+						AutoBreakerRoomConstantTPAndActivate(AutoBreakerRoomPole, 2.8, 0.03)
+						task.wait(0.12)
+					end
+				end
+
+				task.wait(0.05)
+			end
+
+			if not AutoBreakerRoomEnabled or not AutoBreakerRoomIsActuallyInRoom100() then
+				continue
+			end
+
+			local AutoBreakerRoomIndustrialGate = AutoBreakerRoom100:FindFirstChild("IndustrialGate")
+			local AutoBreakerRoomBox = AutoBreakerRoomIndustrialGate and AutoBreakerRoomIndustrialGate:FindFirstChild("Box")
+			local AutoBreakerRoomLever = AutoBreakerRoomBox and AutoBreakerRoomBox:FindFirstChild("Lever")
+			local AutoBreakerRoomActivateEventPrompt = AutoBreakerRoomBox and AutoBreakerRoomBox:FindFirstChild("ActivateEventPrompt")
+
+			if AutoBreakerRoomActivateEventPrompt and AutoBreakerRoomLever then
+				local function AutoBreakerRoomGetLeverCFrame()
+					if AutoBreakerRoomLever:IsA("Model") then
+						return AutoBreakerRoomLever:GetPivot()
+					elseif AutoBreakerRoomLever:IsA("BasePart") then
+						return AutoBreakerRoomLever.CFrame
+					end
+					local AutoBreakerRoomPart = AutoBreakerRoomLever:FindFirstChildWhichIsA("BasePart", true)
+					return AutoBreakerRoomPart and AutoBreakerRoomPart.CFrame
+				end
+
+				local AutoBreakerRoomInitialLeverCFrame = AutoBreakerRoomGetLeverCFrame()
+				local AutoBreakerRoomLeverEndTime = os.clock() + 10
+
+				while AutoBreakerRoomEnabled
+					and AutoBreakerRoomIsActuallyInRoom100()
+					and AutoBreakerRoomIsInRoom100(AutoBreakerRoomLever)
+					and os.clock() < AutoBreakerRoomLeverEndTime do
+
+					local AutoBreakerRoomCurrentLeverCFrame = AutoBreakerRoomGetLeverCFrame()
+
+					if AutoBreakerRoomCurrentLeverCFrame and AutoBreakerRoomInitialLeverCFrame
+						and AutoBreakerRoomCurrentLeverCFrame ~= AutoBreakerRoomInitialLeverCFrame then
+						break
+					end
+
+					local AutoBreakerRoomHRP = AutoBreakerRoomGetHRP()
+					local AutoBreakerRoomCF = AutoBreakerRoomGetObjectCFrame(AutoBreakerRoomBox)
+
+					if AutoBreakerRoomHRP and AutoBreakerRoomCF then
+						AutoBreakerRoomHRP.CFrame = AutoBreakerRoomCF
+					end
+
+					AutoBreakerRoomActivate(AutoBreakerRoomActivateEventPrompt)
+					task.wait(0.04)
+				end
+			end
+
+			if not AutoBreakerRoomEnabled or not AutoBreakerRoomIsActuallyInRoom100() then
+				continue
+			end
+
+			task.wait(AutoBreakerRoomWaitAfterLever)
+
+			if not AutoBreakerRoomEnabled or not AutoBreakerRoomIsActuallyInRoom100() then
+				continue
+			end
+
+			local AutoBreakerRoomElevatorBreakerEmpty = AutoBreakerRoom100:FindFirstChild("ElevatorBreakerEmpty")
+			if not AutoBreakerRoomElevatorBreakerEmpty then
+				continue
+			end
+
+			local AutoBreakerRoomBreakerPrompt = AutoBreakerRoomElevatorBreakerEmpty:FindFirstChild("Prompt")
+			if not AutoBreakerRoomBreakerPrompt then
+				continue
+			end
+
+			local AutoBreakerRoomBreakerOffset = CFrame.new(0, -1.8, 0)
+
+			while AutoBreakerRoomEnabled and AutoBreakerRoomIsActuallyInRoom100() do
+				if AutoBreakerRoomElevatorBreakerEmpty:FindFirstChild("BreakerSwitchInBox") then
+					break
+				end
+
+				local AutoBreakerRoomHRP = AutoBreakerRoomGetHRP()
+				local AutoBreakerRoomCF = AutoBreakerRoomGetObjectCFrame(AutoBreakerRoomElevatorBreakerEmpty)
+
+				if AutoBreakerRoomHRP and AutoBreakerRoomCF then
+					AutoBreakerRoomHRP.CFrame = AutoBreakerRoomCF * AutoBreakerRoomBreakerOffset
+				end
+
+				AutoBreakerRoomActivate(AutoBreakerRoomBreakerPrompt)
+				task.wait(0.04)
+			end
+
+			if not AutoBreakerRoomEnabled or not AutoBreakerRoomIsActuallyInRoom100() then
+				continue
+			end
+
+			task.wait(10)
+
+			AutoBreakerRoomConstantTPAndActivate(
+				AutoBreakerRoomElevatorBreakerEmpty,
+				AutoBreakerRoomBreakerSecondTime,
+				0.04,
+				AutoBreakerRoomBreakerOffset
+			)
+
+			task.wait(AutoBreakerRoomWaitBeforeWeb)
+
+			if not AutoBreakerRoomEnabled or not AutoBreakerRoomIsActuallyInRoom100() then
+				continue
+			end
+
+			local AutoBreakerRoomElevatorCar = AutoBreakerRoom100:FindFirstChild("ElevatorCar")
+			local AutoBreakerRoomWeb = AutoBreakerRoomElevatorCar and AutoBreakerRoomElevatorCar:FindFirstChild("Web", true)
+
+			if AutoBreakerRoomWeb then
+				local AutoBreakerRoomEndTime = os.clock() + AutoBreakerRoomWebDuration
+
+				while AutoBreakerRoomEnabled and AutoBreakerRoomIsActuallyInRoom100() and os.clock() < AutoBreakerRoomEndTime do
+					local AutoBreakerRoomHRP = AutoBreakerRoomGetHRP()
+					local AutoBreakerRoomCF = AutoBreakerRoomGetObjectCFrame(AutoBreakerRoomWeb)
+
+					if AutoBreakerRoomHRP and AutoBreakerRoomCF then
+						AutoBreakerRoomHRP.CFrame = AutoBreakerRoomCF
+					end
+
+					task.wait(0.04)
+				end
+			end
+
+			while AutoBreakerRoomEnabled and AutoBreakerRoomIsActuallyInRoom100() do
+				task.wait(0.5)
+			end
+		end
+	end)
+end)
+
+local AutoHotelConnection
+local AutoHotelLibraryConnection
+local AutoHotelLibraryRoomConnection
+local AutoHotelSeekConnection
+local AutoHotelEntityPause = false
+local AutoHotelRoomProcessTime = 0.5
+local AutoHotelProcessedRooms = {}
+
+local AutoHotelEntityNames = {
+	["RushMoving"] = true,
+	["Scribbles"] = true,
+	["BashMoving"] = true,
+	["DronesStampede"] = true,
+	["AmbushMoving"] = true,
+	["A60"] = true,
+	["A120"] = true,
+	["GlitchRush"] = true,
+	["GlitchAmbush"] = true,
+	["BackdoorRush"] = true,
+	["CustomEntity"] = true,
+}
+
+local function AutoHotelIsEntityPresent()
+	if Toggles.AutoHotelIgnoreEntities and Toggles.AutoHotelIgnoreEntities.Value then
+		return false
+	end
+	for _, AutoHotelChild in ipairs(workspace:GetChildren()) do
+		if AutoHotelEntityNames[AutoHotelChild.Name] then
+			return true
+		end
+	end
+	return false
+end
+
+local function AutoHotelWaitForEntities(AutoHotelSeconds)
+	if Toggles.AutoHotelIgnoreEntities and Toggles.AutoHotelIgnoreEntities.Value then
+		return
+	end
+
+	task.wait(AutoHotelSeconds or 5)
+
+	while AutoHotelIsEntityPresent() do
+		task.wait(0.15)
+	end
+end
+
+local function AutoHotelGetNextClosedDoor()
+	if not Character then return nil, nil end
+
+	local AutoHotelGameData = game:GetService("ReplicatedStorage"):FindFirstChild("GameData")
+	if not AutoHotelGameData then return nil, nil end
+
+	local AutoHotelLatestRoom = AutoHotelGameData:FindFirstChild("LatestRoom")
+	if not AutoHotelLatestRoom then return nil, nil end
+
+	local AutoHotelStartRoom = AutoHotelLatestRoom.Value
+	local AutoHotelBestDoor, AutoHotelBestNumber = nil, math.huge
+	local AutoHotelCurrentRooms = workspace:FindFirstChild("CurrentRooms")
+
+	if AutoHotelCurrentRooms then
+		for _, AutoHotelRoom in ipairs(AutoHotelCurrentRooms:GetChildren()) do
+			local AutoHotelRoomNum = tonumber(AutoHotelRoom.Name)
+			if AutoHotelRoomNum and AutoHotelRoomNum ~= 100 and AutoHotelRoomNum >= AutoHotelStartRoom and AutoHotelRoomNum < AutoHotelBestNumber then
+				local AutoHotelDoor = AutoHotelRoom:FindFirstChild("Door")
+				if AutoHotelDoor and AutoHotelDoor:IsA("Model") then
+					local AutoHotelOpenAttr = AutoHotelDoor:GetAttribute("Open")
+					if AutoHotelOpenAttr == false or AutoHotelOpenAttr == nil then
+						AutoHotelBestNumber = AutoHotelRoomNum
+						AutoHotelBestDoor = AutoHotelDoor
+					end
+				end
+			end
+		end
+	end
+
+	return AutoHotelBestDoor, AutoHotelBestNumber
+end
+
+local function AutoHotelFindKeyObtain(AutoHotelRoom)
+	local AutoHotelFound = nil
+	local function AutoHotelScan(AutoHotelParent)
+		if AutoHotelFound then return end
+		for _, AutoHotelChild in ipairs(AutoHotelParent:GetChildren()) do
+			if AutoHotelChild.Name == "KeyObtain" then
+				AutoHotelFound = AutoHotelChild
+				return
+			end
+			AutoHotelScan(AutoHotelChild)
+			if AutoHotelFound then return end
+		end
+	end
+	AutoHotelScan(AutoHotelRoom)
+	return AutoHotelFound
+end
+
+local function AutoHotelHandleKey(AutoHotelRoomNum)
+	local AutoHotelCurrentRooms = workspace:FindFirstChild("CurrentRooms")
+	if not AutoHotelCurrentRooms then return false end
+
+	local AutoHotelRoom = AutoHotelCurrentRooms:FindFirstChild(tostring(AutoHotelRoomNum))
+	if not AutoHotelRoom then return false end
+
+	local AutoHotelDoor = AutoHotelRoom:FindFirstChild("Door")
+	if not AutoHotelDoor or not AutoHotelDoor:FindFirstChild("Lock") then
+		return false
+	end
+
+	local AutoHotelKeyObtain = AutoHotelFindKeyObtain(AutoHotelRoom)
+	if not AutoHotelKeyObtain then return false end
+
+	local AutoHotelStart = tick()
+	while tick() - AutoHotelStart < 12 do
+		if LocalPlayer.Backpack:FindFirstChild("Key") or (Character and Character:FindFirstChild("Key")) then
+			return true
+		end
+
+		if Character then
+			Character:PivotTo(AutoHotelKeyObtain:GetPivot())
+		end
+
+		for _, AutoHotelDesc in ipairs(AutoHotelKeyObtain:GetDescendants()) do
+			if AutoHotelDesc:IsA("ProximityPrompt") then
+				fireproximityprompt(AutoHotelDesc)
+			end
+		end
+
+		task.wait(0.12)
+	end
+	return false
+end
+
+local function AutoHotelProcessRoom(AutoHotelRoomNum)
+	if AutoHotelProcessedRooms[AutoHotelRoomNum] then
+		return
+	end
+	task.wait(AutoHotelRoomProcessTime)
+	AutoHotelProcessedRooms[AutoHotelRoomNum] = true
+end
+
+local function AutoHotelRunLibrary()
+	local AutoHotelCurrentRooms = workspace:WaitForChild("CurrentRooms")
+	local AutoHotelRoom50 = AutoHotelCurrentRooms:WaitForChild("50")
+	local AutoHotelLiveHintBooks = {}
+	local AutoHotelHintPaperObtained = false
+
+	local function AutoHotelIsInRoom50(AutoHotelObj)
+		return AutoHotelObj and AutoHotelObj:IsDescendantOf(AutoHotelRoom50)
+	end
+
+	local function AutoHotelIsActuallyInRoom50()
+		return tonumber(LocalPlayer:GetAttribute("CurrentRoom")) == 50
+	end
+
+	while Toggles.AutoHotel.Value and not AutoHotelIsActuallyInRoom50() do
+		task.wait(0.1)
+	end
+	if not Toggles.AutoHotel.Value then return end
+
+	AutoHotelWaitForEntities(5)
+
+	local function AutoHotelHasHintPaper()
+		local AutoHotelChar = LocalPlayer.Character
+		if not AutoHotelChar then return false end
+		return LocalPlayer.Backpack:FindFirstChild("LibraryHintPaper", true) or AutoHotelChar:FindFirstChild("LibraryHintPaper", true)
+	end
+
+	local function AutoHotelGetCFrame(AutoHotelObj)
+		if not AutoHotelIsActuallyInRoom50() or not AutoHotelIsInRoom50(AutoHotelObj) then return nil end
+		if AutoHotelObj:IsA("Model") then return AutoHotelObj:GetPivot() end
+		if AutoHotelObj:IsA("BasePart") then return AutoHotelObj.CFrame end
+		local AutoHotelPart = AutoHotelObj:FindFirstChildWhichIsA("BasePart", true)
+		return AutoHotelPart and AutoHotelPart.CFrame
+	end
+
+	local function AutoHotelCollectBooks()
+		for _, AutoHotelDesc in ipairs(AutoHotelRoom50:GetDescendants()) do
+			if AutoHotelDesc.Name == "LiveHintBook" and AutoHotelIsInRoom50(AutoHotelDesc) and not table.find(AutoHotelLiveHintBooks, AutoHotelDesc) then
+				table.insert(AutoHotelLiveHintBooks, AutoHotelDesc)
+			end
+		end
+	end
+
+	AutoHotelCollectBooks()
+
+	AutoHotelLibraryRoomConnection = AutoHotelRoom50.DescendantAdded:Connect(function(AutoHotelAdded)
+		if Toggles.AutoHotel.Value and AutoHotelIsActuallyInRoom50() and AutoHotelIsInRoom50(AutoHotelAdded) then
+			if AutoHotelAdded.Name == "LiveHintBook" and not table.find(AutoHotelLiveHintBooks, AutoHotelAdded) then
+				table.insert(AutoHotelLiveHintBooks, AutoHotelAdded)
+			end
+		end
+	end)
+
+	while Toggles.AutoHotel.Value and AutoHotelIsActuallyInRoom50() and #AutoHotelLiveHintBooks < 3 do
+		AutoHotelCollectBooks()
+		if #AutoHotelLiveHintBooks >= 3 then break end
+		task.wait(0.1)
+	end
+
+	while Toggles.AutoHotel.Value and AutoHotelIsActuallyInRoom50() and not AutoHotelHintPaperObtained do
+		if AutoHotelHasHintPaper() then
+			AutoHotelHintPaperObtained = true
+			break
+		end
+
+		for AutoHotelIndex = #AutoHotelLiveHintBooks, 1, -1 do
+			local AutoHotelBook = AutoHotelLiveHintBooks[AutoHotelIndex]
+			if not AutoHotelIsInRoom50(AutoHotelBook) then
+				table.remove(AutoHotelLiveHintBooks, AutoHotelIndex)
+				continue
+			end
+
+			while Toggles.AutoHotel.Value and AutoHotelIsActuallyInRoom50() and not AutoHotelHintPaperObtained and AutoHotelBook.Parent and AutoHotelIsInRoom50(AutoHotelBook) do
+				if AutoHotelHasHintPaper() then
+					AutoHotelHintPaperObtained = true
+					break
+				end
+
+				local AutoHotelChar = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+				local AutoHotelHRP = AutoHotelChar:FindFirstChild("HumanoidRootPart")
+				if not AutoHotelHRP then
+					task.wait()
+					continue
+				end
+
+				local AutoHotelCF = AutoHotelGetCFrame(AutoHotelBook)
+				if AutoHotelCF then
+					AutoHotelHRP.CFrame = AutoHotelCF
+				end
+
+				for _, AutoHotelPrompt in ipairs(AutoHotelBook:GetDescendants()) do
+					if AutoHotelPrompt:IsA("ProximityPrompt") then
+						fireproximityprompt(AutoHotelPrompt)
+					end
+				end
+				task.wait(0.08)
+			end
+			if AutoHotelHintPaperObtained then break end
+		end
+
+		if AutoHotelHasHintPaper() then
+			AutoHotelHintPaperObtained = true
+			break
+		end
+
+		local AutoHotelPaper = AutoHotelRoom50:FindFirstChild("LibraryHintPaper", true)
+		if AutoHotelPaper and AutoHotelIsInRoom50(AutoHotelPaper) then
+			while Toggles.AutoHotel.Value and AutoHotelIsActuallyInRoom50() and not AutoHotelHintPaperObtained and AutoHotelPaper.Parent do
+				if AutoHotelHasHintPaper() then
+					AutoHotelHintPaperObtained = true
+					break
+				end
+
+				local AutoHotelChar = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+				local AutoHotelHRP = AutoHotelChar:FindFirstChild("HumanoidRootPart")
+				if AutoHotelHRP then
+					local AutoHotelCF = AutoHotelGetCFrame(AutoHotelPaper)
+					if AutoHotelCF then
+						AutoHotelHRP.CFrame = AutoHotelCF * CFrame.new(0, 5, 0)
+					end
+				end
+
+				for _, AutoHotelPrompt in ipairs(AutoHotelPaper:GetDescendants()) do
+					if AutoHotelPrompt:IsA("ProximityPrompt") then
+						fireproximityprompt(AutoHotelPrompt)
+					end
+				end
+				task.wait(0.08)
+			end
+		end
+		task.wait(0.1)
+	end
+end
+
+local function AutoHotelHandleSeek()
+	local AutoHotelLastTriggerRoom = nil
+
+	while Toggles.AutoHotel.Value do
+		local AutoHotelCurrentRooms = workspace:FindFirstChild("CurrentRooms")
+		if not AutoHotelCurrentRooms then
+			task.wait(0.2)
+			continue
+		end
+
+		local TriggerRoomNum = nil
+
+		for _, Room in ipairs(AutoHotelCurrentRooms:GetChildren()) do
+			local Num = tonumber(Room.Name)
+			if Num and Num ~= AutoHotelLastTriggerRoom then
+				local Trigger = Room:FindFirstChild("TriggerEventCollision")
+					or Room:FindFirstChild("TriggerEventCollision", true)
+
+				if Trigger then
+					TriggerRoomNum = Num
+					break
+				end
+			end
+		end
+
+		if not TriggerRoomNum then
+			task.wait(0.15)
+			continue
+		end
+
+		AutoHotelLastTriggerRoom = TriggerRoomNum
+
+		AutoHotelEntityPause = true
+		AutoHotelWaitForEntities(10)
+		AutoHotelEntityPause = false
+	end
+end
+
+Toggles.AutoHotel:OnChanged(function(AutoHotelEnabled)
+	if AutoHotelConnection then
+		task.cancel(AutoHotelConnection)
+		AutoHotelConnection = nil
+	end
+	if AutoHotelLibraryConnection then
+		task.cancel(AutoHotelLibraryConnection)
+		AutoHotelLibraryConnection = nil
+	end
+	if AutoHotelLibraryRoomConnection then
+		AutoHotelLibraryRoomConnection:Disconnect()
+		AutoHotelLibraryRoomConnection = nil
+	end
+	if AutoHotelSeekConnection then
+		task.cancel(AutoHotelSeekConnection)
+		AutoHotelSeekConnection = nil
+	end
+
+	AutoHotelEntityPause = false
+	table.clear(AutoHotelProcessedRooms)
+
+	if not AutoHotelEnabled then return end
+
+	if Options.AutoHotelRoomProcess then
+		AutoHotelRoomProcessTime = Options.AutoHotelRoomProcess.Value
+		Options.AutoHotelRoomProcess:OnChanged(function(Value)
+			AutoHotelRoomProcessTime = Value
+		end)
+	end
+
+	local AutoHotelCurrentRooms = workspace:FindFirstChild("CurrentRooms")
+	if AutoHotelCurrentRooms then
+		AutoHotelCurrentRooms.ChildAdded:Connect(function(AutoHotelChild)
+			local AutoHotelNum = tonumber(AutoHotelChild.Name)
+			if AutoHotelNum then
+				AutoHotelProcessRoom(AutoHotelNum)
+			end
+		end)
+	end
+
+	AutoHotelSeekConnection = task.spawn(AutoHotelHandleSeek)
+
+	task.spawn(function()
+		while Toggles.AutoHotel.Value do
+			if AutoHotelIsEntityPresent() then
+				AutoHotelEntityPause = true
+				while AutoHotelIsEntityPresent() and Toggles.AutoHotel.Value do
+					task.wait(0.15)
+				end
+				AutoHotelEntityPause = false
+			end
+			task.wait(0.2)
+		end
+	end)
+
+	AutoHotelConnection = task.spawn(function()
+		while Toggles.AutoHotel.Value do
+			if AutoHotelEntityPause then
+				task.wait(0.1)
+				continue
+			end
+
+			local AutoHotelDoor, AutoHotelRoomNum = AutoHotelGetNextClosedDoor()
+
+			if AutoHotelDoor and AutoHotelRoomNum and Character then
+				if AutoHotelRoomNum == 50 then
+					if not AutoHotelLibraryConnection then
+						AutoHotelLibraryConnection = task.spawn(function()
+							AutoHotelRunLibrary()
+							AutoHotelLibraryConnection = nil
+						end)
+					end
+					task.wait(0.4)
+				else
+					AutoHotelProcessRoom(AutoHotelRoomNum)
+					AutoHotelHandleKey(AutoHotelRoomNum)
+					if Character and not AutoHotelEntityPause then
+						Character:PivotTo(AutoHotelDoor:GetPivot() * CFrame.new(0, -1, 0))
+					end
+				end
+			end
+			task.wait(0.15)
+		end
+	end)
+end)
+
+
+
+Toggles.SkipSeekMines:OnChanged(function(Value)
+	if Value then
+		if Floor ~= "Mines" then
+			return
+		end
+		task.spawn(function()
+			local MinesSkipSeekCurrentRooms
+
+			repeat
+				if not Toggles.SkipSeekMines.Value then
+					return
+				end
+
+				MinesSkipSeekCurrentRooms = workspace:FindFirstChild("CurrentRooms")
+				task.wait()
+			until MinesSkipSeekCurrentRooms
+
+			local MinesSkipSeekStartRoom
+
+			repeat
+				if not Toggles.SkipSeekMines.Value then
+					return
+				end
+
+				MinesSkipSeekCurrentRooms = workspace:FindFirstChild("CurrentRooms")
+
+				if MinesSkipSeekCurrentRooms then
+					MinesSkipSeekStartRoom = MinesSkipSeekCurrentRooms:FindFirstChild("42")
+				end
+
+				task.wait()
+			until MinesSkipSeekStartRoom
+
+			local MinesSkipSeekStartDoor
+
+			repeat
+				if not Toggles.SkipSeekMines.Value then
+					return
+				end
+
+				MinesSkipSeekStartDoor = MinesSkipSeekStartRoom:FindFirstChild("Door", true)
+				task.wait()
+			until MinesSkipSeekStartDoor
+
+			repeat
+				if not Toggles.SkipSeekMines.Value then
+					return
+				end
+
+				task.wait()
+			until MinesSkipSeekStartDoor:GetAttribute("Opened") == true
+
+			if Character and Character:GetAttribute("Minecarting") == true then
+				Character:SetAttribute("Minecarting", false)
+			end
+
+			for _, MinesSkipSeekRoomNumber in ipairs({
+				43, 44, 45, 46, 47, 48, 49,
+				78, 79, 80, 81, 82, 83
+			}) do
+				if not Toggles.SkipSeekMines.Value then
+					return
+				end
+
+				local MinesSkipSeekRoom
+
+				repeat
+					if not Toggles.SkipSeekMines.Value then
+						return
+					end
+
+					MinesSkipSeekCurrentRooms = workspace:FindFirstChild("CurrentRooms")
+
+					if MinesSkipSeekCurrentRooms then
+						MinesSkipSeekRoom = MinesSkipSeekCurrentRooms:FindFirstChild(
+							tostring(MinesSkipSeekRoomNumber)
+						)
+					end
+
+					task.wait()
+				until MinesSkipSeekRoom
+
+				local MinesSkipSeekDoor
+
+				repeat
+					if not Toggles.SkipSeekMines.Value then
+						return
+					end
+
+					MinesSkipSeekDoor = MinesSkipSeekRoom:FindFirstChild("Door", true)
+					task.wait()
+				until MinesSkipSeekDoor
+
+				repeat
+					if not Toggles.SkipSeekMines.Value then
+						return
+					end
+
+					if Character then
+						Character:PivotTo(MinesSkipSeekDoor:GetPivot())
+					end
+
+					task.wait()
+				until MinesSkipSeekDoor:GetAttribute("Opened") == true
+
+				if MinesSkipSeekRoomNumber == 49 or MinesSkipSeekRoomNumber == 83 then
+					if not Character then
+						return
+					end
+
+					local MinesSkipSeekVoidPivot = Character:GetPivot()
+					MinesSkipSeekVoidPivot = MinesSkipSeekVoidPivot + Vector3.new(0, -1000, 0)
+
+					task.wait(0.3)
+
+					for MinesSkipSeekVoidCount = 1, 12 do
+						Character:PivotTo(MinesSkipSeekVoidPivot)
+					end
+
+					for MinesSkipSeekVoidCount = 1, 12 do
+						Character:PivotTo(MinesSkipSeekVoidPivot)
+					end
+
+					for MinesSkipSeekVoidCount = 1, 12 do
+						Character:PivotTo(MinesSkipSeekVoidPivot)
+					end
+
+					task.wait(0.3)
+
+					for MinesSkipSeekVoidCount = 1, 6 do
+						Character:PivotTo(MinesSkipSeekVoidPivot)
+					end
+				end
+
+				if MinesSkipSeekRoomNumber == 83 then
+					return
+				end
+			end
+		end)
+	end
+end)
+
+Toggles.OrbitDroppedItems:OnChanged(function(OrbitDroppedItemsEnabled)
+	if OrbitDroppedItemsConnection then
+		pcall(function() OrbitDroppedItemsConnection:Disconnect() end)
+		OrbitDroppedItemsConnection = nil
+	end
+	if not OrbitDroppedItemsEnabled then return end
+	OrbitDroppedItemsAngle = 0
+	OrbitDroppedItemsLastTeleport = tick()
+	OrbitDroppedItemsPauseUntil = 0
+	local RS = RunService or Services.RunService
+	OrbitDroppedItemsConnection = RS.Heartbeat:Connect(function(dt)
+		local char = LocalPlayer and LocalPlayer.Character
+		if not char then return end
+		local hrp = char:FindFirstChild("HumanoidRootPart")
+		if not hrp then return end
+
+		local height = (Options.OrbitDroppedItemsHeight and Options.OrbitDroppedItemsHeight.Value) or 2
+		local dist = (Options.OrbitDroppedItemsDistance and Options.OrbitDroppedItemsDistance.Value) or 5
+		local speed = (Options.OrbitDroppedItemsSpeed and Options.OrbitDroppedItemsSpeed.Value) or 2
+		local now = tick()
+
+		local list = {}
+		for _, folder in ipairs(MsFent_GetDropsFolders()) do
+			for _, obj in ipairs(folder:GetChildren()) do
+				if obj:IsA("Model") or obj:IsA("BasePart") then
+					list[#list + 1] = obj
+				end
+			end
+		end
+		local count = #list
+		if count == 0 then return end
+
+		-- pull to player every 10s (anti-despawn), pause 2s
+		if now - OrbitDroppedItemsLastTeleport >= 10 then
+			OrbitDroppedItemsLastTeleport = now
+			OrbitDroppedItemsPauseUntil = now + 2
+			local center = hrp.CFrame * CFrame.new(0, 1, 0)
+			for _, obj in ipairs(list) do
+				MsFent_MoveDrop(obj, center)
+			end
+		end
+		if now < OrbitDroppedItemsPauseUntil then return end
+
+		OrbitDroppedItemsAngle += dt * speed
+		for i, obj in ipairs(list) do
+			local ang = OrbitDroppedItemsAngle + ((i - 1) / count) * math.pi * 2
+			local pos = hrp.Position + Vector3.new(
+				math.cos(ang) * dist,
+				height,
+				math.sin(ang) * dist
+			)
+			MsFent_MoveDrop(obj, CFrame.new(pos))
+		end
+	end)
+	pcall(function()
+		Functions.Notify({ Title = "Orbit Dropped Items", Body = "ON — needs server physics ownership; works best on Stairwell drops." })
+	end)
+end)
+
 
 Library:OnUnload(function()
 	for Key, Connection in Connections do
@@ -8781,7 +10969,7 @@ Library:OnUnload(function()
 
 	CollisionClone:Destroy()
 	CollisionPartClone:Destroy()
-	Abysall.ESPLibrary:Unload()
+	MsFent.ESPLibrary:Unload()
 
 	if Main_Game then
 		Main_Game.fovtarget   = 70
@@ -8789,9 +10977,36 @@ Library:OnUnload(function()
 		Main_Game.tooloffset   = Vector3.zero
 	end
 
-	getgenv().Abysall = nil
+	getgenv().MsFent = nil
+	getgenv().MsFent = nil
 end)
 
-while not Globals.MainUI do task.wait() end
-Abysall.Interface.ApplySettingsTab(Window)
-Functions.Notify({ Title = "Successfully loaded in " .. math.floor((tick() - LoadStart) * 1000) / 1000 .. " seconds." , Body = "Press '" .. tostring(Options.MenuKeybind.Value) .. "' to toggle the UI."})
+-- Don't block forever if MainUI is slow/missing
+do
+	local t0 = tick()
+	while not Globals.MainUI and tick() - t0 < 15 do
+		task.wait(0.1)
+	end
+	if not Globals.MainUI then
+		warn("[Ms fent] MainUI not found after 15s — continuing (Settings still loads)")
+	end
+end
+
+-- Load saved config now that every toggle/option exists
+pcall(function()
+	local SaveManager = MsFent.Interface.SaveManager
+	if SaveManager and SaveManager.LoadAutoloadConfig then
+		SaveManager:LoadAutoloadConfig()
+		print("[Ms fent] Autoload config applied")
+	end
+end)
+
+
+-- Info tab already applied earlier; ensure Settings appears
+pcall(function()
+	local bind = (Options.MenuKeybind and Options.MenuKeybind.Value) or "RightShift"
+	Functions.Notify({
+		Title = "Successfully loaded in " .. math.floor((tick() - LoadStart) * 1000) / 1000 .. " seconds.",
+		Body = "Press '" .. tostring(bind) .. "' to toggle the UI.",
+	})
+end)
